@@ -4,8 +4,9 @@
   "description": "gateway of the label.bkict.org project",
   "main": "main.ts",
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
+    "generate": "./node_modules/.bin/proto-loader-gen-types --longs=Number --enums=Number --oneofs --grpcLib=@grpc/grpc-js --outDir=src/proto/gen src/proto/**/*.proto",
+    "build": "npm run generate && tsc --build",
+    "clean": "rm -r ./src/proto/gen && tsc --build --clean",
     "debug": "npm run build && npm run watch-debug",
     "lint": "npx eslint ./src --ext .js,.jsx,.ts,.tsx",
     "serve-debug": "nodemon --inspect dist/main.js",
@@ -19,6 +20,8 @@
   "author": "tranhieu23.code@outlook.com",
   "license": "ISC",
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.5",
+    "@grpc/proto-loader": "^0.6.9",
     "express": "^4.17.3",
     "winston": "^3.6.0"
   },
@@ -29,6 +32,7 @@
     "eslint-config-prettier": "^8.4.0",
     "nodemon": "^2.0.15",
     "ts-node": "^10.6.0",
+    "ts-protoc-gen": "^0.15.0",
     "typescript": "^4.6.2"
   }
 }
