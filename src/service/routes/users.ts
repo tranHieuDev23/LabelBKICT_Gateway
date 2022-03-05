@@ -16,10 +16,13 @@ export function getUserRouter(
         const password = req.body.password as string;
 
         const { error: createUserError, response: createUserResponse } =
-            await promisifyGrpcCall(userServiceClient.CreateUser, {
-                username,
-                displayName,
-            });
+            await promisifyGrpcCall(
+                userServiceClient.CreateUser.bind(userServiceClient),
+                {
+                    username,
+                    displayName,
+                }
+            );
         if (createUserError !== null) {
             logger.error("failed to call user_service.CreateUser()", {
                 error: createUserError,
@@ -32,7 +35,7 @@ export function getUserRouter(
         // At this point, user and user ID should be provided.
         const userID = createUserResponse?.user?.id || 0;
         const { error: createUserPasswordError } = await promisifyGrpcCall(
-            userServiceClient.CreateUserPassword,
+            userServiceClient.CreateUserPassword.bind(userServiceClient),
             {
                 password: {
                     ofUserId: userID,
