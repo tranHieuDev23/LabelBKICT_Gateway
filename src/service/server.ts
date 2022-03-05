@@ -3,20 +3,17 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import { middleware } from "express-openapi-validator";
 import { injected, token } from "brandi";
-import { getUserRouter } from "./routes";
-import { UserServiceClient } from "../proto/gen/UserService";
+import { ROUTES_TOKEN } from "./routes";
 import { Logger } from "winston";
-import { getSessionsRouter } from "./routes/sessions";
-import { getUserRolesRouter } from "./routes/user_roles";
-import { getUserPermissionsRouter } from "./routes/user_permissions";
 import { GatewayServerConfig, GATEWAY_SERVER_CONFIG_TOKEN } from "../config";
-import { USER_SERVICE_DM_TOKEN } from "../dataaccess/grpc";
 import { LOGGER_TOKEN } from "../utils";
+import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./error_handler_middleware";
 
 export class GatewayHTTPServer {
     constructor(
+        private readonly routes: express.Router[],
+        private readonly errorHandler: express.ErrorRequestHandler,
         private readonly gatewayServerConfig: GatewayServerConfig,
-        private readonly userServiceDM: UserServiceClient,
         private readonly logger: Logger
     ) {}
 
@@ -46,22 +43,8 @@ export class GatewayHTTPServer {
             })
         );
 
-        server.use(
-            "/api/users",
-            getUserRouter(this.userServiceDM, this.logger)
-        );
-        server.use(
-            "/api/sessions",
-            getSessionsRouter(this.userServiceDM, this.logger)
-        );
-        server.use(
-            "/api/user_roles",
-            getUserRolesRouter(this.userServiceDM, this.logger)
-        );
-        server.use(
-            "/api/user_permissions",
-            getUserPermissionsRouter(this.userServiceDM, this.logger)
-        );
+        server.use(this.routes);
+        server.use(this.errorHandler);
 
         return server;
     }
@@ -69,8 +52,9 @@ export class GatewayHTTPServer {
 
 injected(
     GatewayHTTPServer,
+    ROUTES_TOKEN,
+    ERROR_HANDLER_MIDDLEWARE_TOKEN,
     GATEWAY_SERVER_CONFIG_TOKEN,
-    USER_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
 

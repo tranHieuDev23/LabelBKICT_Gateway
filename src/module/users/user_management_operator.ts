@@ -1,4 +1,14 @@
 import { injected, token } from "brandi";
+import httpStatus from "http-status";
+import { Logger } from "winston";
+import { USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
+import { UserServiceClient } from "../../proto/gen/UserService";
+import {
+    ErrorWithHTTPCode,
+    getHttpCodeFromGRPCStatus,
+    LOGGER_TOKEN,
+} from "../../utils";
+import { promisifyGRPCCall } from "../../utils/grpc";
 import { User, UserRole } from "../schemas";
 
 export interface UserManagementOperator {
@@ -26,12 +36,61 @@ export interface UserManagementOperator {
 }
 
 export class UserManagementOperatorImpl implements UserManagementOperator {
+    constructor(
+        private readonly userServiceDM: UserServiceClient,
+        private readonly logger: Logger
+    ) {}
+
     public async createUser(
         username: string,
         displayName: string,
         password: string
     ): Promise<User> {
-        throw new Error("Method not implemented.");
+        const { error: createUserError, response: createUserResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.CreateUser.bind(this.userServiceDM),
+                {
+                    username,
+                    displayName,
+                }
+            );
+        if (createUserError !== null) {
+            this.logger.error("failed to call user_service.CreateUser()", {
+                error: createUserError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to create new user",
+                getHttpCodeFromGRPCStatus(createUserError.code)
+            );
+        }
+
+        // At this point, the newly created user with all information should be available.
+        const userID = createUserResponse?.user?.id || 0;
+        const userUsername = createUserResponse?.user?.username || "";
+        const userDisplayName = createUserResponse?.user?.displayName || "";
+        const { error: createUserPasswordError } = await promisifyGRPCCall(
+            this.userServiceDM.CreateUserPassword.bind(this.userServiceDM),
+            {
+                password: {
+                    ofUserId: userID,
+                    password: password,
+                },
+            }
+        );
+        if (createUserPasswordError !== null) {
+            this.logger.error(
+                "failed to call user_service.CreateUserPassword()",
+                {
+                    error: createUserError,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to create new user's password",
+                getHttpCodeFromGRPCStatus(createUserPasswordError.code)
+            );
+        }
+
+        return new User(userID, userUsername, userDisplayName);
     }
 
     public async getUserList(
@@ -57,7 +116,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
     }
 }
 
-injected(UserManagementOperatorImpl);
+injected(UserManagementOperatorImpl, USER_SERVICE_DM_TOKEN, LOGGER_TOKEN);
 
 export const USER_MANAGEMENT_OPERATOR_TOKEN = token<UserManagementOperator>(
     "UserManagementOperator"

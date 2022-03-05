@@ -5,7 +5,7 @@ export declare type GRPCClientUnaryCall<RequestType, ResponseType> = (
     callback: requestCallback<ResponseType>
 ) => ClientUnaryCall;
 
-export async function promisifyGrpcCall<RequestType, ResponseType>(
+export async function promisifyGRPCCall<RequestType, ResponseType>(
     clientUnaryCall: GRPCClientUnaryCall<RequestType, ResponseType>,
     request: RequestType
 ): Promise<{ error: ServiceError | null; response: ResponseType | undefined }> {

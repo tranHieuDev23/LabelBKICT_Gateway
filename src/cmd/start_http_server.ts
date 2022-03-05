@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import * as utils from "../utils";
 import * as config from "../config";
 import * as grpc from "../dataaccess/grpc";
+import * as modules from "../module";
 import * as service from "../service";
 
 export function startHTTPServer(dotenvPath: string) {
@@ -14,6 +15,7 @@ export function startHTTPServer(dotenvPath: string) {
     utils.bindToContainer(container);
     config.bindToContainer(container);
     grpc.bindToContainer(container);
+    modules.bindToContainer(container);
     service.bindToContainer(container);
 
     const server = container.get(service.GATEWAY_HTTP_SERVER_TOKEN);
