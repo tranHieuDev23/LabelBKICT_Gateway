@@ -1,0 +1,1233 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "label.bkict.org Gateway API",
+        "version": "1.0"
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "description": "A user in the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "User ID, should be unique across all user."
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "Username, used to log into the system. Should be unique across all user.",
+                        "minLength": 6,
+                        "maxLength": 64,
+                        "pattern": "^[a-zA-Z0-9]+$"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The user's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    }
+                }
+            },
+            "UserPassword": {
+                "type": "string",
+                "description": "The password of an user in the system.",
+                "minLength": 8
+            },
+            "Token": {
+                "type": "string",
+                "description": "A token that allow the user to be authenticated to the system."
+            },
+            "UserRole": {
+                "type": "object",
+                "description": "A role in the system, which may contain some UserPermission that allows the user to operate on the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "User Role ID, should be unique across all user role."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The user role's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A short description about the user role.",
+                        "maxLength": 256
+                    }
+                }
+            },
+            "UserPermission": {
+                "type": "object",
+                "description": "A permission in the system, allowing the user to operate certain features on the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "User Role ID, should be unique across all user role."
+                    },
+                    "permission_name": {
+                        "type": "string",
+                        "description": "The permission name. Should only contain letter, number, underscore (_) and dot (.). Dots should be used to separate the namespace of the permission, allowing easy organization of the permission, such as user.manage, image.view, etc...",
+                        "minLength": 1,
+                        "maxLength": 256,
+                        "pattern": "^[a-zA-Z0-9_.]+$"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A short description about the user permission.",
+                        "maxLength": 256
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "AuthenticationToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "paths": {
+        "/api/users": {
+            "post": {
+                "description": "Create a new user. If the user is successfully created, an authorization token is included in the response as a cookie, allowing the newly created user to operate on the system.",
+                "tags": [
+                    "User Management"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "$ref": "#/components/schemas/User/properties/username"
+                                    },
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/User/properties/display_name"
+                                    },
+                                    "password": {
+                                        "$ref": "#/components/schemas/UserPassword"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User created successfully. An authorization token is included in the response as a cookie, allowing the newly created user to operate on the system.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Authentication token for the newly created user.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create user because the username or display name does not satisfy the constraints."
+                    },
+                    "409": {
+                        "description": "Failed to create user because the username has already been taken."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get user list. User needs to have `users.read` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "offset": {
+                                        "type": "integer",
+                                        "description": "The index of the first item to be returned.",
+                                        "minimum": 0,
+                                        "default": 0
+                                    },
+                                    "limit": {
+                                        "type": "integer",
+                                        "description": "The maximum number of items to be returned.",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "default": 10
+                                    },
+                                    "sort_order": {
+                                        "type": "integer",
+                                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending username) or 3 (sorted by descending username), 4 (sorted by ascending display name) or 5 (sorted by descending display name).",
+                                        "minimum": 0,
+                                        "maximum": 5,
+                                        "default": 0
+                                    },
+                                    "with_user_role": {
+                                        "type": "boolean",
+                                        "description": "If true, will return the list of user roles each user in the list has.",
+                                        "default": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User list retrieved successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_user_count": {
+                                            "type": "integer",
+                                            "description": "The total number of users."
+                                        },
+                                        "user_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            },
+                                            "description": "The list of users."
+                                        },
+                                        "user_role_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/UserRole"
+                                                }
+                                            },
+                                            "description": "If with_user_role = true, this field is the list of user roles each user in user_list has, in the same order. If with_user_role = false, this field is not returned."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve user list because the offset, limit or sort order does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve user list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve user list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}": {
+            "patch": {
+                "description": "Update user information. User needs to have `users.write` permission in order to call this API to update other user's information successfully. Any field that is not provided will not be updated.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "$ref": "#/components/schemas/User/properties/username"
+                                    },
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/User/properties/display_name"
+                                    },
+                                    "password": {
+                                        "$ref": "#/components/schemas/UserPassword"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user because the username or display name does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    },
+                    "409": {
+                        "description": "Failed to update user because the username has already been taken."
+                    }
+                }
+            }
+        },
+        "/api/sessions/password": {
+            "post": {
+                "description": "Login with password. If the user is successfully logged in, an authorization token is included in the response as a cookie, allowing the user to operate on the system.",
+                "tags": [
+                    "Session Management"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "$ref": "#/components/schemas/User/properties/username"
+                                    },
+                                    "password": {
+                                        "$ref": "#/components/schemas/UserPassword"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User is logged in successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Authentication token for the newly created user.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "user_role_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserRole"
+                                            }
+                                        },
+                                        "user_permission_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserPermission"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to log user in."
+                    }
+                }
+            }
+        },
+        "/api/sessions": {
+            "delete": {
+                "description": "Log out. User needs to already be logged in to the system in order to call this API successfully.",
+                "tags": [
+                    "Session Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User is logged out successfully."
+                    },
+                    "401": {
+                        "description": "Failed to log user out."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get the current session's user information. User needs to already be logged in to the system in order to call this API successfully.",
+                "tags": [
+                    "Session Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved session's user information successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "user_role_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserRole"
+                                            }
+                                        },
+                                        "user_permission_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserPermission"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid session information, no user is associated with it."
+                    }
+                }
+            }
+        },
+        "/api/roles": {
+            "post": {
+                "description": "Create a new user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/UserRole/properties/display_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserRole/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserRole"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create user role because the display name or description does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create user role because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create user role because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get user role list. User needs to have `user_roles.read` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "offset": {
+                                        "type": "integer",
+                                        "description": "The index of the first item to be returned.",
+                                        "minimum": 0,
+                                        "default": 0
+                                    },
+                                    "limit": {
+                                        "type": "integer",
+                                        "description": "The maximum number of items to be returned.",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "default": 10
+                                    },
+                                    "sort_order": {
+                                        "type": "integer",
+                                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending display name) or 3 (sorted by descending display name).",
+                                        "minimum": 0,
+                                        "maximum": 3,
+                                        "default": 0
+                                    },
+                                    "with_user_permission": {
+                                        "type": "boolean",
+                                        "description": "If true, will return the list of user permissions each user role in the list has.",
+                                        "default": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role list retrieved successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_user_role_count": {
+                                            "type": "integer",
+                                            "description": "The total number of user roles."
+                                        },
+                                        "user_role_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserRole"
+                                            },
+                                            "description": "The list of user roles."
+                                        },
+                                        "user_permission_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/UserPermission"
+                                                }
+                                            },
+                                            "description": "If with_user_permission = true, this field is the list of user permissions each user role in user_role_list has, in the same order. If with_user_permission = false, this field is not returned."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve user role list because the offset, limit or sort order does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve user role list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve user role list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/roles/{user_role_id}": {
+            "patch": {
+                "description": "Update user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_role_id",
+                        "in": "path",
+                        "description": "The ID of the user role to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/UserRole/properties/display_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserRole/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserRole"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user role because the display name or description does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user role because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user role because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update user role because no user role with the provided user_role_id is found."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_role_id",
+                        "in": "path",
+                        "description": "The ID of the user role to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User role updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete user role because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete user role because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete user role because no user role with the provided user_role_id is found."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/roles": {
+            "post": {
+                "description": "Add a user role to a user. User needs to have `users.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user to be added user role for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_role_id": {
+                                        "$ref": "#/components/schemas/UserRole/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role added to user successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to add user role to user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to add user role to user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to add user role to user because user with user_id or user role with user_role_id doesn't exist."
+                    },
+                    "409": {
+                        "description": "Failed to add user role to user because user with user_id already has user role with user_role_id."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a user role from a user. User needs to have `users.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Role Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user to be remove user role for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_role_id": {
+                                        "$ref": "#/components/schemas/UserRole/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User role removed to user successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove user role from user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove user role from user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user role from user because user with user_id or user role with user_role_id doesn't exist, or both of them exist but user doesn't have the user role."
+                    }
+                }
+            }
+        },
+        "/api/permissions": {
+            "post": {
+                "description": "Create a new user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "permission_name": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/permission_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User permission created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserPermission"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create user permission because the permission name or description does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create user permission because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create user permission because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get user permission list. User needs to have `user_permissions.read` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User role list retrieved successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user_permission_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserPermission"
+                                            },
+                                            "description": "The list of user permissions."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to retrieve user permission list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve user permission list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/permissions/{user_permission_id}": {
+            "patch": {
+                "description": "Update user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_permission_id",
+                        "in": "path",
+                        "description": "The user permission to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserPermission/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/id"
+                                    },
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/permission_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User permission updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserRole"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user permission because the permission name or description does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user permission because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user permission because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update user permission because no user permission with the provided user_permission_id is found."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_permission_id",
+                        "in": "path",
+                        "description": "The user permission to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserPermission/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User permission updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete user permission because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete user permission because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete user permission because no user permission with the provided user_permission_id is found."
+                    }
+                }
+            }
+        },
+        "/api/roles/{user_role_id}/permissions": {
+            "post": {
+                "description": "Add a user permission to a user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_role_id",
+                        "in": "path",
+                        "description": "The user role to be added user permission for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_permission_id": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User permission added to user role successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to add user permission to user role because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to add user permission to user role does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to add user permission to user role because user role with user_role_id or user permission with user_permission_id doesn't exist."
+                    },
+                    "409": {
+                        "description": "Failed to add user permission to user role because user role with user_role_id already has user permission with user_permission_id."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a user permission from a user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "tags": [
+                    "User Permission Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_role_id",
+                        "in": "path",
+                        "description": "The user role to be remove user permission for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_permission_id": {
+                                        "$ref": "#/components/schemas/UserPermission/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User permission removed from user role successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove user permission from user role because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove user permission from user role because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user permission from user role because user role with user_role_id or user permission with user_permission_id doesn't exist, or user role doesn't have the user permission."
+                    }
+                }
+            }
+        }
+    }
+}
