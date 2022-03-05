@@ -93,7 +93,7 @@
     "paths": {
         "/api/users": {
             "post": {
-                "description": "Create a new user. If the user is successfully created, an authorization token is included in the response as a cookie, allowing the newly created user to operate on the system.",
+                "description": "Create a new user.",
                 "tags": [
                     "User Management"
                 ],
@@ -120,16 +120,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "User created successfully. An authorization token is included in the response as a cookie, allowing the newly created user to operate on the system.",
-                        "headers": {
-                            "Authorization": {
-                                "description": "Authentication token for the newly created user.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
-                            }
-                        },
+                        "description": "User created successfully.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -811,7 +802,9 @@
                         "description": "Failed to add user role to user because user with user_id already has user role with user_role_id."
                     }
                 }
-            },
+            }
+        },
+        "/api/users/{user_id}/roles/{user_role_id}": {
             "delete": {
                 "description": "Remove a user role from a user. User needs to have `users.write` permission in order to call this API successfully.",
                 "tags": [
@@ -831,23 +824,17 @@
                             "$ref": "#/components/schemas/User/properties/id"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "user_role_id",
+                        "in": "path",
+                        "description": "The user role to be removed from the user.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "user_role_id": {
-                                        "$ref": "#/components/schemas/UserRole/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "User role removed to user successfully.",
@@ -1167,7 +1154,9 @@
                         "description": "Failed to add user permission to user role because user role with user_role_id already has user permission with user_permission_id."
                     }
                 }
-            },
+            }
+        },
+        "/api/roles/{user_role_id}/permissions/{user_permission_id}": {
             "delete": {
                 "description": "Remove a user permission from a user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
                 "tags": [
@@ -1185,6 +1174,15 @@
                         "description": "The user role to be remove user permission for.",
                         "schema": {
                             "$ref": "#/components/schemas/UserRole/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "user_permission_id",
+                        "in": "path",
+                        "description": "The user permission to be removed from the user role.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserPermission/properties/id"
                         },
                         "required": true
                     }
