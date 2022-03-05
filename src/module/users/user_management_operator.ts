@@ -65,15 +65,12 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             );
         }
 
-        // At this point, the newly created user with all information should be available.
-        const userID = createUserResponse?.user?.id || 0;
-        const userUsername = createUserResponse?.user?.username || "";
-        const userDisplayName = createUserResponse?.user?.displayName || "";
+        const user = User.fromProto(createUserResponse?.user);
         const { error: createUserPasswordError } = await promisifyGRPCCall(
             this.userServiceDM.createUserPassword.bind(this.userServiceDM),
             {
                 password: {
-                    ofUserId: userID,
+                    ofUserId: user.id,
                     password: password,
                 },
             }
@@ -91,7 +88,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             );
         }
 
-        return new User(userID, userUsername, userDisplayName);
+        return user;
     }
 
     public async getUserList(
@@ -121,16 +118,10 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             );
         }
 
-        // At this point, the user list with all information should be available
         const totalUserCount = getUserListResponse?.totalUserCount || 0;
         const userList: User[] =
-            getUserListResponse?.userList?.map(
-                (item) =>
-                    new User(
-                        item.id || 0,
-                        item.username || "",
-                        item.displayName || ""
-                    )
+            getUserListResponse?.userList?.map((userProto) =>
+                User.fromProto(userProto)
             ) || [];
 
         if (!withUserRole) {
@@ -158,13 +149,8 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         getUserRoleListOfUserListResponse?.userRoleListOfUserList?.forEach(
             (userRoleListOfUser, index) => {
                 userRoleList[index] =
-                    userRoleListOfUser.userRoleList?.map(
-                        (userRole) =>
-                            new UserRole(
-                                userRole.id || 0,
-                                userRole.displayName || "",
-                                userRole.description || ""
-                            )
+                    userRoleListOfUser.userRoleList?.map((userRoleProto) =>
+                        UserRole.fromProto(userRoleProto)
                     ) || [];
             }
         );
@@ -218,16 +204,13 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                 error: updateUserError,
             });
             throw new ErrorWithHTTPCode(
-                "failed to create new user",
+                "failed to update user's information",
                 getHttpCodeFromGRPCStatus(updateUserError.code)
             );
         }
 
-        // At this point, the newly updated user with all information should be available.
-        const userID = updateUserResponse?.user?.id || 0;
-        const userUsername = updateUserResponse?.user?.username || "";
-        const userDisplayName = updateUserResponse?.user?.displayName || "";
-        return new User(userID, userUsername, userDisplayName);
+        const user = User.fromProto(updateUserResponse?.user);
+        return user;
     }
 }
 
