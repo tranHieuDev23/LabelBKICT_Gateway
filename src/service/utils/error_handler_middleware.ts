@@ -5,6 +5,7 @@ import { Logger } from "winston";
 import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../utils";
 
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return (error, request, response, _) => {
         logger.error(
             "failed to handle request",

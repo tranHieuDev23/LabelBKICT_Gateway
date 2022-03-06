@@ -26,6 +26,34 @@ export function getUsersRouter(
 ): express.Router {
     const router = express.Router();
 
+    const usersReadAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                USERS_READ_PERMISSION
+            ),
+        true
+    );
+    const usersWriteAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                USERS_WRITE_PERMISSION
+            ),
+        true
+    );
+    const sameUserOrUsersWriteAuthMiddleware =
+        authMiddlewareFactory.getAuthMiddleware((authUserInfo, request) => {
+            const userID = +request.params.userID;
+            if (authUserInfo.user.id === userID) {
+                return true;
+            }
+            return checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                USERS_WRITE_PERMISSION
+            );
+        }, true);
+
     router.post(
         "/api/users",
         asyncHandler(async (req, res) => {
@@ -47,16 +75,7 @@ export function getUsersRouter(
 
     router.get(
         "/api/users",
-        authMiddlewareFactory.getAuthMiddleware((authUserInfo, request) => {
-            const userID = +request.params.userID;
-            if (authUserInfo.user.id === userID) {
-                return true;
-            }
-            return checkUserHasUserPermission(
-                authUserInfo.userPermissionList,
-                USERS_READ_PERMISSION
-            );
-        }, true),
+        usersReadAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +req.body.offset || 0;
             const limit = +req.body.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
@@ -86,16 +105,7 @@ export function getUsersRouter(
 
     router.patch(
         "/api/users/:userID",
-        authMiddlewareFactory.getAuthMiddleware((authUserInfo, request) => {
-            const userID = +request.params.userID;
-            if (authUserInfo.user.id === userID) {
-                return true;
-            }
-            return checkUserHasUserPermission(
-                authUserInfo.userPermissionList,
-                USERS_WRITE_PERMISSION
-            );
-        }, true),
+        sameUserOrUsersWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userID = +req.params.userID;
             const username = req.body.username as string | undefined;
@@ -117,14 +127,7 @@ export function getUsersRouter(
 
     router.post(
         "/api/users/:userID/roles",
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USERS_WRITE_PERMISSION
-                ),
-            true
-        ),
+        usersWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userID = +req.params.userID;
             const userRoleID = +req.body.userRoleID;
@@ -138,14 +141,7 @@ export function getUsersRouter(
 
     router.delete(
         "/api/users/:userID/roles/:userRoleID",
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USERS_WRITE_PERMISSION
-                ),
-            true
-        ),
+        usersWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userID = +req.params.userID;
             const userRoleID = +req.body.userRoleID;

@@ -2,6 +2,10 @@ import { injected, token } from "brandi";
 import express from "express";
 import asyncHandler from "express-async-handler";
 import {
+    UserPermissionManagementOperator,
+    USER_PERMISSION_MANAGEMENT_OPERATOR_TOKEN,
+} from "../../module/user_permissions";
+import {
     UserRoleManagementOperator,
     USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/user_roles";
@@ -17,12 +21,20 @@ const DEFAULT_GET_USER_ROLE_LIST_LIMIT = 10;
 
 export function getUserRolesRouter(
     userRoleManagementOperator: UserRoleManagementOperator,
+    userPermissionManagementOperator: UserPermissionManagementOperator,
     authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
-    router.post(
-        "/api/roles",
+    const userRolesReadAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                USER_ROLES_READ_PERMISSION
+            ),
+        true
+    );
+    const userRolesWriteAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
                 checkUserHasUserPermission(
@@ -30,7 +42,11 @@ export function getUserRolesRouter(
                     USER_ROLES_WRITE_PERMISSION
                 ),
             true
-        ),
+        );
+
+    router.post(
+        "/api/roles",
+        userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
             const description = req.body.description as string;
@@ -48,14 +64,7 @@ export function getUserRolesRouter(
 
     router.get(
         "/api/roles",
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USER_ROLES_READ_PERMISSION
-                ),
-            true
-        ),
+        userRolesReadAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +req.body.offset || 0;
             const limit = +req.body.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
@@ -86,14 +95,7 @@ export function getUserRolesRouter(
 
     router.patch(
         "/api/roles/:userRoleID",
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USER_ROLES_WRITE_PERMISSION
-                ),
-            true
-        ),
+        userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
             const displayName = req.body.display_name as string | undefined;
@@ -113,14 +115,7 @@ export function getUserRolesRouter(
 
     router.delete(
         "/api/roles/:userRoleID",
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USER_ROLES_WRITE_PERMISSION
-                ),
-            true
-        ),
+        userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
             await userRoleManagementOperator.deleteUserRole(userRoleID);
@@ -128,11 +123,32 @@ export function getUserRolesRouter(
         })
     );
 
-    router.post("/api/roles/:userID/permissions", async (req, res) => {});
+    router.post(
+        "/api/roles/:userID/permissions",
+        userRolesWriteAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userRoleID = +req.params.userRoleID;
+            const userPermissionID = +req.body.userPermissionID;
+            await userPermissionManagementOperator.addUserPermissionToUserRole(
+                userRoleID,
+                userPermissionID
+            );
+            res.json({});
+        })
+    );
 
     router.delete(
         "/api/roles/:userID/permissions/:userPermissionID",
-        async (req, res) => {}
+        userRolesWriteAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userRoleID = +req.params.userRoleID;
+            const userPermissionID = +req.params.userPermissionID;
+            await userPermissionManagementOperator.removeUserPermissionFromUserRole(
+                userRoleID,
+                userPermissionID
+            );
+            res.json({});
+        })
     );
 
     return router;
@@ -141,6 +157,7 @@ export function getUserRolesRouter(
 injected(
     getUserRolesRouter,
     USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
+    USER_PERMISSION_MANAGEMENT_OPERATOR_TOKEN,
     AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
 

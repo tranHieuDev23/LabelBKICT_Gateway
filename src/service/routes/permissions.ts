@@ -1,28 +1,124 @@
 import { injected, token } from "brandi";
 import express from "express";
-import { Logger } from "winston";
-import { USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
-import { UserServiceClient } from "../../proto/gen/UserService";
-import { LOGGER_TOKEN } from "../../utils";
+import asyncHandler from "express-async-handler";
+import {
+    UserPermissionManagementOperator,
+    USER_PERMISSION_MANAGEMENT_OPERATOR_TOKEN,
+} from "../../module/user_permissions";
+import {
+    AuthMiddlewareFactory,
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    checkUserHasUserPermission,
+} from "../utils";
+
+const USER_PERMISSIONS_READ_PERMISSION = "user_permissions.read";
+const USER_PERMISSIONS_WRITE_PERMISSION = "user_permissions.write";
 
 export function getUserPermissionsRouter(
-    userServiceClient: UserServiceClient,
-    logger: Logger
+    userPermissionManagementOperator: UserPermissionManagementOperator,
+    authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
-    router.post("/api/permissions", async (req, res) => {});
+    const userPermissionsReadAuthMiddleware =
+        authMiddlewareFactory.getAuthMiddleware(
+            (authUserInfo) =>
+                checkUserHasUserPermission(
+                    authUserInfo.userPermissionList,
+                    USER_PERMISSIONS_READ_PERMISSION
+                ),
+            true
+        );
+    const userPermissionsWriteAuthMiddleware =
+        authMiddlewareFactory.getAuthMiddleware(
+            (authUserInfo) =>
+                checkUserHasUserPermission(
+                    authUserInfo.userPermissionList,
+                    USER_PERMISSIONS_WRITE_PERMISSION
+                ),
+            true
+        );
 
-    router.get("/api/permissions", async (req, res) => {});
+    router.post(
+        "/api/permissions",
+        userPermissionsWriteAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const permissionName = req.body.permission_name as string;
+            const description = req.body.description as string;
+            const userPermission =
+                await userPermissionManagementOperator.createUserPermission(
+                    permissionName,
+                    description
+                );
+            res.json({
+                id: userPermission.id,
+                permission_name: userPermission.permissionName,
+                description: userPermission.description,
+            });
+        })
+    );
 
-    router.patch("/api/permissions/:userPermissionID", async (req, res) => {});
+    router.get(
+        "/api/permissions",
+        userPermissionsReadAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userPermissionList =
+                await userPermissionManagementOperator.getUserPermissionList();
+            res.json({
+                user_permission_list: userPermissionList.map(
+                    (userPermission) => {
+                        return {
+                            id: userPermission.id,
+                            permission_name: userPermission.permissionName,
+                            description: userPermission.description,
+                        };
+                    }
+                ),
+            });
+        })
+    );
 
-    router.delete("/api/permissions/:userPermissionID", async (req, res) => {});
+    router.patch(
+        "/api/permissions/:userPermissionID",
+        userPermissionsWriteAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userPermissionID = +req.params.userPermissionID;
+            const permissionName = req.body.permission_name as string;
+            const description = req.body.description as string;
+            const userPermission =
+                await userPermissionManagementOperator.updateUserPermission(
+                    userPermissionID,
+                    permissionName,
+                    description
+                );
+            res.json({
+                id: userPermission.id,
+                permission_name: userPermission.permissionName,
+                description: userPermission.description,
+            });
+        })
+    );
+
+    router.delete(
+        "/api/permissions/:userPermissionID",
+        userPermissionsWriteAuthMiddleware,
+        async (req, res) => {
+            const userPermissionID = +req.params.userPermissionID;
+            await userPermissionManagementOperator.deleteUserPermission(
+                userPermissionID
+            );
+            res.json({});
+        }
+    );
 
     return router;
 }
 
-injected(getUserPermissionsRouter, USER_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(
+    getUserPermissionsRouter,
+    USER_PERMISSION_MANAGEMENT_OPERATOR_TOKEN,
+    AUTH_MIDDLEWARE_FACTORY_TOKEN
+);
 
 export const USER_PERMISSIONS_ROUTER_TOKEN = token<express.Router>(
     "UserPermissionsRouter"

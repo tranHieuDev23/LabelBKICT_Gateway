@@ -46,18 +46,18 @@ export class UserRoleManagementOperatorImpl
         displayName: string,
         description: string
     ): Promise<UserRole> {
-        const { error: updateUserRoleError, response: createUserRoleResponse } =
+        const { error: createUserRoleError, response: createUserRoleResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.createUserRole.bind(this.userServiceDM),
                 { displayName, description }
             );
-        if (updateUserRoleError !== null) {
+        if (createUserRoleError !== null) {
             this.logger.error("failed to call user_service.createUserRole()", {
-                error: updateUserRoleError,
+                error: createUserRoleError,
             });
             throw new ErrorWithHTTPCode(
                 "failed to create new user role",
-                getHttpCodeFromGRPCStatus(updateUserRoleError.code)
+                getHttpCodeFromGRPCStatus(createUserRoleError.code)
             );
         }
 
@@ -239,7 +239,7 @@ export class UserRoleManagementOperatorImpl
                 { error: removeUserRoleFromUserError }
             );
             throw new ErrorWithHTTPCode(
-                "failed to add user role to user",
+                "failed to remove user role from user",
                 getHttpCodeFromGRPCStatus(removeUserRoleFromUserError.code)
             );
         }
