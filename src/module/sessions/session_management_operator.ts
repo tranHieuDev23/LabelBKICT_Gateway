@@ -25,7 +25,7 @@ export interface SessionManagementOperator {
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
-        newToken: string;
+        newToken: string | null;
     }>;
 }
 
@@ -69,8 +69,12 @@ export class SessionManagementOperatorImpl
 
         const user = User.fromProto(loginWithPasswordResponse?.user);
         const token = loginWithPasswordResponse?.token || "";
+        const userRoleList = await this.getUserRoleListOfUser(user.id);
+        const userPermissionList = await this.getUserPermissionListOfUser(
+            user.id
+        );
 
-        return { user, userRoleList: [], userPermissionList: [], token };
+        return { user, userRoleList, userPermissionList, token };
     }
 
     public async logout(token: string): Promise<void> {
@@ -93,7 +97,7 @@ export class SessionManagementOperatorImpl
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
-        newToken: string;
+        newToken: string | null;
     }> {
         const {
             error: getUserFromTokenError,
@@ -114,9 +118,79 @@ export class SessionManagementOperatorImpl
         }
 
         const user = User.fromProto(getUserFromTokenResponse?.user);
-        const newToken = getUserFromTokenResponse?.newToken || "";
+        const newToken = getUserFromTokenResponse?.newToken || null;
+        const userRoleList = await this.getUserRoleListOfUser(user.id);
+        const userPermissionList = await this.getUserPermissionListOfUser(
+            user.id
+        );
 
-        return { user, userRoleList: [], userPermissionList: [], newToken };
+        return { user, userRoleList, userPermissionList, newToken };
+    }
+
+    private async getUserRoleListOfUser(userID: number): Promise<UserRole[]> {
+        const {
+            error: getUserRoleListOfUserListError,
+            response: getUserRoleListOfUserListResponse,
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserRoleListOfUserList.bind(
+                this.userServiceDM
+            ),
+            { userIdList: [userID] }
+        );
+        if (getUserRoleListOfUserListError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserRoleListOfUserList()",
+                { error: getUserRoleListOfUserListError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to log in with password",
+                getHttpCodeFromGRPCStatus(getUserRoleListOfUserListError.code)
+            );
+        }
+
+        if (
+            getUserRoleListOfUserListResponse?.userRoleListOfUserList ===
+            undefined
+        ) {
+            return [];
+        }
+
+        return (
+            getUserRoleListOfUserListResponse.userRoleListOfUserList[0].userRoleList?.map(
+                (userRoleProto) => UserRole.fromProto(userRoleProto)
+            ) || []
+        );
+    }
+
+    private async getUserPermissionListOfUser(
+        userID: number
+    ): Promise<UserPermission[]> {
+        const {
+            error: getUserPermissionListOfUserError,
+            response: getUserPermissionListOfUserResponse,
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserPermissionListOfUser.bind(
+                this.userServiceDM
+            ),
+            { userId: userID }
+        );
+        if (getUserPermissionListOfUserError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserPermissionListOfUser()",
+                { error: getUserPermissionListOfUserError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to log in with password",
+                getHttpCodeFromGRPCStatus(getUserPermissionListOfUserError.code)
+            );
+        }
+
+        return (
+            getUserPermissionListOfUserResponse?.userPermissionList?.map(
+                (userPermissionProto) =>
+                    UserPermission.fromProto(userPermissionProto)
+            ) || []
+        );
     }
 }
 

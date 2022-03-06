@@ -7,7 +7,7 @@ import { ROUTES_TOKEN } from "./routes";
 import { Logger } from "winston";
 import { GatewayServerConfig, GATEWAY_SERVER_CONFIG_TOKEN } from "../config";
 import { LOGGER_TOKEN } from "../utils";
-import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./error_handler_middleware";
+import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./utils";
 
 export class GatewayHTTPServer {
     constructor(

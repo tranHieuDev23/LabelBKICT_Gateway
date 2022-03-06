@@ -2,7 +2,7 @@ import { injected, token } from "brandi";
 import { ErrorRequestHandler } from "express";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../utils";
+import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../utils";
 
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
     return (error, request, response, _) => {

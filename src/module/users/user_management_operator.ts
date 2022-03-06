@@ -112,6 +112,9 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                 }
             );
         if (getUserListError !== null) {
+            this.logger.error("failed to call user_service.getUserList()", {
+                error: getUserListError,
+            });
             throw new ErrorWithHTTPCode(
                 "failed to call user_service.getUserList()",
                 getHttpCodeFromGRPCStatus(getUserListError.code)
@@ -139,6 +142,12 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             { userIdList: userIDList }
         );
         if (getUserRoleListOfUserListError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserRoleListOfUserList()",
+                {
+                    error: getUserRoleListOfUserListError,
+                }
+            );
             throw new ErrorWithHTTPCode(
                 "failed to call user_service.getUserRoleListOfUserList()",
                 getHttpCodeFromGRPCStatus(getUserRoleListOfUserListError.code)
