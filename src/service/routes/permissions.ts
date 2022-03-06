@@ -11,19 +11,13 @@ export function getUserPermissionsRouter(
 ): express.Router {
     const router = express.Router();
 
-    router.post("/api/user_permissions", async (req, res) => {});
+    router.post("/api/permissions", async (req, res) => {});
 
-    router.get("/api/user_permissions", async (req, res) => {});
+    router.get("/api/permissions", async (req, res) => {});
 
-    router.patch(
-        "/api/user_permissions/:userPermissionID",
-        async (req, res) => {}
-    );
+    router.patch("/api/permissions/:userPermissionID", async (req, res) => {});
 
-    router.delete(
-        "/api/user_permissions/:userPermissionID",
-        async (req, res) => {}
-    );
+    router.delete("/api/permissions/:userPermissionID", async (req, res) => {});
 
     return router;
 }

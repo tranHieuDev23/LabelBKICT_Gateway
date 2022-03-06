@@ -50,10 +50,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         const { error: createUserError, response: createUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.createUser.bind(this.userServiceDM),
-                {
-                    username,
-                    displayName,
-                }
+                { username, displayName }
             );
         if (createUserError !== null) {
             this.logger.error("failed to call user_service.createUser()", {
@@ -105,11 +102,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         const { error: getUserListError, response: getUserListResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.getUserList.bind(this.userServiceDM),
-                {
-                    limit,
-                    offset,
-                    sortOrder: sortOrderEnumValue,
-                }
+                { limit, offset, sortOrder: sortOrderEnumValue }
             );
         if (getUserListError !== null) {
             this.logger.error("failed to call user_service.getUserList()", {
@@ -126,7 +119,6 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             getUserListResponse?.userList?.map((userProto) =>
                 User.fromProto(userProto)
             ) || [];
-
         if (!withUserRole) {
             return { totalUserCount, userList, userRoleList: undefined };
         }
@@ -200,12 +192,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             await promisifyGRPCCall(
                 this.userServiceDM.updateUser.bind(this.userServiceDM),
                 {
-                    user: {
-                        id,
-                        username,
-                        displayName,
-                        password,
-                    },
+                    user: { id, username, displayName, password },
                 }
             );
         if (updateUserError !== null) {

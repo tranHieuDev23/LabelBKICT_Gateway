@@ -5,13 +5,13 @@ import { getUsersRouter, USERS_ROUTER_TOKEN } from "./users";
 import {
     USER_PERMISSIONS_ROUTER_TOKEN,
     getUserPermissionsRouter,
-} from "./user_permissions";
-import { USER_ROLES_ROUTER_TOKEN, getUserRolesRouter } from "./user_roles";
+} from "./permissions";
+import { USER_ROLES_ROUTER_TOKEN, getUserRolesRouter } from "./roles";
 
 export * from "./users";
 export * from "./sessions";
-export * from "./user_roles";
-export * from "./user_permissions";
+export * from "./roles";
+export * from "./permissions";
 
 export const ROUTES_TOKEN = token<express.Router[]>("Routes");
 
