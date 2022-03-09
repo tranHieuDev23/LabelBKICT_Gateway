@@ -385,7 +385,10 @@
                         }
                     },
                     "401": {
-                        "description": "Failed to log user in."
+                        "description": "Failed to log user in because of incorrect password."
+                    },
+                    "404": {
+                        "description": "Failed to log user in because there is no user with the provided username."
                     }
                 }
             }
@@ -406,7 +409,7 @@
                         "description": "User is logged out successfully."
                     },
                     "401": {
-                        "description": "Failed to log user out."
+                        "description": "Failed to log user out because the user has not been logged in."
                     }
                 }
             },
