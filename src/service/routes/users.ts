@@ -77,10 +77,10 @@ export function getUsersRouter(
         "/api/users",
         usersReadAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const offset = +req.body.offset || 0;
-            const limit = +req.body.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
-            const sortOrder = +req.body.sort_order || 0;
-            const withUserRole = (req.body.with_user_role as boolean) || false;
+            const offset = +req.params.offset || 0;
+            const limit = +req.params.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
+            const sortOrder = +req.params.sort_order || 0;
+            const withUserRole = req.params.with_user_role === "1";
             const { totalUserCount, userList, userRoleList } =
                 await userManagementOperator.getUserList(
                     offset,

@@ -147,43 +147,49 @@
                         "AuthenticationToken": []
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "offset": {
-                                        "type": "integer",
-                                        "description": "The index of the first item to be returned.",
-                                        "minimum": 0,
-                                        "default": 0
-                                    },
-                                    "limit": {
-                                        "type": "integer",
-                                        "description": "The maximum number of items to be returned.",
-                                        "minimum": 1,
-                                        "maximum": 100,
-                                        "default": 10
-                                    },
-                                    "sort_order": {
-                                        "type": "integer",
-                                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending username) or 3 (sorted by descending username), 4 (sorted by ascending display name) or 5 (sorted by descending display name).",
-                                        "minimum": 0,
-                                        "maximum": 5,
-                                        "default": 0
-                                    },
-                                    "with_user_role": {
-                                        "type": "boolean",
-                                        "description": "If true, will return the list of user roles each user in the list has.",
-                                        "default": false
-                                    }
-                                }
-                            }
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending username) or 3 (sorted by descending username), 4 (sorted by ascending display name) or 5 (sorted by descending display name).",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "with_user_role",
+                        "description": "If equal to 1, will return the list of user roles each user in the list has.",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "User list retrieved successfully.",
@@ -527,43 +533,49 @@
                         "AuthenticationToken": []
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "offset": {
-                                        "type": "integer",
-                                        "description": "The index of the first item to be returned.",
-                                        "minimum": 0,
-                                        "default": 0
-                                    },
-                                    "limit": {
-                                        "type": "integer",
-                                        "description": "The maximum number of items to be returned.",
-                                        "minimum": 1,
-                                        "maximum": 100,
-                                        "default": 10
-                                    },
-                                    "sort_order": {
-                                        "type": "integer",
-                                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending display name) or 3 (sorted by descending display name).",
-                                        "minimum": 0,
-                                        "maximum": 3,
-                                        "default": 0
-                                    },
-                                    "with_user_permission": {
-                                        "type": "boolean",
-                                        "description": "If true, will return the list of user permissions each user role in the list has.",
-                                        "default": false
-                                    }
-                                }
-                            }
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending display name) or 3 (sorted by descending display name).",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "with_user_permission",
+                        "description": "If true, will return the list of user permissions each user role in the list has.",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "User role list retrieved successfully.",

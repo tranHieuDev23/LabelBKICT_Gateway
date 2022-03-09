@@ -66,11 +66,10 @@ export function getUserRolesRouter(
         "/api/roles",
         userRolesReadAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const offset = +req.body.offset || 0;
-            const limit = +req.body.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
-            const sortOrder = +req.body.sort_order || 0;
-            const withUserPermission =
-                (req.body.with_user_permission as boolean) || false;
+            const offset = +req.params.offset || 0;
+            const limit = +req.params.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
+            const sortOrder = +req.params.sort_order || 0;
+            const withUserPermission = req.params.with_user_permission === "1";
             const { totalUserRoleCount, userRoleList, userPermissionList } =
                 await userRoleManagementOperator.getUserRoleList(
                     offset,
