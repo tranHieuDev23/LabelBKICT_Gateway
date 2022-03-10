@@ -65,11 +65,7 @@ export function getUsersRouter(
                 displayName,
                 password
             );
-            res.json({
-                id: user.id,
-                username: user.username,
-                display_name: user.displayName,
-            });
+            res.json(user);
         })
     );
 
@@ -117,11 +113,7 @@ export function getUsersRouter(
                 displayName,
                 password
             );
-            res.json({
-                id: user.id,
-                username: user.username,
-                display_name: user.displayName,
-            });
+            res.json(user);
         })
     );
 

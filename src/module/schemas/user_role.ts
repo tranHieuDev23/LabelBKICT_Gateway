@@ -3,7 +3,7 @@ import { UserRole as UserRoleProto } from "../../proto/gen/UserRole";
 export class UserRole {
     constructor(
         public readonly id: number,
-        public readonly displayName: string,
+        public readonly display_name: string,
         public readonly description: string
     ) {}
 

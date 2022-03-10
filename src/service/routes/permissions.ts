@@ -50,31 +50,17 @@ export function getUserPermissionsRouter(
                     permissionName,
                     description
                 );
-            res.json({
-                id: userPermission.id,
-                permission_name: userPermission.permissionName,
-                description: userPermission.description,
-            });
+            res.json(userPermission);
         })
     );
 
     router.get(
         "/api/permissions",
         userPermissionsReadAuthMiddleware,
-        asyncHandler(async (req, res) => {
+        asyncHandler(async (_, res) => {
             const userPermissionList =
                 await userPermissionManagementOperator.getUserPermissionList();
-            res.json({
-                user_permission_list: userPermissionList.map(
-                    (userPermission) => {
-                        return {
-                            id: userPermission.id,
-                            permission_name: userPermission.permissionName,
-                            description: userPermission.description,
-                        };
-                    }
-                ),
-            });
+            res.json({ user_permission_list: userPermissionList });
         })
     );
 
@@ -91,11 +77,7 @@ export function getUserPermissionsRouter(
                     permissionName,
                     description
                 );
-            res.json({
-                id: userPermission.id,
-                permission_name: userPermission.permissionName,
-                description: userPermission.description,
-            });
+            res.json(userPermission);
         })
     );
 

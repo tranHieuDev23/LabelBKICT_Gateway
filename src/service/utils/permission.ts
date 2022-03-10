@@ -6,7 +6,8 @@ export function checkUserHasUserPermission(
 ): boolean {
     return (
         userPermissionList.find(
-            (userPermission) => userPermission.permissionName === permissionName
+            (userPermission) =>
+                userPermission.permission_name === permissionName
         ) !== undefined
     );
 }

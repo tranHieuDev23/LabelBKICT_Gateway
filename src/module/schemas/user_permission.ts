@@ -3,7 +3,7 @@ import { UserPermission as UserPermissionProto } from "../../proto/gen/UserPermi
 export class UserPermission {
     constructor(
         public readonly id: number,
-        public readonly permissionName: string,
+        public readonly permission_name: string,
         public readonly description: string
     ) {}
 

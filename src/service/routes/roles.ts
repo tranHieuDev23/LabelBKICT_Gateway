@@ -54,11 +54,7 @@ export function getUserRolesRouter(
                 displayName,
                 description
             );
-            res.json({
-                id: userRole.id,
-                display_name: userRole.displayName,
-                description: userRole.description,
-            });
+            res.json(userRole);
         })
     );
 
@@ -104,11 +100,7 @@ export function getUserRolesRouter(
                 displayName,
                 description
             );
-            res.json({
-                id: userRole.id,
-                display_name: userRole.displayName,
-                description: userRole.description,
-            });
+            res.json(userRole);
         })
     );
 
