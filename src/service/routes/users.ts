@@ -17,7 +17,7 @@ import {
 
 const USERS_READ_PERMISSION = "users.read";
 const USERS_WRITE_PERMISSION = "users.write";
-const DEFAULT_GET_USER_ROLE_LIST_LIMIT = 10;
+const DEFAULT_GET_USER_LIST_LIMIT = 10;
 
 export function getUsersRouter(
     userManagementOperator: UserManagementOperator,
@@ -73,10 +73,10 @@ export function getUsersRouter(
         "/api/users",
         usersReadAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const offset = +req.params.offset || 0;
-            const limit = +req.params.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT;
-            const sortOrder = +req.params.sort_order || 0;
-            const withUserRole = req.params.with_user_role === "1";
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
+            const sortOrder = +(req.query.sort_order || 0);
+            const withUserRole = +(req.query.with_user_role || 0) === 1;
             const { totalUserCount, userList, userRoleList } =
                 await userManagementOperator.getUserList(
                     offset,
