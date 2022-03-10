@@ -3,6 +3,7 @@ import { ErrorRequestHandler } from "express";
 import httpStatus from "http-status";
 import { Logger } from "winston";
 import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../utils";
+import { error as OpenAPIError } from "express-openapi-validator";
 
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -10,11 +11,24 @@ export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
         logger.error(
             "failed to handle request",
             { path: request.originalUrl },
-            { body: request.body }
+            { body: request.body },
+            { error: error }
         );
 
         if (error instanceof ErrorWithHTTPCode) {
             response.status(error.code).json({ message: error.message });
+        } else if (error instanceof OpenAPIError.BadRequest) {
+            response
+                .status(httpStatus.BAD_REQUEST)
+                .json({ message: "Bad request" });
+        } else if (error instanceof OpenAPIError.Unauthorized) {
+            response
+                .status(httpStatus.UNAUTHORIZED)
+                .json({ message: "Unauthorized" });
+        } else if (error instanceof OpenAPIError.NotFound) {
+            response
+                .status(httpStatus.NOT_FOUND)
+                .json({ message: "Not found" });
         } else {
             response
                 .status(httpStatus.INTERNAL_SERVER_ERROR)

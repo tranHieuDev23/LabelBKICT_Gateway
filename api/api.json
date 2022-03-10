@@ -84,9 +84,9 @@
         },
         "securitySchemes": {
             "AuthenticationToken": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "LABEL_BKICT_AUTH"
             }
         }
     },
