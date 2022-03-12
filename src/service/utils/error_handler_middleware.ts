@@ -8,12 +8,12 @@ import { error as OpenAPIError } from "express-openapi-validator";
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return (error, request, response, _) => {
-        logger.error(
-            "failed to handle request",
-            { path: request.originalUrl },
-            { body: request.body },
-            { error: error }
-        );
+        logger.error("failed to handle request", {
+            method: request.method,
+            path: request.originalUrl,
+            body: request.body,
+            error: error,
+        });
 
         if (error instanceof ErrorWithHTTPCode) {
             response.status(error.code).json({ message: error.message });
