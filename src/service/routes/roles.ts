@@ -136,7 +136,7 @@ export function getUserRolesRouter(
         userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
-            const userPermissionID = +req.params.user_permission_id;
+            const userPermissionID = +req.params.userPermissionID;
             await userPermissionManagementOperator.removeUserPermissionFromUserRole(
                 userRoleID,
                 userPermissionID
