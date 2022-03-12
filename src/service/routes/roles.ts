@@ -122,7 +122,7 @@ export function getUserRolesRouter(
         userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
-            const userPermissionID = +req.body.userPermissionID;
+            const userPermissionID = +req.body.user_permission_id;
             await userPermissionManagementOperator.addUserPermissionToUserRole(
                 userRoleID,
                 userPermissionID
@@ -136,7 +136,7 @@ export function getUserRolesRouter(
         userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
-            const userPermissionID = +req.params.userPermissionID;
+            const userPermissionID = +req.params.user_permission_id;
             await userPermissionManagementOperator.removeUserPermissionFromUserRole(
                 userRoleID,
                 userPermissionID
