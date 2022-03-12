@@ -78,14 +78,14 @@ export function getUserRolesRouter(
                 );
             if (withUserPermission) {
                 res.json({
-                    totalUserRoleCount,
-                    userRoleList,
-                    userPermissionList,
+                    total_user_role_count: totalUserRoleCount,
+                    user_role_list: userRoleList,
+                    user_permission_list: userPermissionList,
                 });
             } else {
                 res.json({
-                    totalUserRoleCount,
-                    userRoleList,
+                    total_user_role_count: totalUserRoleCount,
+                    user_role_list: userRoleList,
                 });
             }
         })
