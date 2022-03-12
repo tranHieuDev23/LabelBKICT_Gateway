@@ -339,10 +339,12 @@
                                 "type": "object",
                                 "properties": {
                                     "username": {
-                                        "$ref": "#/components/schemas/User/properties/username"
+                                        "type": "string",
+                                        "description": "Username, used to log into the system. Should be unique across all user."
                                     },
                                     "password": {
-                                        "$ref": "#/components/schemas/UserPassword"
+                                        "type": "string",
+                                        "description": "The password of an user in the system."
                                     }
                                 }
                             }
