@@ -2410,7 +2410,7 @@
                 }
             }
         },
-        "/api/image-tag-groups/{image_tag_group_id}/types/": {
+        "/api/image-tag-groups/{image_tag_group_id}/image-types/": {
             "post": {
                 "description": "Add an image type to the list of allowed image types of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
@@ -2474,7 +2474,7 @@
                 }
             }
         },
-        "/api/image-tag-groups/{image_tag_group_id}/types/{image_type_id}": {
+        "/api/image-tag-groups/{image_tag_group_id}/image-types/{image_type_id}": {
             "delete": {
                 "description": "Remove an image type from the list of allowed image types of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
@@ -3756,7 +3756,7 @@
                 }
             }
         },
-        "/api/sessions/user/manageable_images": {
+        "/api/sessions/user/manageable-images": {
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to manage. User needs to have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
@@ -3991,7 +3991,7 @@
                 }
             }
         },
-        "/api/sessions/user/verifiable_images": {
+        "/api/sessions/user/verifiable-images": {
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to verify. User needs to have `images.verify` permission in order to call this API successfully.",
                 "tags": [
@@ -4226,7 +4226,7 @@
                 }
             }
         },
-        "/api/sessions/user/exportable_images": {
+        "/api/sessions/user/exportable-images": {
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to export. User needs to have `images.export` permission in order to call this API successfully.",
                 "tags": [
