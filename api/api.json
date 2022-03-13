@@ -390,7 +390,7 @@
                 }
             },
             "get": {
-                "description": "Get user list. User needs to have `users.read` permission in order to call this API successfully.",
+                "description": "Get user list. User needs to have `users.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Management"
                 ],
@@ -500,7 +500,7 @@
         },
         "/api/users/{user_id}": {
             "patch": {
-                "description": "Update user information. User needs to have `users.write` permission in order to call this API to update other user's information successfully. Any field that is not provided will not be updated.",
+                "description": "Update user information. User needs to have `users.manage` permission in order to call this API to update other user's information successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "User Management"
                 ],
@@ -723,7 +723,7 @@
         },
         "/api/roles": {
             "post": {
-                "description": "Create a new user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "description": "Create a new user role. User needs to have `user_roles.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -781,7 +781,7 @@
                 }
             },
             "get": {
-                "description": "Get user role list. User needs to have `user_roles.read` permission in order to call this API successfully.",
+                "description": "Get user role list. User needs to have `user_roles.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -891,7 +891,7 @@
         },
         "/api/roles/{user_role_id}": {
             "patch": {
-                "description": "Update user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "description": "Update user role. User needs to have `user_roles.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -963,7 +963,7 @@
                 }
             },
             "delete": {
-                "description": "Delete user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "description": "Delete user role. User needs to have `user_roles.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -1009,7 +1009,7 @@
         },
         "/api/users/{user_id}/roles": {
             "post": {
-                "description": "Add a user role to a user. User needs to have `users.write` permission in order to call this API successfully.",
+                "description": "Add a user role to a user. User needs to have `users.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -1073,7 +1073,7 @@
         },
         "/api/users/{user_id}/roles/{user_role_id}": {
             "delete": {
-                "description": "Remove a user role from a user. User needs to have `users.write` permission in order to call this API successfully.",
+                "description": "Remove a user role from a user. User needs to have `users.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Role Management"
                 ],
@@ -1131,7 +1131,7 @@
         },
         "/api/permissions": {
             "post": {
-                "description": "Create a new user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "description": "Create a new user permission. User needs to have `user_permissions.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1189,7 +1189,7 @@
                 }
             },
             "get": {
-                "description": "Get user permission list. User needs to have `user_permissions.read` permission in order to call this API successfully.",
+                "description": "Get user permission list. User needs to have `user_permissions.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1237,7 +1237,7 @@
         },
         "/api/permissions/{user_permission_id}": {
             "patch": {
-                "description": "Update user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "description": "Update user permission. User needs to have `user_permissions.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1309,7 +1309,7 @@
                 }
             },
             "delete": {
-                "description": "Delete user permission. User needs to have `user_permissions.write` permission in order to call this API successfully.",
+                "description": "Delete user permission. User needs to have `user_permissions.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1355,7 +1355,7 @@
         },
         "/api/roles/{user_role_id}/permissions": {
             "post": {
-                "description": "Add a user permission to a user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "description": "Add a user permission to a user role. User needs to have `user_roles.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1419,7 +1419,7 @@
         },
         "/api/roles/{user_role_id}/permissions/{user_permission_id}": {
             "delete": {
-                "description": "Remove a user permission from a user role. User needs to have `user_roles.write` permission in order to call this API successfully.",
+                "description": "Remove a user permission from a user role. User needs to have `user_roles.manage` permission in order to call this API successfully.",
                 "tags": [
                     "User Permission Management"
                 ],
@@ -1477,7 +1477,7 @@
         },
         "/api/image-types": {
             "post": {
-                "description": "Create a new image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Create a new image type. User needs to have `image_types.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1535,7 +1535,7 @@
                 }
             },
             "get": {
-                "description": "Get image type list. User needs to have `image_types.read` permission in order to call this API successfully.",
+                "description": "Get image type list. User needs to already be logged in to the system in order to call this API successfully.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1609,7 +1609,7 @@
         },
         "/api/image-types/{image_type_id}": {
             "patch": {
-                "description": "Update image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Update image type. User needs to have `image_types.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1681,7 +1681,7 @@
                 }
             },
             "delete": {
-                "description": "Delete image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Delete image type. User needs to have `image_types.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1727,7 +1727,7 @@
         },
         "/api/image-types/{image_type_id}/labels": {
             "post": {
-                "description": "Create a new region label for an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Create a new region label for an image type. User needs to have `image_types.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1801,7 +1801,7 @@
         },
         "/api/image-types/{image_type_id}/labels/{region_label_id}": {
             "patch": {
-                "description": "Update a region label of an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Update a region label of an image type. User needs to have `image_types.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1882,7 +1882,7 @@
                 }
             },
             "delete": {
-                "description": "Delete a region label of an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "description": "Delete a region label of an image type. User needs to have `image_types.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Type Management"
                 ],
@@ -1937,7 +1937,7 @@
         },
         "/api/image-tag-groups": {
             "post": {
-                "description": "Create a new image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Create a new image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -1995,7 +1995,7 @@
                 }
             },
             "get": {
-                "description": "Get image tag group list. User needs to have `image_tags.read` permission in order to call this API successfully.",
+                "description": "Get image tag group list. User needs to already be logged in to the system in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2090,7 +2090,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}": {
             "patch": {
-                "description": "Update image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Update image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2162,7 +2162,7 @@
                 }
             },
             "delete": {
-                "description": "Delete image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Delete image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2208,7 +2208,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}/tags": {
             "post": {
-                "description": "Create a new image tag for an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Create a new image tag for an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2279,7 +2279,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}/tags/{image_tag_id}": {
             "patch": {
-                "description": "Update an image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Update an image tag of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2357,7 +2357,7 @@
                 }
             },
             "delete": {
-                "description": "Delete an image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Delete an image tag of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2412,7 +2412,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}/types/": {
             "post": {
-                "description": "Add an image type to the list of allowed image types of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Add an image type to the list of allowed image types of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2476,7 +2476,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}/types/{image_type_id}": {
             "delete": {
-                "description": "Remove an image type from the list of allowed image types of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Remove an image type from the list of allowed image types of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2534,7 +2534,7 @@
         },
         "/api/images": {
             "post": {
-                "description": "Upload a new image to the system. User needs to have `images.upload.write` permission in order to call this API successfully.",
+                "description": "Upload a new image to the system. User needs to have `images.upload` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2614,7 +2614,7 @@
                 }
             },
             "patch": {
-                "description": "Update image list. This feature only allows mass updating of image type. For every image in the request, user needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, or (2) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Update image list. This feature only allows mass updating of image type. For every image in the request, user needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2674,7 +2674,7 @@
                 }
             },
             "delete": {
-                "description": "Delete image list. For every image in the request, user needs to either (1) have `images.manage.self.write` permission and is deleting an image of their own, or (2) have `images.manage.all.write` permission and is deleting an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Delete image list. For every image in the request, user needs to either (1) have `images.manage.self` permission and is deleting an image of their own, or (2) have `images.manage.all` permission and is deleting an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2733,7 +2733,7 @@
         },
         "/api/images/{image_id}": {
             "get": {
-                "description": "Get an image. User needs to either (1) have `images.manage.self.read` permission and is getting an image of their own, (2) have `images.verify.read` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.read` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Get an image. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2803,7 +2803,7 @@
                 }
             },
             "patch": {
-                "description": "Update image metadata. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Update image metadata. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2891,7 +2891,7 @@
                 }
             },
             "delete": {
-                "description": "Delete image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, or (2) have `images.manage.all.write` permission in order to call this API successfully.",
+                "description": "Delete image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -2937,7 +2937,7 @@
         },
         "/api/images/{image_id}/image_type": {
             "patch": {
-                "description": "Update image image type. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, or (2) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Update image type of image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3024,7 +3024,7 @@
         },
         "/api/images/{image_id}/status": {
             "patch": {
-                "description": "Update image status. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, or (2) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Update image status. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3114,7 +3114,7 @@
         },
         "/api/images/{image_id}/assignable_tag_groups": {
             "get": {
-                "description": "Get the list of tag groups and tag values that can be assigned to an image. This includes (1) all single-value tag groups that are allowed for the image type of the image, with no tag value assigned to the image yet and (2) all multi-value tag groups that are allowed for the image type of the image. User needs to either (1) have `images.manage.self.read` permission and is updating an image of their own, (2) have `images.verify.read` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.read` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Get the list of tag groups and tag values that can be assigned to an image. This includes (1) all single-value tag groups that are allowed for the image type of the image, with no tag value assigned to the image yet and (2) all multi-value tag groups that are allowed for the image type of the image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3186,7 +3186,7 @@
         },
         "/api/images/{image_id}/tags": {
             "post": {
-                "description": "Add an image tag to an image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Add an image tag to an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3253,7 +3253,7 @@
         },
         "/api/images/{image_id}/tags/{image_tag_id}": {
             "delete": {
-                "description": "Remove an image tag from an image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Remove an image tag from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3311,7 +3311,7 @@
         },
         "/api/images/{image_id}/regions": {
             "post": {
-                "description": "Add region to image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Add region to image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3391,7 +3391,7 @@
         },
         "/api/images/{image_id}/regions/{region_id}": {
             "patch": {
-                "description": "Update a region of an image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Update a region of an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3478,7 +3478,7 @@
                 }
             },
             "delete": {
-                "description": "Remove a region from an image. User needs to either (1) have `images.manage.self.write` permission and is updating an image of their own, (2) have `images.verify.write` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all.write` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Remove a region from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3533,7 +3533,7 @@
         },
         "/api/sessions/user/images": {
             "get": {
-                "description": "Get image list uploaded by the current sessions's user. User needs to have `images.manage.self.read` permission in order to call this API successfully.",
+                "description": "Get image list uploaded by the current sessions's user. User needs to have `images.manage.self` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3758,7 +3758,7 @@
         },
         "/api/sessions/user/manageable_images": {
             "get": {
-                "description": "Get image list uploaded by all users, that the current session's user is allowed to manage. User needs to have `images.manage.all.read` permission in order to call this API successfully.",
+                "description": "Get image list uploaded by all users, that the current session's user is allowed to manage. User needs to have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -3993,7 +3993,7 @@
         },
         "/api/sessions/user/verifiable_images": {
             "get": {
-                "description": "Get image list uploaded by all users, that the current session's user is allowed to verify. User needs to have `images.verify.read` permission in order to call this API successfully.",
+                "description": "Get image list uploaded by all users, that the current session's user is allowed to verify. User needs to have `images.verify` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -4228,7 +4228,7 @@
         },
         "/api/sessions/user/exportable_images": {
             "get": {
-                "description": "Get image list uploaded by all users, that the current session's user is allowed to export. User needs to have `images.export.read` permission in order to call this API successfully.",
+                "description": "Get image list uploaded by all users, that the current session's user is allowed to export. User needs to have `images.export` permission in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
