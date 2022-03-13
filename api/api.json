@@ -1047,7 +1047,7 @@
                         "description": "Failed to add user role to user because the user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to add user role to user because user with user_id or user role with user_role_id doesn't exist."
+                        "description": "Failed to add user role to user because user with user_id or user role with user_role_id does not exist."
                     },
                     "409": {
                         "description": "Failed to add user role to user because user with user_id already has user role with user_role_id."
@@ -1105,7 +1105,10 @@
                         "description": "Failed to remove user role from user because the user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to remove user role from user because user with user_id or user role with user_role_id doesn't exist, or both of them exist but user doesn't have the user role."
+                        "description": "Failed to remove user role from user because user with user_id or user role with user_role_id does not exist, or both of them exist but user does not have the user role."
+                    },
+                    "409": {
+                        "description": "Failed to remove user role from user because user with user_id does not have user role with user_role_id."
                     }
                 }
             }
@@ -1390,7 +1393,7 @@
                         "description": "Failed to add user permission to user role because the user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to add user permission to user role because user role with user_role_id or user permission with user_permission_id doesn't exist."
+                        "description": "Failed to add user permission to user role because user role with user_role_id or user permission with user_permission_id does not exist."
                     },
                     "409": {
                         "description": "Failed to add user permission to user role because user role with user_role_id already has user permission with user_permission_id."
@@ -1448,7 +1451,10 @@
                         "description": "Failed to remove user permission from user role because the user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to remove user permission from user role because user role with user_role_id or user permission with user_permission_id doesn't exist, or user role doesn't have the user permission."
+                        "description": "Failed to remove user permission from user role because user role with user_role_id or user permission with user_permission_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to remove user permission from user role because user role with user_role_id does not have user permission with user_permission_id."
                     }
                 }
             }
@@ -1772,7 +1778,7 @@
                         "description": "Failed to create region label because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to create region label because image type with image_type_id doesn't exist."
+                        "description": "Failed to create region label because image type with image_type_id does not exist."
                     }
                 }
             }
@@ -1855,7 +1861,7 @@
                         "description": "Failed to updated region label because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to updated region label because image type with image_type_id or region label with region_label_id doesn't exist."
+                        "description": "Failed to updated region label because image type with image_type_id or region label with region_label_id does not exist."
                     }
                 }
             },
@@ -1908,7 +1914,7 @@
                         "description": "Failed to deleted region label because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to deleted region label because image type with image_type_id or region label with region_label_id doesn't exist."
+                        "description": "Failed to deleted region label because image type with image_type_id or region label with region_label_id does not exist."
                     }
                 }
             }
@@ -2250,7 +2256,7 @@
                         "description": "Failed to create image tag because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to create image tag because image tag group with image_tag_group_id doesn't exist."
+                        "description": "Failed to create image tag because image tag group with image_tag_group_id does not exist."
                     }
                 }
             }
@@ -2330,7 +2336,7 @@
                         "description": "Failed to updated image tag because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to updated image tag because image tag group with image_tag_group_id or image tag with image_tag_id doesn't exist."
+                        "description": "Failed to updated image tag because image tag group with image_tag_group_id or image tag with image_tag_id does not exist."
                     }
                 }
             },
@@ -2383,7 +2389,7 @@
                         "description": "Failed to deleted image tag because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to deleted image tag because image tag group with image_tag_group_id or image tag with image_tag_id doesn't exist."
+                        "description": "Failed to deleted image tag because image tag group with image_tag_group_id or image tag with image_tag_id does not exist."
                     }
                 }
             }
@@ -2444,7 +2450,7 @@
                         "description": "Failed to add image type to image tag group because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to add image type to image tag group because image tag group with image_tag_group_id or image type with image_type_id doesn't exist."
+                        "description": "Failed to add image type to image tag group because image tag group with image_tag_group_id or image type with image_type_id does not exist."
                     },
                     "409": {
                         "description": "Failed to add image type to image tag group because image tag group with image_tag_group_id already has image type with image_type_id in the list of allowed image types."
@@ -2502,7 +2508,7 @@
                         "description": "Failed to remove image type from image tag group because user does not have the necessary permission."
                     },
                     "404": {
-                        "description": "Failed to remove image type from image tag group because image tag group with image_tag_group_id or image type with image_type_id doesn't exist."
+                        "description": "Failed to remove image type from image tag group because image tag group with image_tag_group_id or image type with image_type_id does not exist."
                     },
                     "409": {
                         "description": "Failed to remove image type from image tag group because image tag group with image_tag_group_id does not have image type with image_type_id in the list of allowed image types."
