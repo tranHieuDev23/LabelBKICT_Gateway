@@ -11,8 +11,7 @@ import {
     checkUserHasUserPermission,
 } from "../utils";
 
-const USER_PERMISSIONS_READ_PERMISSION = "user_permissions.read";
-const USER_PERMISSIONS_WRITE_PERMISSION = "user_permissions.write";
+const USER_PERMISSIONS_MANAGE_PERMISSION = "user_permissions.manage";
 
 export function getUserPermissionsRouter(
     userPermissionManagementOperator: UserPermissionManagementOperator,
@@ -20,28 +19,19 @@ export function getUserPermissionsRouter(
 ): express.Router {
     const router = express.Router();
 
-    const userPermissionsReadAuthMiddleware =
+    const userPermissionsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
                 checkUserHasUserPermission(
                     authUserInfo.userPermissionList,
-                    USER_PERMISSIONS_READ_PERMISSION
-                ),
-            true
-        );
-    const userPermissionsWriteAuthMiddleware =
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USER_PERMISSIONS_WRITE_PERMISSION
+                    USER_PERMISSIONS_MANAGE_PERMISSION
                 ),
             true
         );
 
     router.post(
         "/api/permissions",
-        userPermissionsWriteAuthMiddleware,
+        userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const permissionName = req.body.permission_name as string;
             const description = req.body.description as string;
@@ -56,7 +46,7 @@ export function getUserPermissionsRouter(
 
     router.get(
         "/api/permissions",
-        userPermissionsReadAuthMiddleware,
+        userPermissionsManageAuthMiddleware,
         asyncHandler(async (_, res) => {
             const userPermissionList =
                 await userPermissionManagementOperator.getUserPermissionList();
@@ -66,7 +56,7 @@ export function getUserPermissionsRouter(
 
     router.patch(
         "/api/permissions/:userPermissionID",
-        userPermissionsWriteAuthMiddleware,
+        userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userPermissionID = +req.params.userPermissionID;
             const permissionName = req.body.permission_name as string;
@@ -83,7 +73,7 @@ export function getUserPermissionsRouter(
 
     router.delete(
         "/api/permissions/:userPermissionID",
-        userPermissionsWriteAuthMiddleware,
+        userPermissionsManageAuthMiddleware,
         async (req, res) => {
             const userPermissionID = +req.params.userPermissionID;
             await userPermissionManagementOperator.deleteUserPermission(

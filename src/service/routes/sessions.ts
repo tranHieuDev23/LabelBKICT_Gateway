@@ -36,21 +36,8 @@ export function getSessionsRouter(
         })
     );
 
-    router.delete(
-        "/api/sessions",
-        authMiddlewareFactory.getAuthMiddleware(() => true, false),
-        asyncHandler(async (_, res) => {
-            const authenticatedUserInformation = res.locals
-                .authenticatedUserInformation as AuthenticatedUserInformation;
-            await sessionManagementOperator.logout(
-                authenticatedUserInformation.token
-            );
-            res.clearCookie(LABEL_BKICT_AUTH_COOKIE_NAME).json({});
-        })
-    );
-
     router.get(
-        "/api/sessions",
+        "/api/sessions/user",
         authMiddlewareFactory.getAuthMiddleware(() => true, true),
         asyncHandler(async (_, res) => {
             const authenticatedUserInformation = res.locals
@@ -61,6 +48,19 @@ export function getSessionsRouter(
                 user_permission_list:
                     authenticatedUserInformation.userPermissionList,
             });
+        })
+    );
+
+    router.delete(
+        "/api/sessions",
+        authMiddlewareFactory.getAuthMiddleware(() => true, false),
+        asyncHandler(async (_, res) => {
+            const authenticatedUserInformation = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            await sessionManagementOperator.logout(
+                authenticatedUserInformation.token
+            );
+            res.clearCookie(LABEL_BKICT_AUTH_COOKIE_NAME).json({});
         })
     );
 
