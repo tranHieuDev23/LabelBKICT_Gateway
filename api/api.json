@@ -44,7 +44,7 @@
                 "properties": {
                     "id": {
                         "type": "integer",
-                        "description": "User Role ID, should be unique across all user role."
+                        "description": "User role ID, should be unique across all user role."
                     },
                     "display_name": {
                         "type": "string",
@@ -65,7 +65,7 @@
                 "properties": {
                     "id": {
                         "type": "integer",
-                        "description": "User Role ID, should be unique across all user role."
+                        "description": "User permission ID, should be unique across all user role."
                     },
                     "permission_name": {
                         "type": "string",
@@ -78,6 +78,244 @@
                         "type": "string",
                         "description": "A short description about the user permission.",
                         "maxLength": 256
+                    }
+                }
+            },
+            "ImageType": {
+                "type": "object",
+                "description": "An image type for images on the system. The type of an image determines which tags the image can be assigned with and which labels the regions on that image can take.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Image yype ID, should be unique across all image type."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The image type's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "has_predictive_model": {
+                        "type": "boolean",
+                        "description": "If true, the system can automatically detect regions on images of this type. This value should only be set manually by the developers."
+                    }
+                }
+            },
+            "RegionLabel": {
+                "type": "object",
+                "description": "A label that a region on an image can take. Each RegionLabel is associated with one ImageType only.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Region label ID, should be unique across all label."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The region label's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "The color for regions assigned with this label.",
+                        "pattern": "^#[0-9A-F]{6}$"
+                    }
+                }
+            },
+            "ImageTagGroup": {
+                "type": "object",
+                "description": "A group of tag values. If an Image Tag Group is associated with an Image Type, images of that Image Type can be assigned with Tag values of that Image Tag Group.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Image tag group ID, should be unique across all tag group."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The image tag group's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "is_single_value": {
+                        "type": "boolean",
+                        "description": "If true, each image can only be assigned with one tag of this tag group. Otherwise, multiple tags of this group can be assigned to the same image."
+                    }
+                }
+            },
+            "ImageTag": {
+                "type": "object",
+                "description": "A tag value, that can be assigned to an image for classification purpose.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Image tag ID, should be unique across all tag."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The image tag's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    }
+                }
+            },
+            "Image": {
+                "type": "object",
+                "description": "An image on the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Image ID, should be unique across all image."
+                    },
+                    "of_user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "uploaded_time": {
+                        "type": "integer",
+                        "description": "The time when this image was uploaded to the system."
+                    },
+                    "original_file_name": {
+                        "type": "string",
+                        "description": "The original file name of the image, when uploaded by the user."
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "description": "The URL to the full-size image on the system."
+                    },
+                    "thumbnail_url": {
+                        "type": "string",
+                        "description": "The URL to the compressed small-size thumbnail of the image, for display purpose."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description for the image."
+                    },
+                    "image_type": {
+                        "$ref": "#/components/schemas/ImageType"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "description": "The status of the image on the system. Can take a value of 0 (UPLOADED - for images that are just uploaded to the system), 1 (PUBLISHED - for images that are published for other users to verify), 2 (VERIFIED - for images that are verified by other users) or 3 (EXCLUDED - for images that are excluded from publication and are intended for presentation only).",
+                        "minimum": 0,
+                        "maximum": 3
+                    }
+                }
+            },
+            "Point": {
+                "type": "object",
+                "description": "A point on a 2D plane.",
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "description": "The x-coordinate of the point."
+                    },
+                    "y": {
+                        "type": "number",
+                        "description": "The y-coordinate of the point."
+                    }
+                }
+            },
+            "Polygon": {
+                "type": "object",
+                "description": "A polygon on a 2D plane. Polygons are represented by an array of its vertices - two consecutive elements of the array, as well as the first and the last element of the array share an edge together.",
+                "properties": {
+                    "vertex": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Point"
+                        },
+                        "minItems": 3,
+                        "maxItems": 327680
+                    }
+                }
+            },
+            "Region": {
+                "type": "object",
+                "description": "A region on an image on the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Region ID, should be unique across all region."
+                    },
+                    "drawn_by_user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "labeled_by_user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "border": {
+                        "$ref": "#/components/schemas/Polygon"
+                    },
+                    "holes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Polygon"
+                        },
+                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region."
+                    },
+                    "label": {
+                        "$ref": "#/components/schemas/RegionLabel"
+                    }
+                }
+            },
+            "RegionOperationLog": {
+                "type": "object",
+                "description": "A log of operations on a region.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Log ID, should be unique across all log."
+                    },
+                    "by_user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "operation_time": {
+                        "type": "integer",
+                        "description": "The time when this operation took place."
+                    },
+                    "operation_type": {
+                        "type": "integer",
+                        "description": "The type of operation. Can take a value of 0 (DRAW - for operations where the user draws/redraws the border/holes of the region) or 1 (LABEL - for operations where the user assign a label for the region)."
+                    },
+                    "operation_metadata": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/RegionOperationLogDrawMetadata"
+                            },
+                            {
+                                "$ref": "#/components/schemas/RegionOperationLogLabelMetadata"
+                            }
+                        ],
+                        "description": "Metadata of the operation. For DRAW operations, this is a RegionOperationLogDrawMetadata object. For LABEL operations, this is a RegionOperationLogLabelMetadata object."
+                    }
+                }
+            },
+            "RegionOperationLogDrawMetadata": {
+                "type": "object",
+                "description": "Metadata for DRAW operation on a Region.",
+                "properties": {
+                    "old_border": {
+                        "$ref": "#/components/schemas/Region/properties/border"
+                    },
+                    "old_holes": {
+                        "$ref": "#/components/schemas/Region/properties/holes"
+                    },
+                    "new_border": {
+                        "$ref": "#/components/schemas/Region/properties/border"
+                    },
+                    "new_holes": {
+                        "$ref": "#/components/schemas/Region/properties/holes"
+                    }
+                }
+            },
+            "RegionOperationLogLabelMetadata": {
+                "type": "object",
+                "description": "Metadata for LABEL operation on a Region.",
+                "properties": {
+                    "old_label": {
+                        "$ref": "#/components/schemas/Region/properties/label"
+                    },
+                    "new_label": {
+                        "$ref": "#/components/schemas/Region/properties/label"
                     }
                 }
             }
@@ -200,8 +438,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -228,7 +465,7 @@
                                                     "$ref": "#/components/schemas/UserRole"
                                                 }
                                             },
-                                            "description": "If with_user_role = true, this field is the list of user roles each user in user_list has, in the same order. If with_user_role = false, this field is not returned."
+                                            "description": "If with_user_role = 1, this field is the list of user roles each user in user_list has, in the same order. If with_user_role = 0, this field is not returned."
                                         }
                                     }
                                 }
@@ -236,7 +473,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to retrieve user list because the offset, limit or sort order does not satisfy the constraints."
+                        "description": "Failed to retrieve user list because the arguments provideds does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to retrieve user list because the user is not logged in."
@@ -298,8 +535,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -311,7 +547,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to update user because the username or display name does not satisfy the constraints."
+                        "description": "Failed to update user because the information provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to update user because the user is not logged in."
@@ -435,8 +671,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -507,8 +742,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -520,7 +754,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to create user role because the display name or description does not satisfy the constraints."
+                        "description": "Failed to create user role because the information provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to create user role because the user is not logged in."
@@ -593,8 +827,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -621,7 +854,7 @@
                                                     "$ref": "#/components/schemas/UserPermission"
                                                 }
                                             },
-                                            "description": "If with_user_permission = true, this field is the list of user permissions each user role in user_role_list has, in the same order. If with_user_permission = false, this field is not returned."
+                                            "description": "If with_user_permission = 1, this field is the list of user permissions each user role in user_role_list has, in the same order. If with_user_permission = 0, this field is not returned."
                                         }
                                     }
                                 }
@@ -629,7 +862,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to retrieve user role list because the offset, limit or sort order does not satisfy the constraints."
+                        "description": "Failed to retrieve user role list because the arguments provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to retrieve user role list because the user is not logged in."
@@ -688,8 +921,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -701,7 +933,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to update user role because the display name or description does not satisfy the constraints."
+                        "description": "Failed to update user role because the information provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to update user role because the user is not logged in."
@@ -737,14 +969,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "User role updated successfully.",
+                        "description": "User role deleted successfully.",
                         "headers": {
                             "Authorization": {
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -805,8 +1036,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -864,8 +1094,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -918,8 +1147,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -931,7 +1159,7 @@
                         }
                     },
                     "400": {
-                        "description": "Failed to create user permission because the permission name or description does not satisfy the constraints."
+                        "description": "Failed to create user permission because the information provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to create user permission because the user is not logged in."
@@ -959,8 +1187,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
@@ -1018,10 +1245,7 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "id": {
-                                        "$ref": "#/components/schemas/UserPermission/properties/id"
-                                    },
-                                    "display_name": {
+                                    "permission_name": {
                                         "$ref": "#/components/schemas/UserPermission/properties/permission_name"
                                     },
                                     "description": {
@@ -1040,20 +1264,19 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         },
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/UserRole"
+                                    "$ref": "#/components/schemas/UserPermission"
                                 }
                             }
                         }
                     },
                     "400": {
-                        "description": "Failed to update user permission because the permission name or description does not satisfy the constraints."
+                        "description": "Failed to update user permission because the information provided does not satisfy the constraints."
                     },
                     "401": {
                         "description": "Failed to update user permission because the user is not logged in."
@@ -1089,14 +1312,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "User permission updated successfully.",
+                        "description": "User permission deleted successfully.",
                         "headers": {
                             "Authorization": {
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -1157,8 +1379,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -1166,7 +1387,7 @@
                         "description": "Failed to add user permission to user role because the user is not logged in."
                     },
                     "403": {
-                        "description": "Failed to add user permission to user role does not have the necessary permission."
+                        "description": "Failed to add user permission to user role because the user does not have the necessary permission."
                     },
                     "404": {
                         "description": "Failed to add user permission to user role because user role with user_role_id or user permission with user_permission_id doesn't exist."
@@ -1216,8 +1437,7 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
-                                },
-                                "required": true
+                                }
                             }
                         }
                     },
@@ -1229,6 +1449,920 @@
                     },
                     "404": {
                         "description": "Failed to remove user permission from user role because user role with user_role_id or user permission with user_permission_id doesn't exist, or user role doesn't have the user permission."
+                    }
+                }
+            }
+        },
+        "/api/image-types": {
+            "post": {
+                "description": "Create a new image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageType/properties/display_name"
+                                    },
+                                    "has_predictive_model": {
+                                        "$ref": "#/components/schemas/ImageType/properties/has_predictive_model"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image type created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageType"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create image type because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create image type because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create image type because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get image type list. User needs to have `image_types.read` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "with_region_label",
+                        "in": "query",
+                        "description": "If equal to 1, will return the list of region labels each image type in the list has.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image type list retrieved successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image_type_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageType"
+                                            },
+                                            "description": "The list of image types."
+                                        },
+                                        "region_label_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/RegionLabel"
+                                                }
+                                            },
+                                            "description": "If with_region_label = 1, this field is the list of region labels each image type in image_type_list has, in the same order. If with_region_label = 0, this field is not returned."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve image type list because the arguments provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve image type list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve image type list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/image-types/{image_type_id}": {
+            "patch": {
+                "description": "Update image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageType/properties/display_name"
+                                    },
+                                    "has_predictive_model": {
+                                        "$ref": "#/components/schemas/ImageType/properties/has_predictive_model"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image type updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageType"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image type because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update image type because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image type because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image type because no image type with the provided image_type_id is found."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image type deleted successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete image type because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete image type because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete image type because no image type with the provided image_type_id is found."
+                    }
+                }
+            }
+        },
+        "/api/image-types/{image_type_id}/labels": {
+            "post": {
+                "description": "Create a new region label for an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to be added region label for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/display_name"
+                                    },
+                                    "color": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/color"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Region label created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegionLabel"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create region label because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create region label because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create region label because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to create region label because image type with image_type_id doesn't exist."
+                    }
+                }
+            }
+        },
+        "/api/image-types/{image_type_id}/labels/{region_label_id}": {
+            "patch": {
+                "description": "Update a region label of an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to updated region label for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_label_id",
+                        "in": "path",
+                        "description": "The region label to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/RegionLabel/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/display_name"
+                                    },
+                                    "color": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/color"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Region label updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegionLabel"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to updated region label because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to updated region label because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to updated region label because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to updated region label because image type with image_type_id or region label with region_label_id doesn't exist."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a region label of an image type. User needs to have `image_types.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to deleted region label for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_label_id",
+                        "in": "path",
+                        "description": "The region label to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/RegionLabel/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region label deleted successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to deleted region label because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to deleted region label because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to deleted region label because image type with image_type_id or region label with region_label_id doesn't exist."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups": {
+            "post": {
+                "description": "Create a new image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageTagGroup/properties/display_name"
+                                    },
+                                    "is_single_value": {
+                                        "$ref": "#/components/schemas/ImageTagGroup/properties/is_single_value"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image tag group created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageTagGroup"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create image tag group because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create image tag group because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create image tag group because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get image tag group list. User needs to have `image_tags.read` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "with_tag",
+                        "in": "query",
+                        "description": "If equal to 1, will return the list of tags each image tag group in the list has.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image tag group list retrieved successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image_tag_group_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageTagGroup"
+                                            },
+                                            "description": "The list of image tag groups."
+                                        },
+                                        "image_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/ImageTag"
+                                                }
+                                            },
+                                            "description": "If with_tag = 1, this field is the list of tags each tag group in image_tag_group_list has, in the same order. If with_tag = 0, this field is not returned."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve image tag group list because the arguments provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve image tag group list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve image tag group list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups/{image_tag_group_id}": {
+            "patch": {
+                "description": "Update image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageTagGroup/properties/display_name"
+                                    },
+                                    "is_single_value": {
+                                        "$ref": "#/components/schemas/ImageTagGroup/properties/is_single_value"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image tag group updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageTagGroup"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image tag group because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update image tag group because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image tag group because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image tag group because no image tag group with the provided image_tag_group_id is found."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image tag group deleted successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete image tag group because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete image tag group because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete image tag group because no image tag group with the provided image_tag_group_id is found."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups/{image_tag_group_id}/tags": {
+            "post": {
+                "description": "Create a new image tag for an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to be added image tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageTag/properties/display_name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image tag created successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageTag"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create image tag because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create image tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create image tag because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to create image tag because image tag group with image_tag_group_id doesn't exist."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups/{image_tag_group_id}/tags/{image_tag_id}": {
+            "patch": {
+                "description": "Update a image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to updated image tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_tag_id",
+                        "in": "path",
+                        "description": "The image tag to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/ImageTag/properties/display_name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image tag updated successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageTag"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to updated image tag because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to updated image tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to updated image tag because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to updated image tag because image tag group with image_tag_group_id or image tag with image_tag_id doesn't exist."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to deleted image tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_label_id",
+                        "in": "path",
+                        "description": "The image tag to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image tag deleted successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to deleted image tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to deleted image tag because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to deleted image tag because image tag group with image_tag_group_id or image tag with image_tag_id doesn't exist."
                     }
                 }
             }
