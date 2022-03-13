@@ -1993,6 +1993,17 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "with_allowed_image_type",
+                        "in": "query",
+                        "description": "If equal to 1, will return the list of allow image types that each image tag group in the list has.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -2027,6 +2038,16 @@
                                                 }
                                             },
                                             "description": "If with_tag = 1, this field is the list of tags each tag group in image_tag_group_list has, in the same order. If with_tag = 0, this field is not returned."
+                                        },
+                                        "image_type_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/ImageType"
+                                                }
+                                            },
+                                            "description": "If with_allowed_image_type = 1, this field is the list of allowed image type each tag group in image_tag_group_list has, in the same order. If with_allowed_image_type = 0, this field is not returned."
                                         }
                                     }
                                 }
