@@ -1208,21 +1208,6 @@
                         "required": true
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "user_permission_id": {
-                                        "$ref": "#/components/schemas/UserPermission/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "User permission removed from user role successfully.",
