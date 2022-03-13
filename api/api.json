@@ -2236,7 +2236,7 @@
         },
         "/api/image-tag-groups/{image_tag_group_id}/tags/{image_tag_id}": {
             "patch": {
-                "description": "Update a image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Update an image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2314,7 +2314,7 @@
                 }
             },
             "delete": {
-                "description": "Delete a image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "description": "Delete an image tag of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
                 "tags": [
                     "Image Tag Management"
                 ],
@@ -2363,6 +2363,128 @@
                     },
                     "404": {
                         "description": "Failed to deleted image tag because image tag group with image_tag_group_id or image tag with image_tag_id doesn't exist."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups/{image_tag_group_id}/types/": {
+            "post": {
+                "description": "Add an image type to the list of allowed image types of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to deleted image tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image_type_id": {
+                                        "$ref": "#/components/schemas/ImageType/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Added image type to image tag group successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to add image type to image tag group because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to add image type to image tag group because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to add image type to image tag group because image tag group with image_tag_group_id or image type with image_type_id doesn't exist."
+                    },
+                    "409": {
+                        "description": "Failed to add image type to image tag group because image tag group with image_tag_group_id already has image type with image_type_id in the list of allowed image types."
+                    }
+                }
+            }
+        },
+        "/api/image-tag-groups/{image_tag_group_id}/types/{image_type_id}": {
+            "delete": {
+                "description": "Remove an image type from the list of allowed image types of an image tag group. User needs to have `image_tags.write` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_tag_group_id",
+                        "in": "path",
+                        "description": "The image tag group to deleted image tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTagGroup/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to be removed.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Removed image type from image tag group successfully.",
+                        "headers": {
+                            "Authorization": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove image type from image tag group because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove image type from image tag group because user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove image type from image tag group because image tag group with image_tag_group_id or image type with image_type_id doesn't exist."
+                    },
+                    "409": {
+                        "description": "Failed to remove image type from image tag group because image tag group with image_tag_group_id does not have image type with image_type_id in the list of allowed image types."
                     }
                 }
             }
