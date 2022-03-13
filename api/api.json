@@ -2536,7 +2536,7 @@
             "get": {
                 "description": "Get the list of tag groups and tag values that can be assigned to an image type. User needs to already be logged in to the system in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image Tag Management"
                 ],
                 "security": [
                     {
