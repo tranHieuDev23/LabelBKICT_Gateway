@@ -118,7 +118,7 @@ export function getUserRolesRouter(
     );
 
     router.post(
-        "/api/roles/:userID/permissions",
+        "/api/roles/:userRoleID/permissions",
         userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
@@ -132,7 +132,7 @@ export function getUserRolesRouter(
     );
 
     router.delete(
-        "/api/roles/:userID/permissions/:userPermissionID",
+        "/api/roles/:userRoleID/permissions/:userPermissionID",
         userRolesWriteAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleID = +req.params.userRoleID;
