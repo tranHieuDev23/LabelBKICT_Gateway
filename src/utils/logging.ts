@@ -1,6 +1,6 @@
-import { join } from "path";
 import { injected, token } from "brandi";
 import { createLogger, format, Logger, transports } from "winston";
+import "winston-daily-rotate-file";
 import { LogConfig, LOG_CONFIG_TOKEN } from "../config";
 
 export function initializeLogger(logConfig: LogConfig): Logger {
@@ -8,13 +8,17 @@ export function initializeLogger(logConfig: LogConfig): Logger {
         format: format.combine(format.timestamp(), format.json()),
         defaultMeta: {},
         transports: [
-            new transports.File({
+            new transports.DailyRotateFile({
                 level: "error",
-                filename: join(logConfig.logDir, "error.log"),
+                dirname: logConfig.logDir,
+                filename: "error-%DATE%.log",
+                datePattern: "YYYY-MM-DD-HH",
             }),
-            new transports.File({
+            new transports.DailyRotateFile({
                 level: "info",
-                filename: join(logConfig.logDir, "info.log"),
+                dirname: logConfig.logDir,
+                filename: "info-%DATE%.log",
+                datePattern: "YYYY-MM-DD-HH",
             }),
         ],
     });

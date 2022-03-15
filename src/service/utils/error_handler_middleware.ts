@@ -2,7 +2,11 @@ import { injected, token } from "brandi";
 import { ErrorRequestHandler } from "express";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../utils";
+import {
+    ErrorWithHTTPCode,
+    LOGGER_TOKEN,
+    maskSensitiveFields,
+} from "../../utils";
 import { error as OpenAPIError } from "express-openapi-validator";
 
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
@@ -11,7 +15,7 @@ export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
         logger.error("failed to handle request", {
             method: request.method,
             path: request.originalUrl,
-            body: request.body,
+            body: maskSensitiveFields(request.body),
             error: error,
         });
 
