@@ -264,7 +264,8 @@
                         "items": {
                             "$ref": "#/components/schemas/Polygon"
                         },
-                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region."
+                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                        "maxItems": 10
                     },
                     "label": {
                         "$ref": "#/components/schemas/RegionLabel"
@@ -311,13 +312,21 @@
                         "$ref": "#/components/schemas/Region/properties/border"
                     },
                     "old_holes": {
-                        "$ref": "#/components/schemas/Region/properties/holes"
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Polygon"
+                        },
+                        "description": "The list of holes in the region before the operation."
                     },
                     "new_border": {
                         "$ref": "#/components/schemas/Region/properties/border"
                     },
                     "new_holes": {
-                        "$ref": "#/components/schemas/Region/properties/holes"
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Polygon"
+                        },
+                        "description": "The list of holes in the region after the operation."
                     }
                 }
             },
@@ -3342,7 +3351,12 @@
                                         "$ref": "#/components/schemas/Region/properties/border"
                                     },
                                     "holes": {
-                                        "$ref": "#/components/schemas/Region/properties/holes"
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Polygon"
+                                        },
+                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                                        "maxItems": 10
                                     },
                                     "region_label_id": {
                                         "$ref": "#/components/schemas/RegionLabel/properties/id"
@@ -3431,7 +3445,12 @@
                                         "$ref": "#/components/schemas/Region/properties/border"
                                     },
                                     "holes": {
-                                        "$ref": "#/components/schemas/Region/properties/holes"
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Polygon"
+                                        },
+                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                                        "maxItems": 10
                                     },
                                     "region_label_id": {
                                         "$ref": "#/components/schemas/RegionLabel/properties/id"
