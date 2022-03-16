@@ -3716,7 +3716,7 @@
                     },
                     {
                         "name": "filter_upload_time_start",
-                        "description": "If non-zero, filter filter for images that are uploaded from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3725,7 +3725,7 @@
                     },
                     {
                         "name": "filter_upload_time_end",
-                        "description": "If non-zero, filter filter for images that are uploaded before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3734,7 +3734,7 @@
                     },
                     {
                         "name": "filter_publish_time_start",
-                        "description": "If non-zero, filter filter for images that are published from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3743,7 +3743,7 @@
                     },
                     {
                         "name": "filter_publish_time_end",
-                        "description": "If non-zero, filter filter for images that are published before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3752,7 +3752,7 @@
                     },
                     {
                         "name": "filter_verify_time_start",
-                        "description": "If non-zero, filter filter for images that are verified from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3761,11 +3761,21 @@
                     },
                     {
                         "name": "filter_verify_time_end",
-                        "description": "If non-zero, filter filter for images that are verified before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
                             "default": 0
+                        }
+                    },
+                    {
+                        "name": "original_file_name_query",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
                         }
                     },
                     {
@@ -3951,7 +3961,7 @@
                     },
                     {
                         "name": "filter_upload_time_start",
-                        "description": "If non-zero, filter filter for images that are uploaded from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3960,7 +3970,7 @@
                     },
                     {
                         "name": "filter_upload_time_end",
-                        "description": "If non-zero, filter filter for images that are uploaded before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3969,7 +3979,7 @@
                     },
                     {
                         "name": "filter_publish_time_start",
-                        "description": "If non-zero, filter filter for images that are published from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3978,7 +3988,7 @@
                     },
                     {
                         "name": "filter_publish_time_end",
-                        "description": "If non-zero, filter filter for images that are published before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3987,7 +3997,7 @@
                     },
                     {
                         "name": "filter_verify_time_start",
-                        "description": "If non-zero, filter filter for images that are verified from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -3996,11 +4006,21 @@
                     },
                     {
                         "name": "filter_verify_time_end",
-                        "description": "If non-zero, filter filter for images that are verified before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
                             "default": 0
+                        }
+                    },
+                    {
+                        "name": "original_file_name_query",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
                         }
                     },
                     {
@@ -4186,7 +4206,7 @@
                     },
                     {
                         "name": "filter_upload_time_start",
-                        "description": "If non-zero, filter filter for images that are uploaded from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4195,7 +4215,7 @@
                     },
                     {
                         "name": "filter_upload_time_end",
-                        "description": "If non-zero, filter filter for images that are uploaded before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4204,7 +4224,7 @@
                     },
                     {
                         "name": "filter_publish_time_start",
-                        "description": "If non-zero, filter filter for images that are published from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4213,7 +4233,7 @@
                     },
                     {
                         "name": "filter_publish_time_end",
-                        "description": "If non-zero, filter filter for images that are published before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4222,7 +4242,7 @@
                     },
                     {
                         "name": "filter_verify_time_start",
-                        "description": "If non-zero, filter filter for images that are verified from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4231,11 +4251,21 @@
                     },
                     {
                         "name": "filter_verify_time_end",
-                        "description": "If non-zero, filter filter for images that are verified before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
                             "default": 0
+                        }
+                    },
+                    {
+                        "name": "original_file_name_query",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
                         }
                     },
                     {
@@ -4421,7 +4451,7 @@
                     },
                     {
                         "name": "filter_upload_time_start",
-                        "description": "If non-zero, filter filter for images that are uploaded from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4430,7 +4460,7 @@
                     },
                     {
                         "name": "filter_upload_time_end",
-                        "description": "If non-zero, filter filter for images that are uploaded before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4439,7 +4469,7 @@
                     },
                     {
                         "name": "filter_publish_time_start",
-                        "description": "If non-zero, filter filter for images that are published from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4448,7 +4478,7 @@
                     },
                     {
                         "name": "filter_publish_time_end",
-                        "description": "If non-zero, filter filter for images that are published before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4457,7 +4487,7 @@
                     },
                     {
                         "name": "filter_verify_time_start",
-                        "description": "If non-zero, filter filter for images that are verified from or after this timestamp.",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4466,11 +4496,21 @@
                     },
                     {
                         "name": "filter_verify_time_end",
-                        "description": "If non-zero, filter filter for images that are verified before or on this timestamp.",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
                             "default": 0
+                        }
+                    },
+                    {
+                        "name": "original_file_name_query",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
                         }
                     },
                     {
