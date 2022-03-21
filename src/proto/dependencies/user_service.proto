@@ -4,6 +4,7 @@ service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
     rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
     rpc GetUserList(GetUserListRequest) returns (GetUserListResponse) {}
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 
     rpc CreateUserPassword(CreateUserPasswordRequest) returns (CreateUserPasswordResponse) {}
     rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UpdateUserPasswordResponse) {}
@@ -112,6 +113,14 @@ message GetUserListRequest {
 message GetUserListResponse {
     uint32 total_user_count = 1;
     repeated User user_list = 2;
+}
+
+message GetUserRequest {
+    uint32 id = 1;
+}
+
+message GetUserResponse {
+    User user = 1;
 }
 
 message CreateUserPasswordRequest {
