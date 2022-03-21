@@ -5,7 +5,7 @@ import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { LOGGER_TOKEN } from "../../utils";
 import { ImageTagGroup, ImageTag } from "../schemas";
 
-export interface ImageTagGroupManagementOperator {
+export interface ImageTagManagementOperator {
     createImageTagGroup(
         displayName: string,
         isSingleValue: boolean
@@ -35,8 +35,8 @@ export interface ImageTagGroupManagementOperator {
     ): Promise<ImageTag>;
 }
 
-export class ImageTagGroupManagementOperatorImpl
-    implements ImageTagGroupManagementOperator
+export class ImageTagManagementOperatorImpl
+    implements ImageTagManagementOperator
 {
     constructor(
         private readonly imageServiceDM: ImageServiceClient,
@@ -99,11 +99,7 @@ export class ImageTagGroupManagementOperatorImpl
     }
 }
 
-injected(
-    ImageTagGroupManagementOperatorImpl,
-    IMAGE_SERVICE_DM_TOKEN,
-    LOGGER_TOKEN
-);
+injected(ImageTagManagementOperatorImpl, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
 
-export const IMAGE_TAG_GROUP_MANAGEMENT_OPERATOR_TOKEN =
-    token<ImageTagGroupManagementOperator>("ImageTagGroupManagementOperator");
+export const IMAGE_TAG_MANAGEMENT_OPERATOR_TOKEN =
+    token<ImageTagManagementOperator>("ImageTagManagementOperator");

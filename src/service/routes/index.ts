@@ -7,6 +7,12 @@ import {
     getUserPermissionsRouter,
 } from "./permissions";
 import { USER_ROLES_ROUTER_TOKEN, getUserRolesRouter } from "./roles";
+import { getImageTypesRouter, IMAGE_TYPES_ROUTER_TOKEN } from "./image-types";
+import {
+    IMAGE_TAG_GROUPS_ROUTER_TOKEN,
+    getImageTagGroupsRouter,
+} from "./image-tag-groups";
+import { getImagesRouter, IMAGES_ROUTER_TOKEN } from "./images";
 
 export * from "./users";
 export * from "./sessions";
@@ -33,12 +39,27 @@ export function bindToContainer(container: Container): void {
         .toInstance(getUserPermissionsRouter)
         .inSingletonScope();
     container
+        .bind(IMAGE_TYPES_ROUTER_TOKEN)
+        .toInstance(getImageTypesRouter)
+        .inSingletonScope();
+    container
+        .bind(IMAGE_TAG_GROUPS_ROUTER_TOKEN)
+        .toInstance(getImageTagGroupsRouter)
+        .inSingletonScope();
+    container
+        .bind(IMAGES_ROUTER_TOKEN)
+        .toInstance(getImagesRouter)
+        .inSingletonScope();
+    container
         .bind(ROUTES_TOKEN)
         .toInstance(() => [
             container.get(USERS_ROUTER_TOKEN),
             container.get(SESSIONS_ROUTER_TOKEN),
             container.get(USER_ROLES_ROUTER_TOKEN),
             container.get(USER_PERMISSIONS_ROUTER_TOKEN),
+            container.get(IMAGE_TYPES_ROUTER_TOKEN),
+            container.get(IMAGE_TAG_GROUPS_ROUTER_TOKEN),
+            container.get(IMAGES_ROUTER_TOKEN),
         ])
         .inSingletonScope();
 }
