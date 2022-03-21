@@ -87,7 +87,7 @@
                 "properties": {
                     "id": {
                         "type": "integer",
-                        "description": "Image yype ID, should be unique across all image type."
+                        "description": "Image type ID, should be unique across all image type."
                     },
                     "display_name": {
                         "type": "string",
@@ -2812,814 +2812,6 @@
                 }
             }
         },
-        "/api/images/{image_id}": {
-            "get": {
-                "description": "Get an image. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be retrieved.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Image retrieved successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "image": {
-                                            "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to retrieve image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to retrieve image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to retrieve image because the image with image_id does not exist."
-                    }
-                }
-            },
-            "patch": {
-                "description": "Update image metadata. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully. Any field that is not provided in the request will not be updated.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "description": {
-                                        "$ref": "#/components/schemas/Image/properties/description"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "image": {
-                                            "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Failed to update image because the provided information does not satisfy the constraints."
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id does not exist."
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Image deleted successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to delete image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to delete image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to delete image because the image with image_id does not exist."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/image_type": {
-            "patch": {
-                "description": "Update image type of image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "image_type_id": {
-                                        "$ref": "#/components/schemas/ImageType/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "image": {
-                                            "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id or the image type with image_type_id does not exist."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/status": {
-            "patch": {
-                "description": "Update image status. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "status": {
-                                        "$ref": "#/components/schemas/Image/properties/status"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "image": {
-                                            "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Failed to update image because the status value provided is invalid."
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id does not exist."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/tags": {
-            "post": {
-                "description": "Add an image tag to an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "image_tag_id": {
-                                        "$ref": "#/components/schemas/ImageTag/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Failed to update image because the tag with image_tag_id cannot be assigned to image with image_id."
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id or the tag with image_tag_id does not exist."
-                    },
-                    "409": {
-                        "description": "Failed to update image because the image with image_id already has the tag with image_tag_id."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/tags/{image_tag_id}": {
-            "delete": {
-                "description": "Remove an image tag from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "image_tag_id",
-                        "in": "path",
-                        "description": "The image tag to be removed.",
-                        "schema": {
-                            "$ref": "#/components/schemas/ImageTag/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id or the tag with image_tag_id does not exist."
-                    },
-                    "409": {
-                        "description": "Failed to update image because the image with image_id does not have the tag with image_tag_id."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/regions": {
-            "post": {
-                "description": "Add region to image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "border": {
-                                        "$ref": "#/components/schemas/Region/properties/border"
-                                    },
-                                    "holes": {
-                                        "type": "array",
-                                        "items": {
-                                            "$ref": "#/components/schemas/Polygon"
-                                        },
-                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
-                                        "maxItems": 10
-                                    },
-                                    "region_label_id": {
-                                        "$ref": "#/components/schemas/RegionLabel/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Image updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Region"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Failed to update image because the provided information does not satisfy the constraints."
-                    },
-                    "401": {
-                        "description": "Failed to update image because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update image because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update image because the image with image_id does not exist."
-                    },
-                    "409": {
-                        "description": "Failed to update image because the label with region_label_id cannot be assigned to image with image_id."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/regions/{region_id}": {
-            "patch": {
-                "description": "Update a region of an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "region_id",
-                        "in": "path",
-                        "description": "The region to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Region/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "border": {
-                                        "$ref": "#/components/schemas/Region/properties/border"
-                                    },
-                                    "holes": {
-                                        "type": "array",
-                                        "items": {
-                                            "$ref": "#/components/schemas/Polygon"
-                                        },
-                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
-                                        "maxItems": 10
-                                    },
-                                    "region_label_id": {
-                                        "$ref": "#/components/schemas/RegionLabel/properties/id"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Region updated successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Region"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Failed to update image because the provided information does not satisfy the constraints."
-                    },
-                    "401": {
-                        "description": "Failed to update region because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update region because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
-                    },
-                    "409": {
-                        "description": "Failed to update image because the label with region_label_id cannot be assigned to image with image_id."
-                    }
-                }
-            },
-            "delete": {
-                "description": "Remove a region from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "region_id",
-                        "in": "path",
-                        "description": "The region to be removed.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Region/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Region removed successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to remove region because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to remove region because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to remove region because the image with image_id or the region with region_id does not exist."
-                    }
-                }
-            }
-        },
-        "/api/images/{image_id}/regions/{region_id}/operation-logs": {
-            "get": {
-                "description": "Get the list of operation logs of a region. User needs to either (1) have `images.manage.self` permission and is retrieving information about an image of their own, (2) have `images.verify` permission and is retrieving information about an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is retrieving information about an image that they are allowed to manage in order to call this API successfully. Any field that is not provided in the request will not be updated.",
-                "tags": [
-                    "Image Management"
-                ],
-                "security": [
-                    {
-                        "AuthenticationToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to retrieve information.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
-                    },
-                    {
-                        "name": "region_id",
-                        "in": "path",
-                        "description": "The region to retrieve information.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Region/properties/id"
-                        },
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Region operation log list retrieved successfully.",
-                        "headers": {
-                            "Set-Cookie": {
-                                "description": "Renewed authentication token, if the user old token is about to expire.",
-                                "schema": {
-                                    "$ref": "#/components/schemas/Token"
-                                }
-                            }
-                        },
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "region_operation_log_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/RegionOperationLog"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Failed to update region because the user is not logged in."
-                    },
-                    "403": {
-                        "description": "Failed to update region because the user does not have the necessary permission."
-                    },
-                    "404": {
-                        "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
-                    }
-                }
-            }
-        },
         "/api/sessions/user/images": {
             "get": {
                 "description": "Get image list uploaded by the current sessions's user. User needs to have `images.manage.self` permission in order to call this API successfully.",
@@ -4586,6 +3778,984 @@
                     },
                     "403": {
                         "description": "Failed to update image because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}": {
+            "get": {
+                "description": "Get an image. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be retrieved.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image retrieved successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image": {
+                                            "$ref": "#/components/schemas/Image"
+                                        },
+                                        "image_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageTag"
+                                            },
+                                            "description": "The list of tags this image is assigned with."
+                                        },
+                                        "region_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Region"
+                                            },
+                                            "description": "The list of regions in this image."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to retrieve image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to retrieve image because the image with image_id does not exist."
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update image metadata. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully. Any field that is not provided in the request will not be updated.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "description": {
+                                        "$ref": "#/components/schemas/Image/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image": {
+                                            "$ref": "#/components/schemas/Image"
+                                        },
+                                        "image_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageTag"
+                                            },
+                                            "description": "The list of tags this image is assigned with."
+                                        },
+                                        "region_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Region"
+                                            },
+                                            "description": "The list of regions in this image."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the provided information does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id does not exist."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image deleted successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete image because the image with image_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/region_snapshot": {
+            "get": {
+                "description": "Get all region snapshots of an image at a certain status. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be retrieved.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "at_status": {
+                                        "$ref": "#/components/schemas/Image/properties/status"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Retrieved region snapshot list of image successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "region_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Region"
+                                            },
+                                            "description": "The list of region snapshots in this image."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve region snapshot list of image because of invalid at_status value."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve region snapshot list of image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve region snapshot list of image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to retrieve region snapshot list of image because the image with image_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/image_type": {
+            "patch": {
+                "description": "Update image type of image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image_type_id": {
+                                        "$ref": "#/components/schemas/ImageType/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image": {
+                                            "$ref": "#/components/schemas/Image"
+                                        },
+                                        "image_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageTag"
+                                            },
+                                            "description": "The list of tags this image is assigned with."
+                                        },
+                                        "region_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Region"
+                                            },
+                                            "description": "The list of regions in this image."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id or the image type with image_type_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/status": {
+            "patch": {
+                "description": "Update image status. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "$ref": "#/components/schemas/Image/properties/status"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image": {
+                                            "$ref": "#/components/schemas/Image"
+                                        },
+                                        "image_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImageTag"
+                                            },
+                                            "description": "The list of tags this image is assigned with."
+                                        },
+                                        "region_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Region"
+                                            },
+                                            "description": "The list of regions in this image."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the status value provided is invalid."
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/tags": {
+            "post": {
+                "description": "Add an image tag to an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image_tag_id": {
+                                        "$ref": "#/components/schemas/ImageTag/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the tag with image_tag_id cannot be assigned to image with image_id."
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id or the tag with image_tag_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to update image because the image with image_id already has the tag with image_tag_id."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/tags/{image_tag_id}": {
+            "delete": {
+                "description": "Remove an image tag from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Image Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_tag_id",
+                        "in": "path",
+                        "description": "The image tag to be removed.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id or the tag with image_tag_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to update image because the image with image_id does not have the tag with image_tag_id."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/regions": {
+            "post": {
+                "description": "Add region to image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Region Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "border": {
+                                        "$ref": "#/components/schemas/Region/properties/border"
+                                    },
+                                    "holes": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Polygon"
+                                        },
+                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                                        "maxItems": 10
+                                    },
+                                    "region_label_id": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Region"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the provided information does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update image because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update image because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update image because the image with image_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to update image because the label with region_label_id cannot be assigned to image with image_id."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/regions/{region_id}": {
+            "delete": {
+                "description": "Remove a region from an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Region Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_id",
+                        "in": "path",
+                        "description": "The region to be removed.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Region/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region removed successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove region because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove region because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove region because the image with image_id or the region with region_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/regions/{region_id}/boundary": {
+            "patch": {
+                "description": "Update the boundary a region of an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Region Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_id",
+                        "in": "path",
+                        "description": "The region to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Region/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "border": {
+                                        "$ref": "#/components/schemas/Region/properties/border"
+                                    },
+                                    "holes": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Polygon"
+                                        },
+                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                                        "maxItems": 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Region updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Region"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the provided information does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update region because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update region because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/regions/{region_id}/label": {
+            "patch": {
+                "description": "Update a region of an image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, (2) have `images.verify` permission and is updating an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
+                "tags": [
+                    "Region Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_id",
+                        "in": "path",
+                        "description": "The region to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Region/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "border": {
+                                        "$ref": "#/components/schemas/Region/properties/border"
+                                    },
+                                    "holes": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Polygon"
+                                        },
+                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
+                                        "maxItems": 10
+                                    },
+                                    "region_label_id": {
+                                        "$ref": "#/components/schemas/RegionLabel/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Region updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Region"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update image because the provided information does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update region because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update region because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to update image because the label with region_label_id cannot be assigned to image with image_id."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/regions/{region_id}/operation-logs": {
+            "get": {
+                "description": "Get the list of operation logs of a region. User needs to either (1) have `images.manage.self` permission and is retrieving information about an image of their own, (2) have `images.verify` permission and is retrieving information about an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is retrieving information about an image that they are allowed to manage in order to call this API successfully. Any field that is not provided in the request will not be updated.",
+                "tags": [
+                    "Region Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to retrieve information.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "region_id",
+                        "in": "path",
+                        "description": "The region to retrieve information.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Region/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region operation log list retrieved successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "region_operation_log_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/RegionOperationLog"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to update region because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update region because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
                     }
                 }
             }
