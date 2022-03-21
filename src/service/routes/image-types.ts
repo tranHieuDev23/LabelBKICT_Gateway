@@ -2,6 +2,10 @@ import { injected, token } from "brandi";
 import express from "express";
 import asyncHandler from "express-async-handler";
 import {
+    ImageTagManagementOperator,
+    IMAGE_TAG_MANAGEMENT_OPERATOR_TOKEN,
+} from "../../module/image_tags";
+import {
     ImageTypeManagementOperator,
     IMAGE_TYPE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/image_types";
@@ -15,11 +19,12 @@ const IMAGE_TYPES_MANAGE_PERMISSION = "image_types.manage";
 
 export function getImageTypesRouter(
     imageTypeManagementOperator: ImageTypeManagementOperator,
+    imageTagManagementOperator: ImageTagManagementOperator,
     authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
-    const imageTypesManageAuthMiddleware =
+    const imageTagsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
                 checkUserHasUserPermission(
@@ -31,7 +36,7 @@ export function getImageTypesRouter(
 
     router.post(
         "/api/image-types",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name;
             const hasPredictiveModel = req.body.has_predictive_model;
@@ -60,7 +65,7 @@ export function getImageTypesRouter(
 
     router.patch(
         "/api/image-types/:imageTypeID",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeID = +req.params.imageTypeID;
             const displayName = req.body.display_name;
@@ -76,7 +81,7 @@ export function getImageTypesRouter(
 
     router.delete(
         "/api/image-types/:imageTypeID",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeID = +req.params.imageTypeID;
             await imageTypeManagementOperator.deleteImageType(imageTypeID);
@@ -86,7 +91,7 @@ export function getImageTypesRouter(
 
     router.post(
         "/api/image-types/:imageTypeID/labels",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeID = +req.params.imageTypeID;
             const displayName = req.body.display_name;
@@ -103,7 +108,7 @@ export function getImageTypesRouter(
 
     router.patch(
         "/api/image-types/:imageTypeID/labels/:regionLabelID",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeID = +req.params.imageTypeID;
             const regionLabelID = +req.params.regionLabelID;
@@ -122,7 +127,7 @@ export function getImageTypesRouter(
 
     router.delete(
         "/api/image-types/:imageTypeID/labels/:regionLabelID",
-        imageTypesManageAuthMiddleware,
+        imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeID = +req.params.imageTypeID;
             const regionLabelID = +req.params.regionLabelID;
@@ -134,12 +139,29 @@ export function getImageTypesRouter(
         })
     );
 
+    router.get(
+        "/api/image-types/:imageTypeID/image-tag-groups",
+        imageTagsManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTypeID = +req.params.imageTypeID;
+            const { imageTagGroupList, imageTagList } =
+                await imageTagManagementOperator.getImageTagGroupListOfImageType(
+                    imageTypeID
+                );
+            res.json({
+                image_tag_group_list: imageTagGroupList,
+                image_tag_list: imageTagList,
+            });
+        })
+    );
+
     return router;
 }
 
 injected(
     getImageTypesRouter,
     IMAGE_TYPE_MANAGEMENT_OPERATOR_TOKEN,
+    IMAGE_TAG_MANAGEMENT_OPERATOR_TOKEN,
     AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
 

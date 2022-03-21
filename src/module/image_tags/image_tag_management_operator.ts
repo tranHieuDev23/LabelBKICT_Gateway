@@ -3,16 +3,20 @@ import { Logger } from "winston";
 import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { LOGGER_TOKEN } from "../../utils";
-import { ImageTagGroup, ImageTag } from "../schemas";
+import { ImageTagGroup, ImageTag, ImageType } from "../schemas";
 
 export interface ImageTagManagementOperator {
     createImageTagGroup(
         displayName: string,
         isSingleValue: boolean
     ): Promise<ImageTagGroup>;
-    getImageTagGroupList(withImageTag: boolean): Promise<{
-        imageTypeList: ImageTagGroup[];
-        regionLabelList: ImageTag[][] | undefined;
+    getImageTagGroupList(
+        withImageTag: boolean,
+        withImageType: boolean
+    ): Promise<{
+        imageTagGroupList: ImageTagGroup[];
+        imageTagList: ImageTag[][] | undefined;
+        imageTypeList: ImageType[][] | undefined;
     }>;
     updateImageTagGroup(
         id: number,
@@ -33,6 +37,10 @@ export interface ImageTagManagementOperator {
         imageTypeID: number,
         regionLabelID: number
     ): Promise<ImageTag>;
+    getImageTagGroupListOfImageType(imageTypeID: number): Promise<{
+        imageTagGroupList: ImageTagGroup[];
+        imageTagList: ImageTag[][];
+    }>;
 }
 
 export class ImageTagManagementOperatorImpl
@@ -50,16 +58,13 @@ export class ImageTagManagementOperatorImpl
         throw new Error("Method not implemented.");
     }
 
-    public async ImageTypeManagementOperatorcreateImageTagGroup(
-        displayName: string,
-        isSingleValue: boolean
-    ): Promise<ImageTagGroup> {
-        throw new Error("Method not implemented.");
-    }
-
-    public async getImageTagGroupList(withImageTag: boolean): Promise<{
-        imageTypeList: ImageTagGroup[];
-        regionLabelList: ImageTag[][] | undefined;
+    public async getImageTagGroupList(
+        withImageTag: boolean,
+        withImageType: boolean
+    ): Promise<{
+        imageTagGroupList: ImageTagGroup[];
+        imageTagList: ImageTag[][] | undefined;
+        imageTypeList: ImageType[][] | undefined;
     }> {
         throw new Error("Method not implemented.");
     }
@@ -95,6 +100,13 @@ export class ImageTagManagementOperatorImpl
         imageTypeID: number,
         regionLabelID: number
     ): Promise<ImageTag> {
+        throw new Error("Method not implemented.");
+    }
+
+    public async getImageTagGroupListOfImageType(imageTypeID: number): Promise<{
+        imageTagGroupList: ImageTagGroup[];
+        imageTagList: ImageTag[][];
+    }> {
         throw new Error("Method not implemented.");
     }
 }
