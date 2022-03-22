@@ -11,6 +11,7 @@ import {
 export * from "./auth_middleware";
 export * from "./error_handler_middleware";
 export * from "./permission";
+export * from "./id_list";
 
 export function bindToContainer(container: Container): void {
     container

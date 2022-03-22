@@ -2858,52 +2858,62 @@
                     },
                     {
                         "name": "filter_image_types",
-                        "description": "A comma-separated list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_image_tags",
-                        "description": "A comma-separated list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_region_labels",
-                        "description": "A comma-separated list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_published_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_verified_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -2968,6 +2978,18 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
+                        }
+                    },
+                    {
+                        "name": "filter_image_statuses",
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Image/properties/status"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3093,62 +3115,74 @@
                     },
                     {
                         "name": "filter_image_types",
-                        "description": "A comma-separated list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_image_tags",
-                        "description": "A comma-separated list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_region_labels",
-                        "description": "A comma-separated list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_uploaded_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are uploaded by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are uploaded by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_published_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_verified_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3213,6 +3247,18 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
+                        }
+                    },
+                    {
+                        "name": "filter_image_statuses",
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Image/properties/status"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3338,62 +3384,74 @@
                     },
                     {
                         "name": "filter_image_types",
-                        "description": "A comma-separated list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_image_tags",
-                        "description": "A comma-separated list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_region_labels",
-                        "description": "A comma-separated list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_uploaded_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are uploaded by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are uploaded by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_published_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_verified_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3458,6 +3516,18 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
+                        }
+                    },
+                    {
+                        "name": "filter_image_statuses",
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Image/properties/status"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3583,62 +3653,74 @@
                     },
                     {
                         "name": "filter_image_types",
-                        "description": "A comma-separated list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_image_tags",
-                        "description": "A comma-separated list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_region_labels",
-                        "description": "A comma-separated list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_uploaded_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are uploaded by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are uploaded by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_published_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
                         "name": "filter_verified_by_user_ids",
-                        "description": "A comma-separated list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "pattern": "^((\\d+,){0,9}(\\d+))?$",
-                            "default": ""
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3703,6 +3785,18 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
+                        }
+                    },
+                    {
+                        "name": "filter_image_statuses",
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Image/properties/status"
+                            },
+                            "maxItems": 10
                         }
                     },
                     {
@@ -3986,7 +4080,7 @@
                 }
             }
         },
-        "/api/images/{image_id}/region_snapshot": {
+        "/api/images/{image_id}/region-snapshot": {
             "get": {
                 "description": "Get all region snapshots of an image at a certain status. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
                 "tags": [
@@ -4066,7 +4160,7 @@
                 }
             }
         },
-        "/api/images/{image_id}/image_type": {
+        "/api/images/{image_id}/image-type": {
             "patch": {
                 "description": "Update image type of image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [

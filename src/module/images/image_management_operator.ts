@@ -12,8 +12,9 @@ import { LOGGER_TOKEN } from "../../utils";
 import { Image, ImageTag, Region } from "../schemas";
 
 export class ImageListFilterOptions {
-    public imageIDList: number[] = [];
     public imageTypeIDList: number[] = [];
+    public imageTagIDList: number[] = [];
+    public regionLabelIDList: number[] = [];
     public uploadedByUserIDList: number[] = [];
     public publishedByUserIDList: number[] = [];
     public verifiedByUserIDList: number[] = [];
@@ -25,6 +26,8 @@ export class ImageListFilterOptions {
     public verifyTimeEnd = 0;
     public originalFileNameQuery = "";
     public imageStatusList: ImageStatus[] = [];
+    public mustMatchAllImageTags = false;
+    public mustMatchAllRegionLabels = false;
 }
 
 export interface ImageManagementOperator {
@@ -32,7 +35,8 @@ export interface ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageTypeID: number | undefined,
         imageTagIDList: number[],
-        description: string | undefined,
+        originalFileName: string,
+        description: string,
         imageData: Buffer
     ): Promise<Image>;
     updateImageList(
@@ -72,6 +76,16 @@ export interface ImageManagementOperator {
         imageID: number,
         status: ImageStatus
     ): Promise<Image>;
+    addImageTagToImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageID: number,
+        imageTagID: number
+    ): Promise<void>;
+    removeImageTagFromImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageID: number,
+        imageTagID: number
+    ): Promise<void>;
     deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageID: number
@@ -129,7 +143,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageTypeID: number | undefined,
         imageTagIDList: number[],
-        description: string | undefined,
+        originalFileName: string,
+        description: string,
         imageData: Buffer
     ): Promise<Image> {
         throw new Error("Method not implemented.");
@@ -190,6 +205,22 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         status: ImageStatus
     ): Promise<Image> {
+        throw new Error("Method not implemented.");
+    }
+
+    public async addImageTagToImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageID: number,
+        imageTagID: number
+    ): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    public async removeImageTagFromImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageID: number,
+        imageTagID: number
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
