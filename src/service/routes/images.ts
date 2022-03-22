@@ -11,6 +11,7 @@ import {
     RegionManagementOperator,
     REGION_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/regions";
+import { Polygon } from "../../module/schemas";
 import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
@@ -256,6 +257,104 @@ export function getImagesRouter(
                 imageTagID
             );
             res.json(image);
+        })
+    );
+
+    router.post(
+        "/api/images/:imageID/regions",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageID = +req.params.imageID;
+            const border = req.body.border as Polygon;
+            const holes = req.body.holes as Polygon[];
+            const regionLabelID = +req.body.region_label_id;
+            const image = await regionManagementOperator.createRegion(
+                authenticatedUserInfo,
+                imageID,
+                border,
+                holes,
+                regionLabelID
+            );
+            res.json(image);
+        })
+    );
+
+    router.post(
+        "/api/images/:imageID/regions/:regionID",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageID = +req.params.imageID;
+            const regionID = +req.params.regionID;
+            const image = await regionManagementOperator.deleteRegion(
+                authenticatedUserInfo,
+                imageID,
+                regionID
+            );
+            res.json(image);
+        })
+    );
+
+    router.patch(
+        "/api/images/:imageID/regions/:regionID/boundary",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageID = +req.params.imageID;
+            const regionID = +req.params.regionID;
+            const border = req.body.border as Polygon;
+            const holes = req.body.holes as Polygon[];
+            const image = await regionManagementOperator.updateRegionBoundary(
+                authenticatedUserInfo,
+                imageID,
+                regionID,
+                border,
+                holes
+            );
+            res.json(image);
+        })
+    );
+
+    router.patch(
+        "/api/images/:imageID/regions/:regionID/label",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageID = +req.params.imageID;
+            const regionID = +req.params.regionID;
+            const regionLabelID = +req.body.region_label_id;
+            const image = await regionManagementOperator.updateRegionLabel(
+                authenticatedUserInfo,
+                imageID,
+                regionID,
+                regionLabelID
+            );
+            res.json(image);
+        })
+    );
+
+    router.get(
+        "/api/images/:imageID/regions/:regionID/operation-logs",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageID = +req.params.imageID;
+            const regionID = +req.params.regionID;
+            const regionOperationLogList =
+                await regionManagementOperator.getRegionOperationLogList(
+                    authenticatedUserInfo,
+                    imageID,
+                    regionID
+                );
+            res.json({
+                region_operation_log_list: regionOperationLogList,
+            });
         })
     );
 

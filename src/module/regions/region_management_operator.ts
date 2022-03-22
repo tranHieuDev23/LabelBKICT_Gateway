@@ -8,7 +8,6 @@ import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import { LOGGER_TOKEN } from "../../utils";
-import { ImageManagementOperatorImpl } from "../images";
 import { Polygon, Region, RegionOperatorLog } from "../schemas";
 
 export interface RegionManagementOperator {
@@ -98,7 +97,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 }
 
 injected(
-    ImageManagementOperatorImpl,
+    RegionManagementOperatorImpl,
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
