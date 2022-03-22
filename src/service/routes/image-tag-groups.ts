@@ -142,6 +142,35 @@ export function getImageTagGroupsRouter(
         })
     );
 
+    router.post(
+        "/api/image-tag-groups/:imageTagGroupID/types",
+        imageTagsManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTagGroupID = +req.params.imageTagGroupID;
+            const imageTypeID = +req.body.image_type_id;
+            const imageTag =
+                await imageTagManagementOperator.addImageTypeToImageTagGroup(
+                    imageTagGroupID,
+                    imageTypeID
+                );
+            res.json(imageTag);
+        })
+    );
+
+    router.delete(
+        "/api/image-tag-groups/:imageTagGroupID/types/:imageTypeID",
+        imageTagsManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTagGroupID = +req.params.imageTagGroupID;
+            const imageTypeID = +req.body.image_type_id;
+            await imageTagManagementOperator.removeImageTypeFromImageTagGroup(
+                imageTagGroupID,
+                imageTypeID
+            );
+            res.json({});
+        })
+    );
+
     return router;
 }
 

@@ -42,6 +42,14 @@ export interface ImageTagManagementOperator {
         imageTypeID: number,
         ImageTagID: number
     ): Promise<void>;
+    addImageTypeToImageTagGroup(
+        imageTagGroupID: number,
+        imageTypeID: number
+    ): Promise<void>;
+    removeImageTypeFromImageTagGroup(
+        imageTagGroupID: number,
+        imageTypeID: number
+    ): Promise<void>;
     getImageTagGroupListOfImageType(imageTypeID: number): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][];
@@ -240,6 +248,54 @@ export class ImageTagManagementOperatorImpl
             throw new ErrorWithHTTPCode(
                 "failed to delete image tag",
                 getHttpCodeFromGRPCStatus(deleteImageTagError.code)
+            );
+        }
+    }
+
+    public async addImageTypeToImageTagGroup(
+        imageTagGroupID: number,
+        imageTypeID: number
+    ): Promise<void> {
+        const { error: addImageTypeToImageTagGroupError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.addImageTypeToImageTagGroup.bind(
+                    this.imageServiceDM
+                ),
+                { imageTagGroupId: imageTagGroupID, imageTypeId: imageTypeID }
+            );
+        if (addImageTypeToImageTagGroupError !== null) {
+            this.logger.error(
+                "failed to call image_service.addImageTypeToImageTagGroup()",
+                { error: addImageTypeToImageTagGroupError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to add image type to image tag group",
+                getHttpCodeFromGRPCStatus(addImageTypeToImageTagGroupError.code)
+            );
+        }
+    }
+
+    public async removeImageTypeFromImageTagGroup(
+        imageTagGroupID: number,
+        imageTypeID: number
+    ): Promise<void> {
+        const { error: removeImageTypeFromImageTagGroupError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.removeImageTypeFromImageTagGroup.bind(
+                    this.imageServiceDM
+                ),
+                { imageTagGroupId: imageTagGroupID, imageTypeId: imageTypeID }
+            );
+        if (removeImageTypeFromImageTagGroupError !== null) {
+            this.logger.error(
+                "failed to call image_service.removeImageTypeFromImageTagGroup()",
+                { error: removeImageTypeFromImageTagGroupError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to remove image type from image tag group",
+                getHttpCodeFromGRPCStatus(
+                    removeImageTypeFromImageTagGroupError.code
+                )
             );
         }
     }
