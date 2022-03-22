@@ -97,19 +97,19 @@ export class ImageTypeManagementOperatorImpl
             );
         }
 
-        return {
-            imageTypeList:
-                getImageTypeListResponse?.imageTypeList?.map(
-                    ImageType.fromProto
-                ) || [],
-            regionLabelList:
-                getImageTypeListResponse?.regionLabelListOfImageTypeList?.map(
-                    (regionLabelList) =>
-                        regionLabelList.regionLabelList?.map(
-                            RegionLabel.fromProto
-                        ) || []
-                ),
-        };
+        const imageTypeList =
+            getImageTypeListResponse?.imageTypeList?.map(ImageType.fromProto) ||
+            [];
+        const regionLabelList = withRegionLabel
+            ? getImageTypeListResponse?.regionLabelListOfImageTypeList?.map(
+                  (regionLabelList) =>
+                      regionLabelList.regionLabelList?.map(
+                          RegionLabel.fromProto
+                      ) || []
+              )
+            : undefined;
+
+        return { imageTypeList, regionLabelList };
     }
 
     public async updateImageType(
@@ -149,7 +149,7 @@ export class ImageTypeManagementOperatorImpl
                 { error: deleteImageTypeError }
             );
             throw new ErrorWithHTTPCode(
-                "failed to update image type",
+                "failed to delete image type",
                 getHttpCodeFromGRPCStatus(deleteImageTypeError.code)
             );
         }
@@ -230,7 +230,7 @@ export class ImageTypeManagementOperatorImpl
                 { error: deleteRegionLabel }
             );
             throw new ErrorWithHTTPCode(
-                "failed to update region label",
+                "failed to delete region label",
                 getHttpCodeFromGRPCStatus(deleteRegionLabel.code)
             );
         }
