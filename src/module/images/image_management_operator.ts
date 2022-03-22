@@ -5,11 +5,15 @@ import {
     USER_SERVICE_DM_TOKEN,
 } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
-import { ImageStatus } from "../../proto/gen/ImageStatus";
 import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
-import { LOGGER_TOKEN } from "../../utils";
-import { Image, ImageTag, Region } from "../schemas";
+import {
+    ErrorWithHTTPCode,
+    getHttpCodeFromGRPCStatus,
+    LOGGER_TOKEN,
+    promisifyGRPCCall,
+} from "../../utils";
+import { Image, ImageStatus, ImageTag, ImageType, Region } from "../schemas";
 
 export class ImageListFilterOptions {
     public imageTypeIDList: number[] = [];
@@ -147,7 +151,50 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         description: string,
         imageData: Buffer
     ): Promise<Image> {
-        throw new Error("Method not implemented.");
+        const { error: createImageError, response: createImageTypeResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.createImage.bind(this.imageServiceDM),
+                {
+                    uploadedByUserId: authenticatedUserInfo.user.id,
+                    imageTypeId: imageTypeID,
+                    originalFileName: originalFileName,
+                    description: description,
+                    imageData: imageData,
+                    imageTagIdList: imageTagIDList,
+                }
+            );
+        if (createImageError !== null) {
+            this.logger.error("failed to call image_service.createImage()", {
+                error: createImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to create new image type",
+                getHttpCodeFromGRPCStatus(createImageError.code)
+            );
+        }
+
+        const imageProto = createImageTypeResponse?.image;
+        return new Image(
+            imageProto?.id || 0,
+            authenticatedUserInfo.user,
+            imageProto?.uploadTime || 0,
+            null,
+            0,
+            null,
+            0,
+            imageProto?.originalFileName || "",
+            this.getOriginalImageFileURL(
+                imageProto?.originalImageFilename || ""
+            ),
+            this.getThumbnailImageFileURL(
+                imageProto?.thumbnailImageFilename || ""
+            ),
+            imageProto?.description || "",
+            imageProto?.imageType
+                ? ImageType.fromProto(imageProto.imageType)
+                : null,
+            ImageStatus.UPLOADED
+        );
     }
 
     public async updateImageList(
@@ -269,6 +316,14 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         filterOptions: ImageListFilterOptions
     ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
         throw new Error("Method not implemented.");
+    }
+
+    private getOriginalImageFileURL(originalImageFilename: string): string {
+        return `/static/${originalImageFilename}`;
+    }
+
+    private getThumbnailImageFileURL(thumbnailFilename: string): string {
+        return `/static/${thumbnailFilename}`;
     }
 }
 
