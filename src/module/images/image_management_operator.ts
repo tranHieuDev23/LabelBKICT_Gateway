@@ -1,9 +1,12 @@
 import { injected, token } from "brandi";
+import httpStatus from "http-status";
 import { Logger } from "winston";
 import {
     IMAGE_SERVICE_DM_TOKEN,
     USER_SERVICE_DM_TOKEN,
 } from "../../dataaccess/grpc";
+import { Image as ImageProto } from "../../proto/gen/Image";
+import { Region as RegionProto } from "../../proto/gen/Region";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
@@ -13,7 +16,22 @@ import {
     LOGGER_TOKEN,
     promisifyGRPCCall,
 } from "../../utils";
-import { Image, ImageStatus, ImageTag, ImageType, Region } from "../schemas";
+import {
+    Image,
+    ImageStatus,
+    ImageTag,
+    ImageType,
+    Polygon,
+    Region,
+    RegionLabel,
+    User,
+} from "../schemas";
+import {
+    ImagesManageAllChecker,
+    ImagesManageSelfChecker,
+    ImagesVerifyAllChecker,
+} from "./image_permission_checker";
+import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 
 export class ImageListFilterOptions {
     public imageTypeIDList: number[] = [];
@@ -137,6 +155,12 @@ export interface ImageManagementOperator {
 }
 
 export class ImageManagementOperatorImpl implements ImageManagementOperator {
+    private readonly managePermissionChecker = new ImagesManageSelfChecker(
+        new ImagesManageAllChecker(null)
+    );
+    private readonly manageAndVerifyPermissionChecker =
+        new ImagesVerifyAllChecker(this.managePermissionChecker);
+
     constructor(
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
@@ -174,27 +198,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const imageProto = createImageTypeResponse?.image;
-        return new Image(
-            imageProto?.id || 0,
-            authenticatedUserInfo.user,
-            imageProto?.uploadTime || 0,
-            null,
-            0,
-            null,
-            0,
-            imageProto?.originalFileName || "",
-            this.getOriginalImageFileURL(
-                imageProto?.originalImageFilename || ""
-            ),
-            this.getThumbnailImageFileURL(
-                imageProto?.thumbnailImageFilename || ""
-            ),
-            imageProto?.description || "",
-            imageProto?.imageType
-                ? ImageType.fromProto(imageProto.imageType)
-                : null,
-            ImageStatus.UPLOADED
-        );
+        return await this.getImageFromImageProto(imageProto);
     }
 
     public async updateImageList(
@@ -202,14 +206,109 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageIDList: number[],
         imageTypeID: number
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        for (const imageID of imageIDList) {
+            const { error: getImageError, response: getImageResponse } =
+                await promisifyGRPCCall(
+                    this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                    { id: imageID }
+                );
+            if (getImageError !== null) {
+                this.logger.error("failed to call getImage()", {
+                    error: getImageError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to update image list",
+                    getHttpCodeFromGRPCStatus(getImageError.code)
+                );
+            }
+
+            const image = getImageResponse?.image;
+            if (
+                !this.managePermissionChecker.checkUserHasPermissionForImage(
+                    authenticatedUserInfo,
+                    image
+                )
+            ) {
+                this.logger.error("user is not allowed to access image", {
+                    userID: authenticatedUserInfo.user.id,
+                    imageID,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to update image list",
+                    httpStatus.FORBIDDEN
+                );
+            }
+        }
+
+        const { error: updateImageListImageTypeError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.updateImageListImageType.bind(
+                    this.imageServiceDM
+                ),
+                { imageIdList: imageIDList, imageTypeId: imageTypeID }
+            );
+        if (updateImageListImageTypeError !== null) {
+            this.logger.error("failed to call updateImageListImageType()", {
+                error: updateImageListImageTypeError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update image list",
+                getHttpCodeFromGRPCStatus(updateImageListImageTypeError.code)
+            );
+        }
     }
 
     public async deleteImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIDList: number[]
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        for (const imageID of imageIDList) {
+            const { error: getImageError, response: getImageResponse } =
+                await promisifyGRPCCall(
+                    this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                    { id: imageID }
+                );
+            if (getImageError !== null) {
+                this.logger.error("failed to call getImage()", {
+                    error: getImageError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to delete image list",
+                    getHttpCodeFromGRPCStatus(getImageError.code)
+                );
+            }
+
+            const image = getImageResponse?.image;
+            if (
+                !this.managePermissionChecker.checkUserHasPermissionForImage(
+                    authenticatedUserInfo,
+                    image
+                )
+            ) {
+                this.logger.error("user is not allowed to access image", {
+                    userID: authenticatedUserInfo.user.id,
+                    imageID,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to delete image list",
+                    httpStatus.FORBIDDEN
+                );
+            }
+        }
+
+        const { error: deleteImageListError } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteImageList.bind(this.imageServiceDM),
+            { idList: imageIDList }
+        );
+        if (deleteImageListError !== null) {
+            this.logger.error("failed to call deleteImageList()", {
+                error: deleteImageListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image list",
+                getHttpCodeFromGRPCStatus(deleteImageListError.code)
+            );
+        }
     }
 
     public async getImage(
@@ -220,7 +319,47 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageTagList: ImageTag[];
         regionList: Region[];
     }> {
-        throw new Error("Method not implemented.");
+        const { error: getImageError, response: getImageResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                { id: imageID, withImageTag: true, withRegion: true }
+            );
+        if (getImageError !== null) {
+            this.logger.error("failed to call getImage()", {
+                error: getImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                getHttpCodeFromGRPCStatus(getImageError.code)
+            );
+        }
+
+        const imageProto = getImageResponse?.image;
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const imageTagProtoList = getImageResponse?.imageTagList || [];
+        const regionProtoList = getImageResponse?.regionList || [];
+
+        const image = await this.getImageFromImageProto(imageProto);
+        const imageTagList = imageTagProtoList.map(ImageTag.fromProto);
+        const regionList = await Promise.all(
+            regionProtoList.map(this.getRegionFromRegionProto)
+        );
+        return { image, imageTagList, regionList };
     }
 
     public async getImageRegionSnapshotList(
@@ -228,7 +367,65 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         atStatus: ImageStatus
     ): Promise<Region[]> {
-        throw new Error("Method not implemented.");
+        const { error: getImageError, response: getImageResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                { id: imageID }
+            );
+        if (getImageError !== null) {
+            this.logger.error("failed to call getImage()", {
+                error: getImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                getHttpCodeFromGRPCStatus(getImageError.code)
+            );
+        }
+
+        const imageProto = getImageResponse?.image;
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: getRegionSnapshotListOfImageError,
+            response: getRegionSnapshotListOfImageResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getRegionSnapshotListOfImage.bind(
+                this.imageServiceDM
+            ),
+            { ofImageId: imageID, atStatus: atStatus }
+        );
+        if (getRegionSnapshotListOfImageError !== null) {
+            this.logger.error("failed to call getRegionSnapshotListOfImage()", {
+                error: getRegionSnapshotListOfImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get region snapshot list of image",
+                getHttpCodeFromGRPCStatus(
+                    getRegionSnapshotListOfImageError.code
+                )
+            );
+        }
+
+        const regionProtoList =
+            getRegionSnapshotListOfImageResponse?.regionList || [];
+        const regionList = await Promise.all(
+            regionProtoList.map(this.getRegionFromRegionProto)
+        );
+        return regionList;
     }
 
     public async updateImageMetadata(
@@ -236,7 +433,58 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         description: string | undefined
     ): Promise<Image> {
-        throw new Error("Method not implemented.");
+        const { error: getImageError, response: getImageResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                { id: imageID }
+            );
+        if (getImageError !== null) {
+            this.logger.error("failed to call getImage()", {
+                error: getImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                getHttpCodeFromGRPCStatus(getImageError.code)
+            );
+        }
+
+        const imageProto = getImageResponse?.image;
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: updateImageMetadataError,
+            response: updateImageMetadataResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateImageMetadata.bind(this.imageServiceDM),
+            { id: imageID, description: description }
+        );
+        if (updateImageMetadataError !== null) {
+            this.logger.error("failed to call updateImageMetadata()", {
+                error: updateImageMetadataError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update metadata of image",
+                getHttpCodeFromGRPCStatus(updateImageMetadataError.code)
+            );
+        }
+
+        const updatedImageProto = updateImageMetadataResponse?.image;
+        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        return updatedImage;
     }
 
     public async updateImageType(
@@ -244,7 +492,58 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         imageTypeID: number
     ): Promise<Image> {
-        throw new Error("Method not implemented.");
+        const { error: getImageError, response: getImageResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                { id: imageID }
+            );
+        if (getImageError !== null) {
+            this.logger.error("failed to call getImage()", {
+                error: getImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                getHttpCodeFromGRPCStatus(getImageError.code)
+            );
+        }
+
+        const imageProto = getImageResponse?.image;
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: updateImageImageTypeError,
+            response: updateImageImageTypeResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateImageImageType.bind(this.imageServiceDM),
+            { id: imageID, imageTypeId: imageTypeID }
+        );
+        if (updateImageImageTypeError !== null) {
+            this.logger.error("failed to call updateImageImageType()", {
+                error: updateImageImageTypeError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update image type of image",
+                getHttpCodeFromGRPCStatus(updateImageImageTypeError.code)
+            );
+        }
+
+        const updatedImageProto = updateImageImageTypeResponse?.image;
+        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        return updatedImage;
     }
 
     public async updateImageStatus(
@@ -252,7 +551,58 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         status: ImageStatus
     ): Promise<Image> {
-        throw new Error("Method not implemented.");
+        const { error: getImageError, response: getImageResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImage.bind(this.imageServiceDM),
+                { id: imageID }
+            );
+        if (getImageError !== null) {
+            this.logger.error("failed to call getImage()", {
+                error: getImageError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                getHttpCodeFromGRPCStatus(getImageError.code)
+            );
+        }
+
+        const imageProto = getImageResponse?.image;
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: updateImageStatusError,
+            response: updateImageStatusResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateImageStatus.bind(this.imageServiceDM),
+            { id: imageID, status: this.getStatusProtoFromStatus(status) }
+        );
+        if (updateImageStatusError !== null) {
+            this.logger.error("failed to call updateImageStatus()", {
+                error: updateImageStatusError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update status of image",
+                getHttpCodeFromGRPCStatus(updateImageStatusError.code)
+            );
+        }
+
+        const updatedImageProto = updateImageStatusResponse?.image;
+        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        return updatedImage;
     }
 
     public async addImageTagToImage(
@@ -324,6 +674,171 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     private getThumbnailImageFileURL(thumbnailFilename: string): string {
         return `/static/${thumbnailFilename}`;
+    }
+
+    private async getImageFromImageProto(
+        imageProto: ImageProto | undefined
+    ): Promise<Image> {
+        const uploadedByUserId = imageProto?.uploadedByUserId || 0;
+        const { error: getUserError, response: getUserResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.getUser.bind(this.userServiceDM),
+                { id: uploadedByUserId }
+            );
+        if (getUserError !== null) {
+            this.logger.error("failed to call user_service.getUser()", {
+                error: getUserError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to get image from image proto",
+                getHttpCodeFromGRPCStatus(getUserError.code)
+            );
+        }
+        const uploadedByUser = User.fromProto(getUserResponse?.user);
+
+        const publishedByUserID = imageProto?.publishedByUserId || 0;
+        let publishedByUser: User | null = null;
+        if (publishedByUserID !== 0) {
+            const { error: getUserError, response: getUserResponse } =
+                await promisifyGRPCCall(
+                    this.userServiceDM.getUser.bind(this.userServiceDM),
+                    { id: publishedByUserID }
+                );
+            if (getUserError !== null) {
+                this.logger.error("failed to call user_service.getUser()", {
+                    error: getUserError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "failed to get image from image proto",
+                    getHttpCodeFromGRPCStatus(getUserError.code)
+                );
+            }
+            publishedByUser = User.fromProto(getUserResponse?.user);
+        }
+
+        const verifiedByUserID = imageProto?.verifiedByUserId || 0;
+        let verifiedByUser: User | null = null;
+        if (verifiedByUserID !== 0) {
+            const { error: getUserError, response: getUserResponse } =
+                await promisifyGRPCCall(
+                    this.userServiceDM.getUser.bind(this.userServiceDM),
+                    { id: verifiedByUserID }
+                );
+            if (getUserError !== null) {
+                this.logger.error("failed to call user_service.getUser()", {
+                    error: getUserError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "failed to get image from image proto",
+                    getHttpCodeFromGRPCStatus(getUserError.code)
+                );
+            }
+            verifiedByUser = User.fromProto(getUserResponse?.user);
+        }
+
+        const imageType = imageProto?.imageType
+            ? ImageType.fromProto(imageProto.imageType)
+            : null;
+
+        return new Image(
+            imageProto?.id || 0,
+            uploadedByUser,
+            +(imageProto?.uploadTime || 0),
+            publishedByUser,
+            +(imageProto?.publishTime || 0),
+            verifiedByUser,
+            +(imageProto?.verifyTime || 0),
+            imageProto?.originalFileName || "",
+            this.getOriginalImageFileURL(
+                imageProto?.originalImageFilename || ""
+            ),
+            this.getThumbnailImageFileURL(
+                imageProto?.thumbnailImageFilename || ""
+            ),
+            imageProto?.description || "",
+            imageType,
+            ImageStatus.UPLOADED
+        );
+    }
+
+    private async getRegionFromRegionProto(
+        regionProto: RegionProto | undefined
+    ): Promise<Region> {
+        const drawnByUserID = regionProto?.drawnByUserId || 0;
+        let drawByUser: User | null = null;
+        if (drawByUser !== 0) {
+            const { error: getUserError, response: getUserResponse } =
+                await promisifyGRPCCall(
+                    this.userServiceDM.getUser.bind(this.userServiceDM),
+                    { id: drawnByUserID }
+                );
+            if (getUserError !== null) {
+                this.logger.error("failed to call user_service.getUser()", {
+                    error: getUserError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "failed to get image from image proto",
+                    getHttpCodeFromGRPCStatus(getUserError.code)
+                );
+            }
+            drawByUser = User.fromProto(getUserResponse?.user);
+        }
+
+        const labeledByUserID = regionProto?.labeledByUserId || 0;
+        let labeledByUser: User | null = null;
+        if (labeledByUserID !== 0) {
+            const { error: getUserError, response: getUserResponse } =
+                await promisifyGRPCCall(
+                    this.userServiceDM.getUser.bind(this.userServiceDM),
+                    { id: labeledByUserID }
+                );
+            if (getUserError !== null) {
+                this.logger.error("failed to call user_service.getUser()", {
+                    error: getUserError,
+                });
+                throw new ErrorWithHTTPCode(
+                    "failed to get image from image proto",
+                    getHttpCodeFromGRPCStatus(getUserError.code)
+                );
+            }
+            labeledByUser = User.fromProto(getUserResponse?.user);
+        }
+
+        const border = regionProto?.border
+            ? Polygon.fromProto(regionProto.border)
+            : new Polygon([]);
+        const holes =
+            regionProto?.holes?.map((hole) => Polygon.fromProto(hole)) || [];
+        const label = regionProto?.label
+            ? RegionLabel.fromProto(regionProto.label)
+            : null;
+
+        return new Region(
+            regionProto?.id || 0,
+            drawByUser,
+            labeledByUser,
+            border,
+            holes,
+            label
+        );
+    }
+
+    private getStatusProtoFromStatus(status: ImageStatus): _ImageStatus_Values {
+        switch (status) {
+            case ImageStatus.UPLOADED:
+                return _ImageStatus_Values.UPLOADED;
+            case ImageStatus.PUBLISHED:
+                return _ImageStatus_Values.PUBLISHED;
+            case ImageStatus.VERIFIED:
+                return _ImageStatus_Values.VERIFIED;
+            case ImageStatus.EXCLUDED:
+                return _ImageStatus_Values.EXCLUDED;
+            default:
+                throw new ErrorWithHTTPCode(
+                    `Invalid image status ${status}`,
+                    httpStatus.BAD_REQUEST
+                );
+        }
     }
 }
 
