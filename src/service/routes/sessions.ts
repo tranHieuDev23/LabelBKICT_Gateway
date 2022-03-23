@@ -20,6 +20,9 @@ import {
 } from "../utils";
 
 const IMAGES_MANAGE_SELF_PERMISSION = "images.manage.self";
+const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
+const IMAGES_VERIFY_PERMISSION = "images.verify";
+const IMAGES_EXPORT_PERMISSION = "images.export";
 const DEFAULT_GET_IMAGE_LIST_LIMIT = 10;
 
 export function getSessionsRouter(
@@ -38,6 +41,34 @@ export function getSessionsRouter(
                 ),
             true
         );
+
+    const imagesManageAllAuthMiddleware =
+        authMiddlewareFactory.getAuthMiddleware(
+            (authUserInfo) =>
+                checkUserHasUserPermission(
+                    authUserInfo.userPermissionList,
+                    IMAGES_MANAGE_ALL_PERMISSION
+                ),
+            true
+        );
+
+    const imagesVerifyAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                IMAGES_VERIFY_PERMISSION
+            ),
+        true
+    );
+
+    const imagesExportAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserHasUserPermission(
+                authUserInfo.userPermissionList,
+                IMAGES_EXPORT_PERMISSION
+            ),
+        true
+    );
 
     router.post(
         "/api/sessions/password",
@@ -164,7 +195,7 @@ export function getSessionsRouter(
 
     router.get(
         "/api/sessions/user/manageable-images",
-        imagesManageSelfAuthMiddleware,
+        imagesManageAllAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInformation = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -189,7 +220,7 @@ export function getSessionsRouter(
 
     router.get(
         "/api/sessions/user/verifiable-images",
-        imagesManageSelfAuthMiddleware,
+        imagesVerifyAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInformation = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -214,7 +245,7 @@ export function getSessionsRouter(
 
     router.get(
         "/api/sessions/user/exportable-images",
-        imagesManageSelfAuthMiddleware,
+        imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInformation = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
