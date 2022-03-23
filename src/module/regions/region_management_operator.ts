@@ -1,14 +1,31 @@
 import { injected, token } from "brandi";
+import httpStatus from "http-status";
 import { Logger } from "winston";
-import {
-    USER_SERVICE_DM_TOKEN,
-    IMAGE_SERVICE_DM_TOKEN,
-} from "../../dataaccess/grpc";
+import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
-import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
-import { LOGGER_TOKEN } from "../../utils";
-import { Polygon, Region, RegionOperatorLog } from "../schemas";
+import {
+    ErrorWithHTTPCode,
+    getHttpCodeFromGRPCStatus,
+    LOGGER_TOKEN,
+    promisifyGRPCCall,
+} from "../../utils";
+import {
+    ImagesManageAllChecker,
+    ImagesManageSelfChecker,
+    ImagesVerifyAllChecker,
+} from "../image_permissions";
+import {
+    ImageInfoProvider,
+    IMAGE_INFO_PROVIDER_TOKEN,
+} from "../info_providers";
+import {
+    Polygon,
+    Region,
+    RegionOperatorLog,
+    RegionProtoToRegionConverter,
+    REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
+} from "../schemas";
 
 export interface RegionManagementOperator {
     createRegion(
@@ -44,8 +61,15 @@ export interface RegionManagementOperator {
 }
 
 export class RegionManagementOperatorImpl implements RegionManagementOperator {
+    private readonly managePermissionChecker = new ImagesManageSelfChecker(
+        new ImagesManageAllChecker(null)
+    );
+    private readonly manageAndVerifyPermissionChecker =
+        new ImagesVerifyAllChecker(this.managePermissionChecker);
+
     constructor(
-        private readonly userServiceDM: UserServiceClient,
+        private readonly imageInfoProvider: ImageInfoProvider,
+        private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly logger: Logger
     ) {}
@@ -57,7 +81,52 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         holes: Polygon[],
         regionLabelID: number
     ): Promise<Region> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            true,
+            true
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create region",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const userID = authenticatedUserInfo.user.id;
+        const { error: createRegionError, response: createRegionResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.createRegion.bind(this.imageServiceDM),
+                {
+                    ofImageId: imageID,
+                    drawnByUserId: userID,
+                    labeledByUserId: userID,
+                    border: border,
+                    holes: holes,
+                    labelId: regionLabelID,
+                }
+            );
+        if (createRegionError !== null) {
+            this.logger.error("failed to call image_service.createRegion()", {
+                error: createRegionError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create region",
+                getHttpCodeFromGRPCStatus(createRegionError.code)
+            );
+        }
+
+        const regionProto = createRegionResponse?.region;
+        return await this.regionProtoToRegionConverter.convert(regionProto);
     }
 
     public async updateRegionBoundary(
@@ -67,7 +136,54 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         border: Polygon,
         holes: Polygon[]
     ): Promise<Region> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            true,
+            true
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update region boundary",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const userID = authenticatedUserInfo.user.id;
+        const {
+            error: updateRegionBoundaryError,
+            response: updateRegionBoundaryResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateRegionBoundary.bind(this.imageServiceDM),
+            {
+                ofImageId: imageID,
+                regionId: regionID,
+                drawnByUserId: userID,
+                border: border,
+                holes: holes,
+            }
+        );
+        if (updateRegionBoundaryError !== null) {
+            this.logger.error(
+                "failed to call image_service.updateRegionBoundary()",
+                { error: updateRegionBoundaryError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to update region boundary",
+                getHttpCodeFromGRPCStatus(updateRegionBoundaryError.code)
+            );
+        }
+
+        const regionProto = updateRegionBoundaryResponse?.region;
+        return await this.regionProtoToRegionConverter.convert(regionProto);
     }
 
     public async updateRegionLabel(
@@ -76,7 +192,55 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         regionID: number,
         regionLabelID: number
     ): Promise<Region> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            true,
+            true
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update region's region label",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const userID = authenticatedUserInfo.user.id;
+        const {
+            error: updateRegionRegionLabelError,
+            response: updateRegionRegionLabelResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateRegionRegionLabel.bind(
+                this.imageServiceDM
+            ),
+            {
+                ofImageId: imageID,
+                regionId: regionID,
+                labeledByUserId: userID,
+                labelId: regionLabelID,
+            }
+        );
+        if (updateRegionRegionLabelError !== null) {
+            this.logger.error(
+                "failed to call image_service.updateRegionRegionLabel()",
+                { error: updateRegionRegionLabelError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to update region's region label",
+                getHttpCodeFromGRPCStatus(updateRegionRegionLabelError.code)
+            );
+        }
+
+        const regionProto = updateRegionRegionLabelResponse?.region;
+        return await this.regionProtoToRegionConverter.convert(regionProto);
     }
 
     public async deleteRegion(
@@ -84,7 +248,43 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         imageID: number,
         regionID: number
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            true,
+            true
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create region",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: deleteRegionError } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteRegion.bind(this.imageServiceDM),
+            {
+                ofImageId: imageID,
+                regionId: regionID,
+            }
+        );
+        if (deleteRegionError !== null) {
+            this.logger.error("failed to call image_service.deleteRegion()", {
+                error: deleteRegionError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete region",
+                getHttpCodeFromGRPCStatus(deleteRegionError.code)
+            );
+        }
     }
 
     public async getRegionOperationLogList(
@@ -98,7 +298,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
 injected(
     RegionManagementOperatorImpl,
-    USER_SERVICE_DM_TOKEN,
+    IMAGE_INFO_PROVIDER_TOKEN,
+    REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );

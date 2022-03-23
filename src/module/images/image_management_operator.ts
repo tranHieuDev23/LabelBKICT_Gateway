@@ -26,7 +26,7 @@ import {
     ImagesManageAllChecker,
     ImagesManageSelfChecker,
     ImagesVerifyAllChecker,
-} from "./image_permission_checker";
+} from "../image_permissions";
 import {
     ImageInfoProvider,
     IMAGE_INFO_PROVIDER_TOKEN,
