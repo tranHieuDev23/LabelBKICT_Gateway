@@ -27,7 +27,6 @@ import {
     ImagesManageSelfChecker,
     ImagesVerifyAllChecker,
 } from "./image_permission_checker";
-import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 import {
     ImageInfoProvider,
     IMAGE_INFO_PROVIDER_TOKEN,
@@ -119,6 +118,7 @@ export interface ImageManagementOperator {
         sortOrder: number,
         filterOptions: ImageListFilterOptions
     ): Promise<{
+        totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
@@ -129,6 +129,7 @@ export interface ImageManagementOperator {
         sortOrder: number,
         filterOptions: ImageListFilterOptions
     ): Promise<{
+        totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
@@ -139,6 +140,7 @@ export interface ImageManagementOperator {
         sortOrder: number,
         filterOptions: ImageListFilterOptions
     ): Promise<{
+        totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
@@ -149,6 +151,7 @@ export interface ImageManagementOperator {
         sortOrder: number,
         filterOptions: ImageListFilterOptions
     ): Promise<{
+        totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
@@ -688,8 +691,43 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         limit: number,
         sortOrder: number,
         filterOptions: ImageListFilterOptions
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
-        throw new Error("Method not implemented.");
+    ): Promise<{
+        totalImageCount: number;
+        imageList: Image[];
+        imageTagList: ImageTag[][];
+    }> {
+        filterOptions.uploadedByUserIDList = [authenticatedUserInfo.user.id];
+        const { error: getImageListError, response: getImageListResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+            );
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const totalImageCount = getImageListResponse?.totalImageCount || 0;
+        const imageProtoList = getImageListResponse?.imageList || [];
+        const imageTagListOfImageList =
+            getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map(
+            (imageTagList) => imageTagList.imageTagList || []
+        );
+
+        const imageList = await Promise.all(
+            imageProtoList.map((imageProto) =>
+                this.imageProtoToImageConverter.convert(imageProto)
+            )
+        );
+        const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
+            imageTagProtoSublist.map(ImageTag.fromProto)
+        );
+
+        return { totalImageCount, imageList, imageTagList };
     }
 
     public async getUserManageableImageList(
@@ -698,8 +736,42 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         limit: number,
         sortOrder: number,
         filterOptions: ImageListFilterOptions
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
-        throw new Error("Method not implemented.");
+    ): Promise<{
+        totalImageCount: number;
+        imageList: Image[];
+        imageTagList: ImageTag[][];
+    }> {
+        const { error: getImageListError, response: getImageListResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+            );
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's manageable image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const totalImageCount = getImageListResponse?.totalImageCount || 0;
+        const imageProtoList = getImageListResponse?.imageList || [];
+        const imageTagListOfImageList =
+            getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map(
+            (imageTagList) => imageTagList.imageTagList || []
+        );
+
+        const imageList = await Promise.all(
+            imageProtoList.map((imageProto) =>
+                this.imageProtoToImageConverter.convert(imageProto)
+            )
+        );
+        const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
+            imageTagProtoSublist.map(ImageTag.fromProto)
+        );
+
+        return { totalImageCount, imageList, imageTagList };
     }
 
     public async getUserVerifiableImageList(
@@ -708,8 +780,43 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         limit: number,
         sortOrder: number,
         filterOptions: ImageListFilterOptions
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
-        throw new Error("Method not implemented.");
+    ): Promise<{
+        totalImageCount: number;
+        imageList: Image[];
+        imageTagList: ImageTag[][];
+    }> {
+        filterOptions.imageStatusList = [ImageStatus.PUBLISHED];
+        const { error: getImageListError, response: getImageListResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+            );
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's verifiable image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const totalImageCount = getImageListResponse?.totalImageCount || 0;
+        const imageProtoList = getImageListResponse?.imageList || [];
+        const imageTagListOfImageList =
+            getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map(
+            (imageTagList) => imageTagList.imageTagList || []
+        );
+
+        const imageList = await Promise.all(
+            imageProtoList.map((imageProto) =>
+                this.imageProtoToImageConverter.convert(imageProto)
+            )
+        );
+        const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
+            imageTagProtoSublist.map(ImageTag.fromProto)
+        );
+
+        return { totalImageCount, imageList, imageTagList };
     }
 
     public async getUserExportableImageList(
@@ -718,8 +825,42 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         limit: number,
         sortOrder: number,
         filterOptions: ImageListFilterOptions
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
-        throw new Error("Method not implemented.");
+    ): Promise<{
+        totalImageCount: number;
+        imageList: Image[];
+        imageTagList: ImageTag[][];
+    }> {
+        const { error: getImageListError, response: getImageListResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+            );
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's exportable image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const totalImageCount = getImageListResponse?.totalImageCount || 0;
+        const imageProtoList = getImageListResponse?.imageList || [];
+        const imageTagListOfImageList =
+            getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map(
+            (imageTagList) => imageTagList.imageTagList || []
+        );
+
+        const imageList = await Promise.all(
+            imageProtoList.map((imageProto) =>
+                this.imageProtoToImageConverter.convert(imageProto)
+            )
+        );
+        const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
+            imageTagProtoSublist.map(ImageTag.fromProto)
+        );
+
+        return { totalImageCount, imageList, imageTagList };
     }
 }
 
