@@ -5,8 +5,6 @@ import {
     IMAGE_SERVICE_DM_TOKEN,
     USER_SERVICE_DM_TOKEN,
 } from "../../dataaccess/grpc";
-import { Image as ImageProto } from "../../proto/gen/Image";
-import { Region as RegionProto } from "../../proto/gen/Region";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
@@ -18,13 +16,15 @@ import {
 } from "../../utils";
 import {
     Image,
+    ImageProtoToImageConverter,
     ImageStatus,
+    ImageStatusToImageStatusProtoConverter,
     ImageTag,
-    ImageType,
-    Polygon,
+    IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
+    IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
     Region,
-    RegionLabel,
-    User,
+    RegionProtoToRegionConverter,
+    REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
 } from "../schemas";
 import {
     ImagesManageAllChecker,
@@ -162,7 +162,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         new ImagesVerifyAllChecker(this.managePermissionChecker);
 
     constructor(
-        private readonly userServiceDM: UserServiceClient,
+        private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
+        private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
+        private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly logger: Logger
     ) {}
@@ -198,7 +200,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const imageProto = createImageTypeResponse?.image;
-        return await this.getImageFromImageProto(imageProto);
+        return await this.imageProtoToImageConverter.convert(imageProto);
     }
 
     public async updateImageList(
@@ -354,10 +356,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const imageTagProtoList = getImageResponse?.imageTagList || [];
         const regionProtoList = getImageResponse?.regionList || [];
 
-        const image = await this.getImageFromImageProto(imageProto);
+        const image = await this.imageProtoToImageConverter.convert(imageProto);
         const imageTagList = imageTagProtoList.map(ImageTag.fromProto);
         const regionList = await Promise.all(
-            regionProtoList.map(this.getRegionFromRegionProto)
+            regionProtoList.map((regionProto) =>
+                this.regionProtoToRegionConverter.convert(regionProto)
+            )
         );
         return { image, imageTagList, regionList };
     }
@@ -423,7 +427,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const regionProtoList =
             getRegionSnapshotListOfImageResponse?.regionList || [];
         const regionList = await Promise.all(
-            regionProtoList.map(this.getRegionFromRegionProto)
+            regionProtoList.map((regionProto) =>
+                this.regionProtoToRegionConverter.convert(regionProto)
+            )
         );
         return regionList;
     }
@@ -483,7 +489,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageMetadataResponse?.image;
-        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        const updatedImage =
+            this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -542,7 +549,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageImageTypeResponse?.image;
-        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        const updatedImage =
+            this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -583,12 +591,15 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
         }
 
+        const statusProto =
+            this.imageStatusToImageStatusProtoConverter.convert(status);
+
         const {
             error: updateImageStatusError,
             response: updateImageStatusResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageStatus.bind(this.imageServiceDM),
-            { id: imageID, status: this.getStatusProtoFromStatus(status) }
+            { id: imageID, status: statusProto }
         );
         if (updateImageStatusError !== null) {
             this.logger.error("failed to call updateImageStatus()", {
@@ -601,7 +612,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageStatusResponse?.image;
-        const updatedImage = this.getImageFromImageProto(updatedImageProto);
+        const updatedImage =
+            this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -667,184 +679,13 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
     ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] }> {
         throw new Error("Method not implemented.");
     }
-
-    private getOriginalImageFileURL(originalImageFilename: string): string {
-        return `/static/${originalImageFilename}`;
-    }
-
-    private getThumbnailImageFileURL(thumbnailFilename: string): string {
-        return `/static/${thumbnailFilename}`;
-    }
-
-    private async getImageFromImageProto(
-        imageProto: ImageProto | undefined
-    ): Promise<Image> {
-        const uploadedByUserId = imageProto?.uploadedByUserId || 0;
-        const { error: getUserError, response: getUserResponse } =
-            await promisifyGRPCCall(
-                this.userServiceDM.getUser.bind(this.userServiceDM),
-                { id: uploadedByUserId }
-            );
-        if (getUserError !== null) {
-            this.logger.error("failed to call user_service.getUser()", {
-                error: getUserError,
-            });
-            throw new ErrorWithHTTPCode(
-                "failed to get image from image proto",
-                getHttpCodeFromGRPCStatus(getUserError.code)
-            );
-        }
-        const uploadedByUser = User.fromProto(getUserResponse?.user);
-
-        const publishedByUserID = imageProto?.publishedByUserId || 0;
-        let publishedByUser: User | null = null;
-        if (publishedByUserID !== 0) {
-            const { error: getUserError, response: getUserResponse } =
-                await promisifyGRPCCall(
-                    this.userServiceDM.getUser.bind(this.userServiceDM),
-                    { id: publishedByUserID }
-                );
-            if (getUserError !== null) {
-                this.logger.error("failed to call user_service.getUser()", {
-                    error: getUserError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "failed to get image from image proto",
-                    getHttpCodeFromGRPCStatus(getUserError.code)
-                );
-            }
-            publishedByUser = User.fromProto(getUserResponse?.user);
-        }
-
-        const verifiedByUserID = imageProto?.verifiedByUserId || 0;
-        let verifiedByUser: User | null = null;
-        if (verifiedByUserID !== 0) {
-            const { error: getUserError, response: getUserResponse } =
-                await promisifyGRPCCall(
-                    this.userServiceDM.getUser.bind(this.userServiceDM),
-                    { id: verifiedByUserID }
-                );
-            if (getUserError !== null) {
-                this.logger.error("failed to call user_service.getUser()", {
-                    error: getUserError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "failed to get image from image proto",
-                    getHttpCodeFromGRPCStatus(getUserError.code)
-                );
-            }
-            verifiedByUser = User.fromProto(getUserResponse?.user);
-        }
-
-        const imageType = imageProto?.imageType
-            ? ImageType.fromProto(imageProto.imageType)
-            : null;
-
-        return new Image(
-            imageProto?.id || 0,
-            uploadedByUser,
-            +(imageProto?.uploadTime || 0),
-            publishedByUser,
-            +(imageProto?.publishTime || 0),
-            verifiedByUser,
-            +(imageProto?.verifyTime || 0),
-            imageProto?.originalFileName || "",
-            this.getOriginalImageFileURL(
-                imageProto?.originalImageFilename || ""
-            ),
-            this.getThumbnailImageFileURL(
-                imageProto?.thumbnailImageFilename || ""
-            ),
-            imageProto?.description || "",
-            imageType,
-            ImageStatus.UPLOADED
-        );
-    }
-
-    private async getRegionFromRegionProto(
-        regionProto: RegionProto | undefined
-    ): Promise<Region> {
-        const drawnByUserID = regionProto?.drawnByUserId || 0;
-        let drawByUser: User | null = null;
-        if (drawByUser !== 0) {
-            const { error: getUserError, response: getUserResponse } =
-                await promisifyGRPCCall(
-                    this.userServiceDM.getUser.bind(this.userServiceDM),
-                    { id: drawnByUserID }
-                );
-            if (getUserError !== null) {
-                this.logger.error("failed to call user_service.getUser()", {
-                    error: getUserError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "failed to get image from image proto",
-                    getHttpCodeFromGRPCStatus(getUserError.code)
-                );
-            }
-            drawByUser = User.fromProto(getUserResponse?.user);
-        }
-
-        const labeledByUserID = regionProto?.labeledByUserId || 0;
-        let labeledByUser: User | null = null;
-        if (labeledByUserID !== 0) {
-            const { error: getUserError, response: getUserResponse } =
-                await promisifyGRPCCall(
-                    this.userServiceDM.getUser.bind(this.userServiceDM),
-                    { id: labeledByUserID }
-                );
-            if (getUserError !== null) {
-                this.logger.error("failed to call user_service.getUser()", {
-                    error: getUserError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "failed to get image from image proto",
-                    getHttpCodeFromGRPCStatus(getUserError.code)
-                );
-            }
-            labeledByUser = User.fromProto(getUserResponse?.user);
-        }
-
-        const border = regionProto?.border
-            ? Polygon.fromProto(regionProto.border)
-            : new Polygon([]);
-        const holes =
-            regionProto?.holes?.map((hole) => Polygon.fromProto(hole)) || [];
-        const label = regionProto?.label
-            ? RegionLabel.fromProto(regionProto.label)
-            : null;
-
-        return new Region(
-            regionProto?.id || 0,
-            drawByUser,
-            labeledByUser,
-            border,
-            holes,
-            label
-        );
-    }
-
-    private getStatusProtoFromStatus(status: ImageStatus): _ImageStatus_Values {
-        switch (status) {
-            case ImageStatus.UPLOADED:
-                return _ImageStatus_Values.UPLOADED;
-            case ImageStatus.PUBLISHED:
-                return _ImageStatus_Values.PUBLISHED;
-            case ImageStatus.VERIFIED:
-                return _ImageStatus_Values.VERIFIED;
-            case ImageStatus.EXCLUDED:
-                return _ImageStatus_Values.EXCLUDED;
-            default:
-                throw new ErrorWithHTTPCode(
-                    `Invalid image status ${status}`,
-                    httpStatus.BAD_REQUEST
-                );
-        }
-    }
 }
 
 injected(
     ImageManagementOperatorImpl,
-    USER_SERVICE_DM_TOKEN,
+    IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
+    REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
+    IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
