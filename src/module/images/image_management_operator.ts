@@ -1,12 +1,8 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import {
-    IMAGE_SERVICE_DM_TOKEN,
-    USER_SERVICE_DM_TOKEN,
-} from "../../dataaccess/grpc";
+import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
-import { UserServiceClient } from "../../proto/gen/UserService";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import {
     ErrorWithHTTPCode,
@@ -195,11 +191,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 }
             );
         if (createImageError !== null) {
-            this.logger.error("failed to call image_service.createImage()", {
-                error: createImageError,
-            });
+            this.logger.error(
+                "failed to call image_service.image_service.createImage()",
+                { error: createImageError }
+            );
             throw new ErrorWithHTTPCode(
-                "failed to create new image type",
+                "Failed to create new image",
                 getHttpCodeFromGRPCStatus(createImageError.code)
             );
         }
@@ -244,9 +241,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 { imageIdList: imageIDList, imageTypeId: imageTypeID }
             );
         if (updateImageListImageTypeError !== null) {
-            this.logger.error("failed to call updateImageListImageType()", {
-                error: updateImageListImageTypeError,
-            });
+            this.logger.error(
+                "failed to call image_service.updateImageListImageType()",
+                { error: updateImageListImageTypeError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to update image list",
                 getHttpCodeFromGRPCStatus(updateImageListImageTypeError.code)
@@ -286,9 +284,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { idList: imageIDList }
         );
         if (deleteImageListError !== null) {
-            this.logger.error("failed to call deleteImageList()", {
-                error: deleteImageListError,
-            });
+            this.logger.error(
+                "failed to call image_service.deleteImageList()",
+                { error: deleteImageListError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to delete image list",
                 getHttpCodeFromGRPCStatus(deleteImageListError.code)
@@ -356,7 +355,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 imageID,
             });
             throw new ErrorWithHTTPCode(
-                "Failed to get image",
+                "Failed to get region snapshot list of image",
                 httpStatus.FORBIDDEN
             );
         }
@@ -371,9 +370,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { ofImageId: imageID, atStatus: atStatus }
         );
         if (getRegionSnapshotListOfImageError !== null) {
-            this.logger.error("failed to call getRegionSnapshotListOfImage()", {
-                error: getRegionSnapshotListOfImageError,
-            });
+            this.logger.error(
+                "failed to call image_service.getRegionSnapshotListOfImage()",
+                { error: getRegionSnapshotListOfImageError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to get region snapshot list of image",
                 getHttpCodeFromGRPCStatus(
@@ -413,7 +413,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 imageID,
             });
             throw new ErrorWithHTTPCode(
-                "Failed to get image",
+                "Failed to update metadata of image",
                 httpStatus.FORBIDDEN
             );
         }
@@ -426,9 +426,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { id: imageID, description: description }
         );
         if (updateImageMetadataError !== null) {
-            this.logger.error("failed to call updateImageMetadata()", {
-                error: updateImageMetadataError,
-            });
+            this.logger.error(
+                "failed to call image_service.updateImageMetadata()",
+                { error: updateImageMetadataError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to update metadata of image",
                 getHttpCodeFromGRPCStatus(updateImageMetadataError.code)
@@ -462,7 +463,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 imageID,
             });
             throw new ErrorWithHTTPCode(
-                "Failed to get image",
+                "Failed to update image type of image",
                 httpStatus.FORBIDDEN
             );
         }
@@ -475,9 +476,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { id: imageID, imageTypeId: imageTypeID }
         );
         if (updateImageImageTypeError !== null) {
-            this.logger.error("failed to call updateImageImageType()", {
-                error: updateImageImageTypeError,
-            });
+            this.logger.error(
+                "failed to call image_service.updateImageImageType()",
+                { error: updateImageImageTypeError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to update image type of image",
                 getHttpCodeFromGRPCStatus(updateImageImageTypeError.code)
@@ -511,7 +513,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 imageID,
             });
             throw new ErrorWithHTTPCode(
-                "Failed to get image",
+                "Failed to update status of image",
                 httpStatus.FORBIDDEN
             );
         }
@@ -527,9 +529,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { id: imageID, status: statusProto }
         );
         if (updateImageStatusError !== null) {
-            this.logger.error("failed to call updateImageStatus()", {
-                error: updateImageStatusError,
-            });
+            this.logger.error(
+                "failed to call image_service.updateImageStatus()",
+                { error: updateImageStatusError }
+            );
             throw new ErrorWithHTTPCode(
                 "Failed to update status of image",
                 getHttpCodeFromGRPCStatus(updateImageStatusError.code)
@@ -547,7 +550,47 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         imageTagID: number
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to add image tag to image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: addImageTagToImageError } = await promisifyGRPCCall(
+            this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),
+            {
+                imageId: imageID,
+                imageTagId: imageTagID,
+            }
+        );
+        if (addImageTagToImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.addImageTagToImage()",
+                {
+                    userID: authenticatedUserInfo.user.id,
+                    imageID,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to add image tag to image",
+                httpStatus.FORBIDDEN
+            );
+        }
     }
 
     public async removeImageTagFromImage(
@@ -555,14 +598,88 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         imageTagID: number
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to remove image tag from image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: removeImageTagFromImageError } = await promisifyGRPCCall(
+            this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),
+            {
+                imageId: imageID,
+                imageTagId: imageTagID,
+            }
+        );
+        if (removeImageTagFromImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.removeImageTagFromImage()",
+                {
+                    userID: authenticatedUserInfo.user.id,
+                    imageID,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to remove image tag from image",
+                httpStatus.FORBIDDEN
+            );
+        }
     }
 
     public async deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageID: number
     ): Promise<void> {
-        throw new Error("Method not implemented.");
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
+        if (
+            !this.managePermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: deleteImageError } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteImage.bind(this.imageServiceDM),
+            { id: imageID }
+        );
+        if (deleteImageError !== null) {
+            this.logger.error("failed to call image_service.deleteImage()", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image",
+                httpStatus.FORBIDDEN
+            );
+        }
     }
 
     public async getUserImageList(
