@@ -22,8 +22,10 @@ import {
 import {
     Polygon,
     Region,
-    RegionOperatorLog,
+    RegionOperationLog,
+    RegionOperationLogProtoToRegionOperationLogConverter,
     RegionProtoToRegionConverter,
+    REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
 } from "../schemas";
 
@@ -57,19 +59,19 @@ export interface RegionManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageID: number,
         regionID: number
-    ): Promise<RegionOperatorLog[]>;
+    ): Promise<RegionOperationLog[]>;
 }
 
 export class RegionManagementOperatorImpl implements RegionManagementOperator {
-    private readonly managePermissionChecker = new ImagesManageSelfChecker(
-        new ImagesManageAllChecker(null)
-    );
     private readonly manageAndVerifyPermissionChecker =
-        new ImagesVerifyAllChecker(this.managePermissionChecker);
+        new ImagesVerifyAllChecker(
+            new ImagesManageSelfChecker(new ImagesManageAllChecker(null))
+        );
 
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
+        private readonly regionOperationLogProtoToRegionOperationLogConverter: RegionOperationLogProtoToRegionOperationLogConverter,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly logger: Logger
     ) {}
@@ -291,8 +293,59 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageID: number,
         regionID: number
-    ): Promise<RegionOperatorLog[]> {
-        throw new Error("Method not implemented.");
+    ): Promise<RegionOperationLog[]> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            true,
+            true
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userID: authenticatedUserInfo.user.id,
+                imageID,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get region operation log list",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: getRegionOperationLogListError,
+            response: getRegionOperationLogListResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getRegionOperationLogList.bind(
+                this.imageServiceDM
+            ),
+            { ofImageId: imageID, regionId: regionID }
+        );
+        if (getRegionOperationLogListError !== null) {
+            this.logger.error(
+                "failed to call image_service.getRegionOperationLogList()",
+                {
+                    error: getRegionOperationLogListError,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to delete region",
+                getHttpCodeFromGRPCStatus(getRegionOperationLogListError.code)
+            );
+        }
+
+        const regionOperatorLogProtoList =
+            getRegionOperationLogListResponse?.regionOperationLogList || [];
+        return await Promise.all(
+            regionOperatorLogProtoList.map((logProto) =>
+                this.regionOperationLogProtoToRegionOperationLogConverter.convert(
+                    logProto
+                )
+            )
+        );
     }
 }
 
@@ -300,6 +353,7 @@ injected(
     RegionManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
+    REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );

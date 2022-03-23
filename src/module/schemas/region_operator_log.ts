@@ -2,17 +2,20 @@ import { Polygon } from "./polygon";
 import { RegionLabel } from "./region_label";
 import { User } from "./user";
 
-export class RegionOperatorLogDrawMetadata {
+export class RegionOperationLogDrawMetadata {
     constructor(
-        public old_border: Polygon,
-        public old_holes: Polygon[],
+        public old_border: Polygon | null,
+        public old_holes: Polygon[] | null,
         public new_border: Polygon,
         public new_holes: Polygon[]
     ) {}
 }
 
-export class RegionOperatorLogLabelMetadata {
-    constructor(public old_label: RegionLabel, public new_label: RegionLabel) {}
+export class RegionOperationLogLabelMetadata {
+    constructor(
+        public old_label: RegionLabel | null,
+        public new_label: RegionLabel | null
+    ) {}
 }
 
 export enum OperationType {
@@ -20,14 +23,14 @@ export enum OperationType {
     LABEL = 1,
 }
 
-export class RegionOperatorLog {
+export class RegionOperationLog {
     constructor(
         public id: number,
-        public by_user: User,
+        public by_user: User | null,
         public operation_time: number,
         public operation_type: OperationType,
         public operation_metadata:
-            | RegionOperatorLogDrawMetadata
-            | RegionOperatorLogLabelMetadata
+            | RegionOperationLogDrawMetadata
+            | RegionOperationLogLabelMetadata
     ) {}
 }

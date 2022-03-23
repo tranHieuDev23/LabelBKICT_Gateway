@@ -56,7 +56,7 @@ export class ImageProtoToImageConverterImpl
         const imageType = imageProto?.imageType
             ? ImageType.fromProto(imageProto.imageType)
             : null;
-        const imageStatus = this.getStatusProtoFromStatus(imageProto?.status);
+        const imageStatus = this.getStatusFromStatusProto(imageProto?.status);
 
         return new Image(
             imageID,
@@ -83,7 +83,7 @@ export class ImageProtoToImageConverterImpl
         return `/${this.applicationConfig.thumbnailImageURLPrefix}/${thumbnailFilename}`;
     }
 
-    private getStatusProtoFromStatus(
+    private getStatusFromStatusProto(
         status:
             | _ImageStatus_Values
             | keyof typeof _ImageStatus_Values
@@ -106,7 +106,7 @@ export class ImageProtoToImageConverterImpl
                 this.logger.error("invalid image status", { status });
                 throw new ErrorWithHTTPCode(
                     `Invalid image status ${status}`,
-                    httpStatus.BAD_REQUEST
+                    httpStatus.INTERNAL_SERVER_ERROR
                 );
         }
     }
