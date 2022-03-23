@@ -32,6 +32,10 @@ import {
     ImagesVerifyAllChecker,
 } from "./image_permission_checker";
 import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
+import {
+    ImageInfoProvider,
+    IMAGE_INFO_PROVIDER_TOKEN,
+} from "../info_providers";
 
 export class ImageListFilterOptions {
     public imageTypeIDList: number[] = [];
@@ -162,6 +166,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         new ImagesVerifyAllChecker(this.managePermissionChecker);
 
     constructor(
+        private readonly imageInfoProvider: ImageInfoProvider,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
@@ -209,22 +214,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageTypeID: number
     ): Promise<void> {
         for (const imageID of imageIDList) {
-            const { error: getImageError, response: getImageResponse } =
-                await promisifyGRPCCall(
-                    this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                    { id: imageID }
-                );
-            if (getImageError !== null) {
-                this.logger.error("failed to call getImage()", {
-                    error: getImageError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "Failed to update image list",
-                    getHttpCodeFromGRPCStatus(getImageError.code)
-                );
-            }
-
-            const image = getImageResponse?.image;
+            const { image } = await this.imageInfoProvider.getImage(
+                imageID,
+                false,
+                false
+            );
             if (
                 !this.managePermissionChecker.checkUserHasPermissionForImage(
                     authenticatedUserInfo,
@@ -265,22 +259,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageIDList: number[]
     ): Promise<void> {
         for (const imageID of imageIDList) {
-            const { error: getImageError, response: getImageResponse } =
-                await promisifyGRPCCall(
-                    this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                    { id: imageID }
-                );
-            if (getImageError !== null) {
-                this.logger.error("failed to call getImage()", {
-                    error: getImageError,
-                });
-                throw new ErrorWithHTTPCode(
-                    "Failed to delete image list",
-                    getHttpCodeFromGRPCStatus(getImageError.code)
-                );
-            }
-
-            const image = getImageResponse?.image;
+            const { image } = await this.imageInfoProvider.getImage(
+                imageID,
+                false,
+                false
+            );
             if (
                 !this.managePermissionChecker.checkUserHasPermissionForImage(
                     authenticatedUserInfo,
@@ -321,22 +304,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageTagList: ImageTag[];
         regionList: Region[];
     }> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID, withImageTag: true, withRegion: true }
-            );
-        if (getImageError !== null) {
-            this.logger.error("failed to call getImage()", {
-                error: getImageError,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                getHttpCodeFromGRPCStatus(getImageError.code)
-            );
-        }
-
-        const imageProto = getImageResponse?.image;
+        const {
+            image: imageProto,
+            imageTagList: imageTagProtoList,
+            regionList: regionProtoList,
+        } = await this.imageInfoProvider.getImage(imageID, true, true);
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -353,13 +325,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
         }
 
-        const imageTagProtoList = getImageResponse?.imageTagList || [];
-        const regionProtoList = getImageResponse?.regionList || [];
-
         const image = await this.imageProtoToImageConverter.convert(imageProto);
-        const imageTagList = imageTagProtoList.map(ImageTag.fromProto);
+        const imageTagList = (imageTagProtoList || []).map(ImageTag.fromProto);
         const regionList = await Promise.all(
-            regionProtoList.map((regionProto) =>
+            (regionProtoList || []).map((regionProto) =>
                 this.regionProtoToRegionConverter.convert(regionProto)
             )
         );
@@ -371,22 +340,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         atStatus: ImageStatus
     ): Promise<Region[]> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID }
-            );
-        if (getImageError !== null) {
-            this.logger.error("failed to call getImage()", {
-                error: getImageError,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                getHttpCodeFromGRPCStatus(getImageError.code)
-            );
-        }
-
-        const imageProto = getImageResponse?.image;
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -439,22 +397,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         description: string | undefined
     ): Promise<Image> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID }
-            );
-        if (getImageError !== null) {
-            this.logger.error("failed to call getImage()", {
-                error: getImageError,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                getHttpCodeFromGRPCStatus(getImageError.code)
-            );
-        }
-
-        const imageProto = getImageResponse?.image;
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -499,22 +446,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         imageTypeID: number
     ): Promise<Image> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID }
-            );
-        if (getImageError !== null) {
-            this.logger.error("failed to call getImage()", {
-                error: getImageError,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                getHttpCodeFromGRPCStatus(getImageError.code)
-            );
-        }
-
-        const imageProto = getImageResponse?.image;
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -559,22 +495,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageID: number,
         status: ImageStatus
     ): Promise<Image> {
-        const { error: getImageError, response: getImageResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID }
-            );
-        if (getImageError !== null) {
-            this.logger.error("failed to call getImage()", {
-                error: getImageError,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                getHttpCodeFromGRPCStatus(getImageError.code)
-            );
-        }
-
-        const imageProto = getImageResponse?.image;
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageID,
+            false,
+            false
+        );
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -683,6 +608,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
 injected(
     ImageManagementOperatorImpl,
+    IMAGE_INFO_PROVIDER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,

@@ -7,7 +7,7 @@ import {
 export interface ImagePermissionChecker {
     checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto | undefined
+        image: ImageProto
     ): boolean;
 }
 
@@ -16,7 +16,7 @@ export class ImagePermissionCheckerDecorator implements ImagePermissionChecker {
 
     public checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto | undefined
+        image: ImageProto
     ): boolean {
         if (this.baseChecker) {
             return this.baseChecker.checkUserHasPermissionForImage(
@@ -35,7 +35,7 @@ const IMAGES_VERIFY_PERMISSION = "images.verify";
 export class ImagesManageSelfChecker extends ImagePermissionCheckerDecorator {
     public checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto | undefined
+        image: ImageProto
     ): boolean {
         if (super.checkUserHasPermissionForImage(authUserInfo, image)) {
             return true;
@@ -56,7 +56,7 @@ export class ImagesManageSelfChecker extends ImagePermissionCheckerDecorator {
 export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
     public checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto | undefined
+        image: ImageProto
     ): boolean {
         if (super.checkUserHasPermissionForImage(authUserInfo, image)) {
             return true;
@@ -72,7 +72,7 @@ export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
 export class ImagesVerifyAllChecker extends ImagePermissionCheckerDecorator {
     public checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto | undefined
+        image: ImageProto
     ): boolean {
         if (super.checkUserHasPermissionForImage(authUserInfo, image)) {
             return true;

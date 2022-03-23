@@ -1,5 +1,6 @@
 import { Container } from "brandi";
 import * as schemas from "./schemas";
+import * as infoProviders from "./info_providers";
 import * as sessions from "./sessions";
 import * as userPermissions from "./user_permissions";
 import * as userRoles from "./user_roles";
@@ -11,6 +12,7 @@ import * as regions from "./regions";
 
 export function bindToContainer(container: Container): void {
     schemas.bindToContainer(container);
+    infoProviders.bindToContainer(container);
     sessions.bindToContainer(container);
     userPermissions.bindToContainer(container);
     userRoles.bindToContainer(container);
