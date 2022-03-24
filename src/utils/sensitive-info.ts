@@ -9,6 +9,5 @@ export function maskSensitiveFields(obj: any): any {
     if (secretValues.length === 0) {
         return obj;
     }
-    console.log(obj, scrub(obj, secretValues));
     return scrub(obj, secretValues);
 }
