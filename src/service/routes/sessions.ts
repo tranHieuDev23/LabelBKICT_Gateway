@@ -3,8 +3,8 @@ import express, { Request } from "express";
 import asyncHandler from "express-async-handler";
 import {
     ImageListFilterOptions,
-    ImageManagementOperator,
-    IMAGE_MANAGEMENT_OPERATOR_TOKEN,
+    ImageListManagementOperator,
+    IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/images";
 import {
     SessionManagementOperator,
@@ -24,10 +24,11 @@ const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
 const IMAGES_VERIFY_PERMISSION = "images.verify";
 const IMAGES_EXPORT_PERMISSION = "images.export";
 const DEFAULT_GET_IMAGE_LIST_LIMIT = 10;
+const DEFAULT_GET_USER_LIST_LIMIT = 10;
 
 export function getSessionsRouter(
     sessionManagementOperator: SessionManagementOperator,
-    imageManagementOperator: ImageManagementOperator,
+    imageListManagementOperator: ImageListManagementOperator,
     authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
@@ -179,7 +180,7 @@ export function getSessionsRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
             const { imageList, imageTagList } =
-                await imageManagementOperator.getUserImageList(
+                await imageListManagementOperator.getUserImageList(
                     authenticatedUserInformation,
                     offset,
                     limit,
@@ -190,6 +191,24 @@ export function getSessionsRouter(
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
+        })
+    );
+
+    router.get(
+        "/api/sessions/user/manageable-image-users",
+        imagesManageAllAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInformation = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const query = `${req.query.query}`;
+            const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
+            const userList =
+                await imageListManagementOperator.getUserManageableImageUserList(
+                    authenticatedUserInformation,
+                    query,
+                    limit
+                );
+            res.json({ user_list: userList });
         })
     );
 
@@ -204,7 +223,7 @@ export function getSessionsRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
             const { imageList, imageTagList } =
-                await imageManagementOperator.getUserManageableImageList(
+                await imageListManagementOperator.getUserManageableImageList(
                     authenticatedUserInformation,
                     offset,
                     limit,
@@ -215,6 +234,24 @@ export function getSessionsRouter(
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
+        })
+    );
+
+    router.get(
+        "/api/sessions/user/verifiable-image-users",
+        imagesVerifyAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInformation = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const query = `${req.query.query}`;
+            const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
+            const userList =
+                await imageListManagementOperator.getUserVerifiableImageUserList(
+                    authenticatedUserInformation,
+                    query,
+                    limit
+                );
+            res.json({ user_list: userList });
         })
     );
 
@@ -229,7 +266,7 @@ export function getSessionsRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
             const { imageList, imageTagList } =
-                await imageManagementOperator.getUserVerifiableImageList(
+                await imageListManagementOperator.getUserVerifiableImageList(
                     authenticatedUserInformation,
                     offset,
                     limit,
@@ -244,6 +281,24 @@ export function getSessionsRouter(
     );
 
     router.get(
+        "/api/sessions/user/manageable-image-users",
+        imagesExportAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInformation = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const query = `${req.query.query}`;
+            const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
+            const userList =
+                await imageListManagementOperator.getUserExportableImageUserList(
+                    authenticatedUserInformation,
+                    query,
+                    limit
+                );
+            res.json({ user_list: userList });
+        })
+    );
+
+    router.get(
         "/api/sessions/user/exportable-images",
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
@@ -254,7 +309,7 @@ export function getSessionsRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
             const { imageList, imageTagList } =
-                await imageManagementOperator.getUserExportableImageList(
+                await imageListManagementOperator.getUserExportableImageList(
                     authenticatedUserInformation,
                     offset,
                     limit,
@@ -274,7 +329,7 @@ export function getSessionsRouter(
 injected(
     getSessionsRouter,
     SESSION_MANAGEMENT_OPERATOR_TOKEN,
-    IMAGE_MANAGEMENT_OPERATOR_TOKEN,
+    IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
     AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
 

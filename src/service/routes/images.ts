@@ -4,7 +4,9 @@ import asyncHandler from "express-async-handler";
 import httpStatus from "http-status";
 import multer from "multer";
 import {
+    ImageListManagementOperator,
     ImageManagementOperator,
+    IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
     IMAGE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/images";
 import {
@@ -35,6 +37,7 @@ const imageMulterMiddleware = multer({
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
+    imageListManagementOperator: ImageListManagementOperator,
     regionManagementOperator: RegionManagementOperator,
     authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
@@ -96,7 +99,7 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIDList = req.body.image_id_list as number[];
             const imageTypeID = +req.body.image_type_id;
-            await imageManagementOperator.updateImageList(
+            await imageListManagementOperator.updateImageList(
                 authenticatedUserInfo,
                 imageIDList,
                 imageTypeID
@@ -112,7 +115,7 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIDList = req.body.image_id_list as number[];
-            await imageManagementOperator.deleteImageList(
+            await imageListManagementOperator.deleteImageList(
                 authenticatedUserInfo,
                 imageIDList
             );
@@ -364,6 +367,7 @@ export function getImagesRouter(
 injected(
     getImagesRouter,
     IMAGE_MANAGEMENT_OPERATOR_TOKEN,
+    IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
     REGION_MANAGEMENT_OPERATOR_TOKEN,
     AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
