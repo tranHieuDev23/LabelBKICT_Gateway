@@ -7,7 +7,7 @@ export class Region {
         public id: number,
         public drawn_by_user: User | null,
         public labeled_by_user: User | null,
-        public borders: Polygon,
+        public border: Polygon,
         public holes: Polygon[],
         public label: RegionLabel | null
     ) {}
