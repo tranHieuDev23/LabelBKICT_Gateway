@@ -2697,7 +2697,7 @@
             "patch": {
                 "description": "Update image list. This feature only allows mass updating of image type. For every image in the request, user needs to either (1) have `images.manage.self` permission and is updating an image of their own, or (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -2757,7 +2757,7 @@
             "delete": {
                 "description": "Delete image list. For every image in the request, user needs to either (1) have `images.manage.self` permission and is deleting an image of their own, or (2) have `images.manage.all` permission and is deleting an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -2816,7 +2816,7 @@
             "get": {
                 "description": "Get image list uploaded by the current sessions's user. User needs to have `images.manage.self` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3073,7 +3073,7 @@
             "get": {
                 "description": "Search the list of users, whose images can be managed by the session's user, using username and display name. User needs to have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3146,7 +3146,7 @@
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to manage. User needs to have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3415,7 +3415,7 @@
             "get": {
                 "description": "Search the list of users, whose images can be verified by the session's user, using username and display name. User needs to have `images.verify` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3488,7 +3488,7 @@
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to verify. User needs to have `images.verify` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3757,7 +3757,7 @@
             "get": {
                 "description": "Search the list of users, whose images can be exported by the session's user, using username and display name. User needs to have `images.manage.all` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
@@ -3830,7 +3830,7 @@
             "get": {
                 "description": "Get image list uploaded by all users, that the current session's user is allowed to export. User needs to have `images.export` permission in order to call this API successfully.",
                 "tags": [
-                    "Image Management"
+                    "Image List Management"
                 ],
                 "security": [
                     {
