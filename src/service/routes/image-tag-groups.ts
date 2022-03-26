@@ -143,7 +143,7 @@ export function getImageTagGroupsRouter(
     );
 
     router.post(
-        "/api/image-tag-groups/:imageTagGroupID/types",
+        "/api/image-tag-groups/:imageTagGroupID/image-types",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupID = +req.params.imageTagGroupID;
@@ -158,11 +158,11 @@ export function getImageTagGroupsRouter(
     );
 
     router.delete(
-        "/api/image-tag-groups/:imageTagGroupID/types/:imageTypeID",
+        "/api/image-tag-groups/:imageTagGroupID/image-types/:imageTypeID",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupID = +req.params.imageTagGroupID;
-            const imageTypeID = +req.body.image_type_id;
+            const imageTypeID = +req.params.imageTypeID;
             await imageTagManagementOperator.removeImageTypeFromImageTagGroup(
                 imageTagGroupID,
                 imageTypeID

@@ -2419,7 +2419,7 @@
                 }
             }
         },
-        "/api/image-tag-groups/{image_tag_group_id}/image-types/": {
+        "/api/image-tag-groups/{image_tag_group_id}/image-types": {
             "post": {
                 "description": "Add an image type to the list of allowed image types of an image tag group. User needs to have `image_tags.manage` permission in order to call this API successfully.",
                 "tags": [
