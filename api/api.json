@@ -2632,7 +2632,10 @@
                                 "type": "object",
                                 "properties": {
                                     "image_type_id": {
-                                        "$ref": "#/components/schemas/ImageType/properties/id"
+                                        "type": "string",
+                                        "description": "Image type ID, should be unique across all image type.",
+                                        "pattern": "^\\d*$",
+                                        "default": ""
                                     },
                                     "image_tag_id_list": {
                                         "type": "string",

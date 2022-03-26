@@ -3,6 +3,7 @@ import express from "express";
 import asyncHandler from "express-async-handler";
 import httpStatus from "http-status";
 import multer from "multer";
+import { Logger } from "winston";
 import {
     ImageListManagementOperator,
     ImageManagementOperator,
@@ -14,6 +15,7 @@ import {
     REGION_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/regions";
 import { Polygon } from "../../module/schemas";
+import { LOGGER_TOKEN } from "../../utils";
 import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
@@ -39,7 +41,8 @@ export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
     imageListManagementOperator: ImageListManagementOperator,
     regionManagementOperator: RegionManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory
+    authMiddlewareFactory: AuthMiddlewareFactory,
+    logger: Logger
 ): express.Router {
     const router = express.Router();
 
@@ -61,23 +64,29 @@ export function getImagesRouter(
         imagesUploadAuthMiddleware,
         imageMulterMiddleware,
         asyncHandler(async (req, res) => {
-            if (req.file === undefined) {
+            if (req.files === undefined || req.files.length === 0) {
+                logger.error(
+                    "uploaded file does not match multer filter config"
+                );
                 res.status(httpStatus.BAD_REQUEST).json({});
                 return;
             }
 
+            const fileList = req.files as Express.Multer.File[];
+
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageTypeID =
-                req.body.image_type_id === undefined
+                req.body.image_type_id === undefined ||
+                req.body.image_type_id === ""
                     ? undefined
                     : +req.body.image_type_id;
             const imageTagIDList = getCommaSeparatedIDList(
                 req.body.image_tag_id_list || ""
             );
             const description = req.body.description || "";
-            const originalFileName = req.file.originalname;
-            const imageData = req.file.buffer;
+            const originalFileName = fileList[0].originalname;
+            const imageData = fileList[0].buffer;
 
             const image = await imageManagementOperator.createImage(
                 authenticatedUserInfo,
@@ -369,7 +378,8 @@ injected(
     IMAGE_MANAGEMENT_OPERATOR_TOKEN,
     IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
     REGION_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    LOGGER_TOKEN
 );
 
 export const IMAGES_ROUTER_TOKEN = token<express.Router>("ImagesRouter");
