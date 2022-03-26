@@ -2386,7 +2386,7 @@
                         "required": true
                     },
                     {
-                        "name": "region_label_id",
+                        "name": "image_tag_id",
                         "in": "path",
                         "description": "The image tag to be deleted.",
                         "schema": {
