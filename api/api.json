@@ -4899,17 +4899,6 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "border": {
-                                        "$ref": "#/components/schemas/Region/properties/border"
-                                    },
-                                    "holes": {
-                                        "type": "array",
-                                        "items": {
-                                            "$ref": "#/components/schemas/Polygon"
-                                        },
-                                        "description": "The holes inside the border of the region. Holes cannot intersect with each other, and cannot intersect with the border of the region.",
-                                        "maxItems": 10
-                                    },
                                     "region_label_id": {
                                         "$ref": "#/components/schemas/RegionLabel/properties/id"
                                     }
