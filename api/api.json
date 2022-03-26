@@ -4220,20 +4220,6 @@
                                     "properties": {
                                         "image": {
                                             "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
                                         }
                                     }
                                 }
@@ -4299,7 +4285,7 @@
                 }
             }
         },
-        "/api/images/{image_id}/region-snapshot": {
+        "/api/images/{image_id}/region-snapshots": {
             "get": {
                 "description": "Get all region snapshots of an image at a certain status. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
                 "tags": [
@@ -4319,23 +4305,17 @@
                             "$ref": "#/components/schemas/Image/properties/id"
                         },
                         "required": true
+                    },
+                    {
+                        "name": "at_status",
+                        "in": "query",
+                        "description": "When to retrieve the list of image snapshots.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/status"
+                        },
+                        "required": true
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "at_status": {
-                                        "$ref": "#/components/schemas/Image/properties/status"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Retrieved region snapshot list of image successfully.",
@@ -4434,20 +4414,6 @@
                                     "properties": {
                                         "image": {
                                             "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
                                         }
                                     }
                                 }
@@ -4521,20 +4487,6 @@
                                     "properties": {
                                         "image": {
                                             "$ref": "#/components/schemas/Image"
-                                        },
-                                        "image_tag_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/ImageTag"
-                                            },
-                                            "description": "The list of tags this image is assigned with."
-                                        },
-                                        "region_list": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Region"
-                                            },
-                                            "description": "The list of regions in this image."
                                         }
                                     }
                                 }
