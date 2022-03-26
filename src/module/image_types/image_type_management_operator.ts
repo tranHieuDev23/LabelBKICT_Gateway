@@ -106,7 +106,7 @@ export class ImageTypeManagementOperatorImpl
                       regionLabelList.regionLabelList?.map(
                           RegionLabel.fromProto
                       ) || []
-              )
+              ) || []
             : undefined;
 
         return { imageTypeList, regionLabelList };

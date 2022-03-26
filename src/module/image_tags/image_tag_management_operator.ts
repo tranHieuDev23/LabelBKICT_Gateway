@@ -123,14 +123,14 @@ export class ImageTagManagementOperatorImpl
             ? getImageTagGroupListResponse?.imageTagListOfImageTagGroupList?.map(
                   (imageTagList) =>
                       imageTagList.imageTagList?.map(ImageTag.fromProto) || []
-              )
+              ) || []
             : undefined;
         const imageTypeList = withImageType
             ? getImageTagGroupListResponse?.imageTypeListOfImageTagGroupList?.map(
                   (imageTypeList) =>
                       imageTypeList.imageTypeList?.map(ImageType.fromProto) ||
                       []
-              )
+              ) || []
             : undefined;
 
         return { imageTagGroupList, imageTagList, imageTypeList };
