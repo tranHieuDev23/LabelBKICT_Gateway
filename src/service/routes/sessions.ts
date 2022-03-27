@@ -179,7 +179,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
-            const { imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserImageList(
                     authenticatedUserInformation,
                     offset,
@@ -188,6 +188,7 @@ export function getSessionsRouter(
                     filterOptions
                 );
             res.json({
+                total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
@@ -222,7 +223,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
-            const { imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserManageableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -231,6 +232,7 @@ export function getSessionsRouter(
                     filterOptions
                 );
             res.json({
+                total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
@@ -265,7 +267,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
-            const { imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserVerifiableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -274,6 +276,7 @@ export function getSessionsRouter(
                     filterOptions
                 );
             res.json({
+                total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
@@ -308,7 +311,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromRequest(req);
-            const { imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserExportableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -317,6 +320,7 @@ export function getSessionsRouter(
                     filterOptions
                 );
             res.json({
+                total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
             });
