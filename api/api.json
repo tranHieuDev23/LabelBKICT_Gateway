@@ -2914,7 +2914,7 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 120,
+                            "maximum": 500,
                             "default": 12
                         }
                     },
@@ -3245,7 +3245,7 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 120,
+                            "maximum": 500,
                             "default": 12
                         }
                     },
@@ -3588,7 +3588,7 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 120,
+                            "maximum": 500,
                             "default": 12
                         }
                     },
@@ -3931,7 +3931,7 @@
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 120,
+                            "maximum": 500,
                             "default": 12
                         }
                     },
