@@ -38,6 +38,15 @@ export class GatewayHTTPServer {
         server.use(compression());
 
         server.use(
+            "/static",
+            express.static(this.gatewayServerConfig.originalImageDir)
+        );
+        server.use(
+            "/static",
+            express.static(this.gatewayServerConfig.thumbnailImageDir)
+        );
+
+        server.use(
             middleware({
                 apiSpec: apiSpecPath,
             })
