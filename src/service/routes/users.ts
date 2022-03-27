@@ -25,6 +25,10 @@ export function getUsersRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        () => true,
+        true
+    );
     const usersManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserHasUserPermission(
@@ -87,6 +91,22 @@ export function getUsersRouter(
                     user_list: userList,
                 });
             }
+        })
+    );
+
+    router.get(
+        "/api/users/search",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const query = `${req.query.query || ""}`;
+            const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
+            const userList = await userManagementOperator.searchUserList(
+                query,
+                limit
+            );
+            res.json({
+                user_list: userList,
+            });
         })
     );
 

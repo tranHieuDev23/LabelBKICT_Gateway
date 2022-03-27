@@ -28,6 +28,7 @@ export interface UserManagementOperator {
         userList: User[];
         userRoleList: UserRole[][] | undefined;
     }>;
+    searchUserList(query: string, limit: number): Promise<User[]>;
     updateUser(
         id: number,
         username: string | undefined,
@@ -180,6 +181,26 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                     httpStatus.BAD_REQUEST
                 );
         }
+    }
+
+    public async searchUserList(query: string, limit: number): Promise<User[]> {
+        const { error: searchUserError, response: searchUserResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.searchUser.bind(this.userServiceDM),
+                { query, limit }
+            );
+        if (searchUserError !== null) {
+            this.logger.error("failed to call user_service.searchUser()", {
+                error: searchUserError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to search user list",
+                getHttpCodeFromGRPCStatus(searchUserError.code)
+            );
+        }
+
+        const userProtoList = searchUserResponse?.userList || [];
+        return userProtoList.map((userProto) => User.fromProto(userProto));
     }
 
     public async updateUser(
