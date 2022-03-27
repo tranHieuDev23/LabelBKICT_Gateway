@@ -2,7 +2,6 @@ import { injected, token } from "brandi";
 import express from "express";
 import asyncHandler from "express-async-handler";
 import httpStatus from "http-status";
-import multer from "multer";
 import { Logger } from "winston";
 import {
     ImageListManagementOperator,
@@ -26,23 +25,11 @@ import {
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
 
-const FIVE_MEGABYTE = 5 * 1024 * 1024;
-const imageMulterMiddleware = multer({
-    limits: {
-        files: 1,
-        fileSize: FIVE_MEGABYTE,
-    },
-    fileFilter: (request, file, callback) => {
-        callback(null, file.mimetype.startsWith("image/"));
-    },
-}).single("image_file");
-
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
     imageListManagementOperator: ImageListManagementOperator,
     regionManagementOperator: RegionManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory,
-    logger: Logger
+    authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
@@ -62,16 +49,7 @@ export function getImagesRouter(
     router.post(
         "/api/images",
         imagesUploadAuthMiddleware,
-        imageMulterMiddleware,
         asyncHandler(async (req, res) => {
-            if (req.files === undefined || req.files.length === 0) {
-                logger.error(
-                    "uploaded file does not match multer filter config"
-                );
-                res.status(httpStatus.BAD_REQUEST).json({});
-                return;
-            }
-
             const fileList = req.files as Express.Multer.File[];
 
             const authenticatedUserInfo = res.locals
@@ -378,8 +356,7 @@ injected(
     IMAGE_MANAGEMENT_OPERATOR_TOKEN,
     IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN,
     REGION_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN,
-    LOGGER_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
 
 export const IMAGES_ROUTER_TOKEN = token<express.Router>("ImagesRouter");

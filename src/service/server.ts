@@ -33,9 +33,9 @@ export class GatewayHTTPServer {
         const server = express();
 
         server.use(express.json({ limit: "1mb" }));
+        server.use(express.urlencoded({ extended: true }));
         server.use(cookieParser());
         server.use(compression());
-        server.use(express.urlencoded({ extended: false }));
 
         server.use(
             middleware({
