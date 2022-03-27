@@ -3051,7 +3051,8 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
-                        }
+                        },
+                        "allowEmptyValue": true
                     },
                     {
                         "name": "filter_image_statuses",
@@ -3393,7 +3394,8 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
-                        }
+                        },
+                        "allowEmptyValue": true
                     },
                     {
                         "name": "filter_image_statuses",
@@ -3735,7 +3737,8 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
-                        }
+                        },
+                        "allowEmptyValue": true
                     },
                     {
                         "name": "filter_image_statuses",
@@ -4077,7 +4080,8 @@
                             "type": "string",
                             "maxLength": 256,
                             "default": ""
-                        }
+                        },
+                        "allowEmptyValue": true
                     },
                     {
                         "name": "filter_image_statuses",
