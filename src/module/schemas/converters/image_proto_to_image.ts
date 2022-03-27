@@ -30,13 +30,13 @@ export class ImageProtoToImageConverterImpl
         const uploadedByUser = await this.userIDToUserConverter.convert(
             imageProto?.uploadedByUserId
         );
-        const uploadTime = +(imageProto?.uploadTime || 0);
         if (uploadedByUser === null) {
             throw new ErrorWithHTTPCode(
                 "image has no uploader",
                 httpStatus.INTERNAL_SERVER_ERROR
             );
         }
+        const uploadTime = +(imageProto?.uploadTime || 0);
         const publishedByUser = await this.userIDToUserConverter.convert(
             imageProto?.publishedByUserId
         );
