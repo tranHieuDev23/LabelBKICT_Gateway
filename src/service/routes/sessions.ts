@@ -15,7 +15,7 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
-    getIDListFromQueryParam,
+    getIdListFromQueryParam,
     LABEL_BKICT_AUTH_COOKIE_NAME,
 } from "../utils";
 
@@ -121,25 +121,25 @@ export function getSessionsRouter(
         req: Request
     ): ImageListFilterOptions {
         const filterOptions = new ImageListFilterOptions();
-        filterOptions.imageTypeIDList =
+        filterOptions.imageTypeIdList =
             req.query.filter_image_types === undefined
                 ? []
                 : (req.query.filter_image_types as string[]).map(
                       (item) => +item
                   );
-        filterOptions.imageTagIDList = getIDListFromQueryParam(
+        filterOptions.imageTagIdList = getIdListFromQueryParam(
             req.query.filter_image_tags
         );
-        filterOptions.regionLabelIDList = getIDListFromQueryParam(
+        filterOptions.regionLabelIdList = getIdListFromQueryParam(
             req.query.filter_region_labels
         );
-        filterOptions.uploadedByUserIDList = getIDListFromQueryParam(
+        filterOptions.uploadedByUserIdList = getIdListFromQueryParam(
             req.query.filter_uploaded_by_user_ids
         );
-        filterOptions.publishedByUserIDList = getIDListFromQueryParam(
+        filterOptions.publishedByUserIdList = getIdListFromQueryParam(
             req.query.filter_published_by_user_ids
         );
-        filterOptions.verifiedByUserIDList = getIDListFromQueryParam(
+        filterOptions.verifiedByUserIdList = getIdListFromQueryParam(
             req.query.filter_verified_by_user_ids
         );
         filterOptions.uploadTimeStart = +(
@@ -159,7 +159,7 @@ export function getSessionsRouter(
         filterOptions.originalFileNameQuery = `${
             req.query.original_file_name_query || ""
         }`;
-        filterOptions.imageStatusList = getIDListFromQueryParam(
+        filterOptions.imageStatusList = getIdListFromQueryParam(
             req.query.filter_image_statuses
         );
         filterOptions.mustMatchAllImageTags =

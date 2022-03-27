@@ -30,8 +30,8 @@ export interface UserRoleManagementOperator {
         description: string | undefined
     ): Promise<UserRole>;
     deleteUserRole(id: number): Promise<void>;
-    addUserRoleToUser(userID: number, userRoleID: number): Promise<void>;
-    removeUserRoleFromUser(userID: number, userRoleID: number): Promise<void>;
+    addUserRoleToUser(userId: number, userRoleId: number): Promise<void>;
+    removeUserRoleFromUser(userId: number, userRoleId: number): Promise<void>;
 }
 
 export class UserRoleManagementOperatorImpl
@@ -106,7 +106,7 @@ export class UserRoleManagementOperatorImpl
             };
         }
 
-        const userRoleIDList = userRoleList.map((userRole) => userRole.id);
+        const userRoleIdList = userRoleList.map((userRole) => userRole.id);
         const {
             error: getUserPermissionListOfUserRoleListError,
             response: getUserPermissionListOfUserRoleListResponse,
@@ -114,7 +114,7 @@ export class UserRoleManagementOperatorImpl
             this.userServiceDM.getUserPermissionListOfUserRoleList.bind(
                 this.userServiceDM
             ),
-            { userRoleIdList: userRoleIDList }
+            { userRoleIdList: userRoleIdList }
         );
         if (getUserPermissionListOfUserRoleListError !== null) {
             this.logger.error(
@@ -206,12 +206,12 @@ export class UserRoleManagementOperatorImpl
     }
 
     public async addUserRoleToUser(
-        userID: number,
-        userRoleID: number
+        userId: number,
+        userRoleId: number
     ): Promise<void> {
         const { error: addUserRoleToUserError } = await promisifyGRPCCall(
             this.userServiceDM.addUserRoleToUser.bind(this.userServiceDM),
-            { userId: userID, userRoleId: userRoleID }
+            { userId: userId, userRoleId: userRoleId }
         );
         if (addUserRoleToUserError !== null) {
             this.logger.error(
@@ -226,12 +226,12 @@ export class UserRoleManagementOperatorImpl
     }
 
     public async removeUserRoleFromUser(
-        userID: number,
-        userRoleID: number
+        userId: number,
+        userRoleId: number
     ): Promise<void> {
         const { error: removeUserRoleFromUserError } = await promisifyGRPCCall(
             this.userServiceDM.removeUserRoleFromUser.bind(this.userServiceDM),
-            { userId: userID, userRoleId: userRoleID }
+            { userId: userId, userRoleId: userRoleId }
         );
         if (removeUserRoleFromUserError !== null) {
             this.logger.error(

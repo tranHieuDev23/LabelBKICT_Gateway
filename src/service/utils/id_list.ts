@@ -1,13 +1,13 @@
 import qs from "qs";
 
-export function getCommaSeparatedIDList(s: string): number[] {
+export function getCommaSeparatedIdList(s: string): number[] {
     if (s === "") {
         return [];
     }
     return s.split(",").map((substring) => +substring);
 }
 
-export function getIDListFromQueryParam(
+export function getIdListFromQueryParam(
     queryParam: string | string[] | qs.ParsedQs | qs.ParsedQs[] | undefined
 ): number[] {
     if (typeof queryParam === "string") {

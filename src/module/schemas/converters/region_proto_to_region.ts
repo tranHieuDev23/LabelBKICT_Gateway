@@ -4,7 +4,7 @@ import { Polygon } from "../polygon";
 import { Region } from "../region";
 import { RegionLabel } from "../region_label";
 import {
-    UserIDToUserConverter,
+    UserIdToUserConverter,
     USER_ID_TO_USER_CONVERTER_TOKEN,
 } from "./user_id_to_user";
 
@@ -16,17 +16,17 @@ export class RegionProtoToRegionConverterImpl
     implements RegionProtoToRegionConverter
 {
     constructor(
-        private readonly userIDToUserConverter: UserIDToUserConverter
+        private readonly userIdToUserConverter: UserIdToUserConverter
     ) {}
 
     public async convert(
         regionProto: RegionProto | undefined
     ): Promise<Region> {
-        const regionID = regionProto?.id || 0;
-        const drawnByUser = await this.userIDToUserConverter.convert(
+        const regionId = regionProto?.id || 0;
+        const drawnByUser = await this.userIdToUserConverter.convert(
             regionProto?.drawnByUserId
         );
-        const labeledByUser = await this.userIDToUserConverter.convert(
+        const labeledByUser = await this.userIdToUserConverter.convert(
             regionProto?.labeledByUserId
         );
         const border = regionProto?.border
@@ -39,7 +39,7 @@ export class RegionProtoToRegionConverterImpl
             : null;
 
         return new Region(
-            regionID,
+            regionId,
             drawnByUser,
             labeledByUser,
             border,

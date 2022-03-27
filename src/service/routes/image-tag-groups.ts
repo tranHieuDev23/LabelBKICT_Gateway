@@ -68,15 +68,15 @@ export function getImageTagGroupsRouter(
     );
 
     router.patch(
-        "/api/image-tag-groups/:imageTagGroupID",
+        "/api/image-tag-groups/:imageTagGroupId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
             const displayName = req.body.display_name;
             const isSingleValue = req.body.is_single_value;
             const imageType =
                 await imageTagManagementOperator.updateImageTagGroup(
-                    imageTagGroupID,
+                    imageTagGroupId,
                     displayName,
                     isSingleValue
                 );
@@ -85,26 +85,26 @@ export function getImageTagGroupsRouter(
     );
 
     router.delete(
-        "/api/image-tag-groups/:imageTagGroupID",
+        "/api/image-tag-groups/:imageTagGroupId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
             await imageTagManagementOperator.deleteImageTagGroup(
-                imageTagGroupID
+                imageTagGroupId
             );
             res.json({});
         })
     );
 
     router.post(
-        "/api/image-tag-groups/:imageTagGroupID/tags",
+        "/api/image-tag-groups/:imageTagGroupId/tags",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
             const displayName = req.body.display_name;
             const imageTag =
                 await imageTagManagementOperator.addImageTagToImageTagGroup(
-                    imageTagGroupID,
+                    imageTagGroupId,
                     displayName
                 );
             res.json(imageTag);
@@ -112,16 +112,16 @@ export function getImageTagGroupsRouter(
     );
 
     router.patch(
-        "/api/image-tag-groups/:imageTagGroupID/tags/:imageTagID",
+        "/api/image-tag-groups/:imageTagGroupId/tags/:imageTagId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
-            const imageTagID = +req.params.imageTagID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const imageTagId = +req.params.imageTagId;
             const displayName = req.body.display_name;
             const imageTag =
                 await imageTagManagementOperator.updateImageTagOfImageTagGroup(
-                    imageTagGroupID,
-                    imageTagID,
+                    imageTagGroupId,
+                    imageTagId,
                     displayName
                 );
             res.json(imageTag);
@@ -129,43 +129,43 @@ export function getImageTagGroupsRouter(
     );
 
     router.delete(
-        "/api/image-tag-groups/:imageTagGroupID/tags/:imageTagID",
+        "/api/image-tag-groups/:imageTagGroupId/tags/:imageTagId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
-            const imageTagID = +req.params.imageTagID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const imageTagId = +req.params.imageTagId;
             await imageTagManagementOperator.removeImageTagFromImageTagGroup(
-                imageTagGroupID,
-                imageTagID
+                imageTagGroupId,
+                imageTagId
             );
             res.json({});
         })
     );
 
     router.post(
-        "/api/image-tag-groups/:imageTagGroupID/image-types",
+        "/api/image-tag-groups/:imageTagGroupId/image-types",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
-            const imageTypeID = +req.body.image_type_id;
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const imageTypeId = +req.body.image_type_id;
             const imageTag =
                 await imageTagManagementOperator.addImageTypeToImageTagGroup(
-                    imageTagGroupID,
-                    imageTypeID
+                    imageTagGroupId,
+                    imageTypeId
                 );
             res.json(imageTag);
         })
     );
 
     router.delete(
-        "/api/image-tag-groups/:imageTagGroupID/image-types/:imageTypeID",
+        "/api/image-tag-groups/:imageTagGroupId/image-types/:imageTypeId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTagGroupID = +req.params.imageTagGroupID;
-            const imageTypeID = +req.params.imageTypeID;
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const imageTypeId = +req.params.imageTypeId;
             await imageTagManagementOperator.removeImageTypeFromImageTagGroup(
-                imageTagGroupID,
-                imageTypeID
+                imageTagGroupId,
+                imageTypeId
             );
             res.json({});
         })

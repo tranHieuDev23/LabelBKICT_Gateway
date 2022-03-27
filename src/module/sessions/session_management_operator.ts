@@ -127,7 +127,7 @@ export class SessionManagementOperatorImpl
         return { user, userRoleList, userPermissionList, newToken };
     }
 
-    private async getUserRoleListOfUser(userID: number): Promise<UserRole[]> {
+    private async getUserRoleListOfUser(userId: number): Promise<UserRole[]> {
         const {
             error: getUserRoleListOfUserListError,
             response: getUserRoleListOfUserListResponse,
@@ -135,7 +135,7 @@ export class SessionManagementOperatorImpl
             this.userServiceDM.getUserRoleListOfUserList.bind(
                 this.userServiceDM
             ),
-            { userIdList: [userID] }
+            { userIdList: [userId] }
         );
         if (getUserRoleListOfUserListError !== null) {
             this.logger.error(
@@ -163,7 +163,7 @@ export class SessionManagementOperatorImpl
     }
 
     private async getUserPermissionListOfUser(
-        userID: number
+        userId: number
     ): Promise<UserPermission[]> {
         const {
             error: getUserPermissionListOfUserError,
@@ -172,7 +172,7 @@ export class SessionManagementOperatorImpl
             this.userServiceDM.getUserPermissionListOfUser.bind(
                 this.userServiceDM
             ),
-            { userId: userID }
+            { userId: userId }
         );
         if (getUserPermissionListOfUserError !== null) {
             this.logger.error(

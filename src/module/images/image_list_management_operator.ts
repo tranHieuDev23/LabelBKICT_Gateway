@@ -33,12 +33,12 @@ import {
 import { UserServiceClient } from "../../proto/gen/UserService";
 
 export class ImageListFilterOptions {
-    public imageTypeIDList: number[] = [];
-    public imageTagIDList: number[] = [];
-    public regionLabelIDList: number[] = [];
-    public uploadedByUserIDList: number[] = [];
-    public publishedByUserIDList: number[] = [];
-    public verifiedByUserIDList: number[] = [];
+    public imageTypeIdList: number[] = [];
+    public imageTagIdList: number[] = [];
+    public regionLabelIdList: number[] = [];
+    public uploadedByUserIdList: number[] = [];
+    public publishedByUserIdList: number[] = [];
+    public verifiedByUserIdList: number[] = [];
     public uploadTimeStart = 0;
     public uploadTimeEnd = 0;
     public publishTimeStart = 0;
@@ -54,12 +54,12 @@ export class ImageListFilterOptions {
 export interface ImageListManagementOperator {
     updateImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageIDList: number[],
-        imageTypeID: number
+        imageIdList: number[],
+        imageTypeId: number
     ): Promise<void>;
     deleteImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageIDList: number[]
+        imageIdList: number[]
     ): Promise<void>;
     getUserImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -141,12 +141,12 @@ export class ImageListManagementOperatorImpl
 
     public async updateImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageIDList: number[],
-        imageTypeID: number
+        imageIdList: number[],
+        imageTypeId: number
     ): Promise<void> {
-        for (const imageID of imageIDList) {
+        for (const imageId of imageIdList) {
             const { image } = await this.imageInfoProvider.getImage(
-                imageID,
+                imageId,
                 false,
                 false
             );
@@ -157,8 +157,8 @@ export class ImageListManagementOperatorImpl
                 )
             ) {
                 this.logger.error("user is not allowed to access image", {
-                    userID: authenticatedUserInfo.user.id,
-                    imageID,
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
                 });
                 throw new ErrorWithHTTPCode(
                     "Failed to update image list",
@@ -172,7 +172,7 @@ export class ImageListManagementOperatorImpl
                 this.imageServiceDM.updateImageListImageType.bind(
                     this.imageServiceDM
                 ),
-                { imageIdList: imageIDList, imageTypeId: imageTypeID }
+                { imageIdList: imageIdList, imageTypeId: imageTypeId }
             );
         if (updateImageListImageTypeError !== null) {
             this.logger.error(
@@ -188,11 +188,11 @@ export class ImageListManagementOperatorImpl
 
     public async deleteImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageIDList: number[]
+        imageIdList: number[]
     ): Promise<void> {
-        for (const imageID of imageIDList) {
+        for (const imageId of imageIdList) {
             const { image } = await this.imageInfoProvider.getImage(
-                imageID,
+                imageId,
                 false,
                 false
             );
@@ -203,8 +203,8 @@ export class ImageListManagementOperatorImpl
                 )
             ) {
                 this.logger.error("user is not allowed to access image", {
-                    userID: authenticatedUserInfo.user.id,
-                    imageID,
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
                 });
                 throw new ErrorWithHTTPCode(
                     "Failed to delete image list",
@@ -215,7 +215,7 @@ export class ImageListManagementOperatorImpl
 
         const { error: deleteImageListError } = await promisifyGRPCCall(
             this.imageServiceDM.deleteImageList.bind(this.imageServiceDM),
-            { idList: imageIDList }
+            { idList: imageIdList }
         );
         if (deleteImageListError !== null) {
             this.logger.error(
@@ -240,7 +240,7 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        filterOptions.uploadedByUserIDList = [authenticatedUserInfo.user.id];
+        filterOptions.uploadedByUserIdList = [authenticatedUserInfo.user.id];
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),

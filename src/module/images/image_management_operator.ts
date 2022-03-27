@@ -35,15 +35,15 @@ import {
 export interface ImageManagementOperator {
     createImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageTypeID: number | undefined,
-        imageTagIDList: number[],
+        imageTypeId: number | undefined,
+        imageTagIdList: number[],
         originalFileName: string,
         description: string,
         imageData: Buffer
     ): Promise<Image>;
     getImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number
+        imageId: number
     ): Promise<{
         image: Image;
         imageTagList: ImageTag[];
@@ -51,37 +51,37 @@ export interface ImageManagementOperator {
     }>;
     getImageRegionSnapshotList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         atStatus: ImageStatus
     ): Promise<Region[]>;
     updateImageMetadata(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         description: string | undefined
     ): Promise<Image>;
     updateImageType(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTypeID: number
+        imageId: number,
+        imageTypeId: number
     ): Promise<Image>;
     updateImageStatus(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         status: ImageStatus
     ): Promise<Image>;
     addImageTagToImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTagID: number
+        imageId: number,
+        imageTagId: number
     ): Promise<void>;
     removeImageTagFromImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTagID: number
+        imageId: number,
+        imageTagId: number
     ): Promise<void>;
     deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number
+        imageId: number
     ): Promise<void>;
 }
 
@@ -103,8 +103,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async createImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageTypeID: number | undefined,
-        imageTagIDList: number[],
+        imageTypeId: number | undefined,
+        imageTagIdList: number[],
         originalFileName: string,
         description: string,
         imageData: Buffer
@@ -114,11 +114,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 this.imageServiceDM.createImage.bind(this.imageServiceDM),
                 {
                     uploadedByUserId: authenticatedUserInfo.user.id,
-                    imageTypeId: imageTypeID,
+                    imageTypeId: imageTypeId,
                     originalFileName: originalFileName,
                     description: description,
                     imageData: imageData,
-                    imageTagIdList: imageTagIDList,
+                    imageTagIdList: imageTagIdList,
                 }
             );
         if (createImageError !== null) {
@@ -138,7 +138,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async getImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number
+        imageId: number
     ): Promise<{
         image: Image;
         imageTagList: ImageTag[];
@@ -148,7 +148,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             image: imageProto,
             imageTagList: imageTagProtoList,
             regionList: regionProtoList,
-        } = await this.imageInfoProvider.getImage(imageID, true, true);
+        } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
             !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -156,8 +156,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to get image",
@@ -177,11 +177,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async getImageRegionSnapshotList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         atStatus: ImageStatus
     ): Promise<Region[]> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -192,8 +192,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to get region snapshot list of image",
@@ -208,7 +208,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             this.imageServiceDM.getRegionSnapshotListOfImage.bind(
                 this.imageServiceDM
             ),
-            { ofImageId: imageID, atStatus: atStatus }
+            { ofImageId: imageId, atStatus: atStatus }
         );
         if (getRegionSnapshotListOfImageError !== null) {
             this.logger.error(
@@ -235,11 +235,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async updateImageMetadata(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         description: string | undefined
     ): Promise<Image> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -250,8 +250,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to update metadata of image",
@@ -264,7 +264,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             response: updateImageMetadataResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageMetadata.bind(this.imageServiceDM),
-            { id: imageID, description: description }
+            { id: imageId, description: description }
         );
         if (updateImageMetadataError !== null) {
             this.logger.error(
@@ -285,11 +285,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async updateImageType(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTypeID: number
+        imageId: number,
+        imageTypeId: number
     ): Promise<Image> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -300,8 +300,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to update image type of image",
@@ -314,7 +314,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             response: updateImageImageTypeResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageImageType.bind(this.imageServiceDM),
-            { id: imageID, imageTypeId: imageTypeID }
+            { id: imageId, imageTypeId: imageTypeId }
         );
         if (updateImageImageTypeError !== null) {
             this.logger.error(
@@ -335,11 +335,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async updateImageStatus(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         status: ImageStatus
     ): Promise<Image> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -350,8 +350,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to update status of image",
@@ -367,7 +367,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             response: updateImageStatusResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageStatus.bind(this.imageServiceDM),
-            { id: imageID, status: statusProto }
+            { id: imageId, status: statusProto }
         );
         if (updateImageStatusError !== null) {
             this.logger.error(
@@ -388,11 +388,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async addImageTagToImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTagID: number
+        imageId: number,
+        imageTagId: number
     ): Promise<void> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -403,8 +403,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to add image tag to image",
@@ -415,16 +415,16 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const { error: addImageTagToImageError } = await promisifyGRPCCall(
             this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),
             {
-                imageId: imageID,
-                imageTagId: imageTagID,
+                imageId: imageId,
+                imageTagId: imageTagId,
             }
         );
         if (addImageTagToImageError !== null) {
             this.logger.error(
                 "failed to call image_service.addImageTagToImage()",
                 {
-                    userID: authenticatedUserInfo.user.id,
-                    imageID,
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
                 }
             );
             throw new ErrorWithHTTPCode(
@@ -436,11 +436,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async removeImageTagFromImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        imageTagID: number
+        imageId: number,
+        imageTagId: number
     ): Promise<void> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -451,8 +451,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to remove image tag from image",
@@ -463,16 +463,16 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const { error: removeImageTagFromImageError } = await promisifyGRPCCall(
             this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),
             {
-                imageId: imageID,
-                imageTagId: imageTagID,
+                imageId: imageId,
+                imageTagId: imageTagId,
             }
         );
         if (removeImageTagFromImageError !== null) {
             this.logger.error(
                 "failed to call image_service.removeImageTagFromImage()",
                 {
-                    userID: authenticatedUserInfo.user.id,
-                    imageID,
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
                 }
             );
             throw new ErrorWithHTTPCode(
@@ -484,10 +484,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number
+        imageId: number
     ): Promise<void> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             false,
             false
         );
@@ -498,8 +498,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to delete image",
@@ -509,12 +509,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
         const { error: deleteImageError } = await promisifyGRPCCall(
             this.imageServiceDM.deleteImage.bind(this.imageServiceDM),
-            { id: imageID }
+            { id: imageId }
         );
         if (deleteImageError !== null) {
             this.logger.error("failed to call image_service.deleteImage()", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to delete image",

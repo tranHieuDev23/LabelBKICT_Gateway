@@ -15,7 +15,7 @@ import {
 
 export interface ImageInfoProvider {
     getImage(
-        imageID: number,
+        imageId: number,
         withImageTag: boolean,
         withRegion: boolean
     ): Promise<{
@@ -32,7 +32,7 @@ export class ImageInfoProviderImpl implements ImageInfoProvider {
     ) {}
 
     public async getImage(
-        imageID: number,
+        imageId: number,
         withImageTag: boolean,
         withRegion: boolean
     ): Promise<{
@@ -43,7 +43,7 @@ export class ImageInfoProviderImpl implements ImageInfoProvider {
         const { error: getImageError, response: getImageResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImage.bind(this.imageServiceDM),
-                { id: imageID, withImageTag, withRegion }
+                { id: imageId, withImageTag, withRegion }
             );
         if (getImageError !== null) {
             this.logger.error("failed to call image_service.getImage()", {

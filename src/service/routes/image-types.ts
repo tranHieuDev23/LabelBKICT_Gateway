@@ -64,14 +64,14 @@ export function getImageTypesRouter(
     );
 
     router.patch(
-        "/api/image-types/:imageTypeID",
+        "/api/image-types/:imageTypeId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
+            const imageTypeId = +req.params.imageTypeId;
             const displayName = req.body.display_name;
             const hasPredictiveModel = req.body.has_predictive_model;
             const imageType = await imageTypeManagementOperator.updateImageType(
-                imageTypeID,
+                imageTypeId,
                 displayName,
                 hasPredictiveModel
             );
@@ -80,25 +80,25 @@ export function getImageTypesRouter(
     );
 
     router.delete(
-        "/api/image-types/:imageTypeID",
+        "/api/image-types/:imageTypeId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
-            await imageTypeManagementOperator.deleteImageType(imageTypeID);
+            const imageTypeId = +req.params.imageTypeId;
+            await imageTypeManagementOperator.deleteImageType(imageTypeId);
             res.json({});
         })
     );
 
     router.post(
-        "/api/image-types/:imageTypeID/labels",
+        "/api/image-types/:imageTypeId/labels",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
+            const imageTypeId = +req.params.imageTypeId;
             const displayName = req.body.display_name;
             const color = req.body.color;
             const regionLabel =
                 await imageTypeManagementOperator.addRegionLabelToImageType(
-                    imageTypeID,
+                    imageTypeId,
                     displayName,
                     color
                 );
@@ -107,17 +107,17 @@ export function getImageTypesRouter(
     );
 
     router.patch(
-        "/api/image-types/:imageTypeID/labels/:regionLabelID",
+        "/api/image-types/:imageTypeId/labels/:regionLabelId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
-            const regionLabelID = +req.params.regionLabelID;
+            const imageTypeId = +req.params.imageTypeId;
+            const regionLabelId = +req.params.regionLabelId;
             const displayName = req.body.display_name;
             const color = req.body.color;
             const regionLabel =
                 await imageTypeManagementOperator.updateRegionLabelOfImageType(
-                    imageTypeID,
-                    regionLabelID,
+                    imageTypeId,
+                    regionLabelId,
                     displayName,
                     color
                 );
@@ -126,27 +126,27 @@ export function getImageTypesRouter(
     );
 
     router.delete(
-        "/api/image-types/:imageTypeID/labels/:regionLabelID",
+        "/api/image-types/:imageTypeId/labels/:regionLabelId",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
-            const regionLabelID = +req.params.regionLabelID;
+            const imageTypeId = +req.params.imageTypeId;
+            const regionLabelId = +req.params.regionLabelId;
             await imageTypeManagementOperator.removeRegionLabelFromImageType(
-                imageTypeID,
-                regionLabelID
+                imageTypeId,
+                regionLabelId
             );
             res.json({});
         })
     );
 
     router.get(
-        "/api/image-types/:imageTypeID/image-tag-groups",
+        "/api/image-types/:imageTypeId/image-tag-groups",
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const imageTypeID = +req.params.imageTypeID;
+            const imageTypeId = +req.params.imageTypeId;
             const { imageTagGroupList, imageTagList } =
                 await imageTagManagementOperator.getImageTagGroupListOfImageType(
-                    imageTypeID
+                    imageTypeId
                 );
             res.json({
                 image_tag_group_list: imageTagGroupList,

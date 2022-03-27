@@ -23,12 +23,12 @@ export interface UserPermissionManagementOperator {
     ): Promise<UserPermission>;
     deleteUserPermission(id: number): Promise<void>;
     addUserPermissionToUserRole(
-        userRoleID: number,
-        userPermissionID: number
+        userRoleId: number,
+        userPermissionId: number
     ): Promise<void>;
     removeUserPermissionFromUserRole(
-        userRoleID: number,
-        userPermissionID: number
+        userRoleId: number,
+        userPermissionId: number
     ): Promise<void>;
 }
 
@@ -140,15 +140,15 @@ export class UserPermissionManagementOperatorImpl
     }
 
     public async addUserPermissionToUserRole(
-        userRoleID: number,
-        userPermissionID: number
+        userRoleId: number,
+        userPermissionId: number
     ): Promise<void> {
         const { error: addUserPermissionToUserRoleError } =
             await promisifyGRPCCall(
                 this.userServiceDM.addUserPermissionToUserRole.bind(
                     this.userServiceDM
                 ),
-                { userRoleId: userRoleID, userPermissionId: userPermissionID }
+                { userRoleId: userRoleId, userPermissionId: userPermissionId }
             );
         if (addUserPermissionToUserRoleError !== null) {
             this.logger.error(
@@ -163,15 +163,15 @@ export class UserPermissionManagementOperatorImpl
     }
 
     public async removeUserPermissionFromUserRole(
-        userRoleID: number,
-        userPermissionID: number
+        userRoleId: number,
+        userPermissionId: number
     ): Promise<void> {
         const { error: removeUserPermissionFromUserRoleError } =
             await promisifyGRPCCall(
                 this.userServiceDM.removeUserPermissionFromUserRole.bind(
                     this.userServiceDM
                 ),
-                { userRoleId: userRoleID, userPermissionId: userPermissionID }
+                { userRoleId: userRoleId, userPermissionId: userPermissionId }
             );
         if (removeUserPermissionFromUserRoleError !== null) {
             this.logger.error(

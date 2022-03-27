@@ -12,7 +12,7 @@ import {
 } from "../../utils";
 
 export interface UserInfoProvider {
-    getUser(userID: number): Promise<User>;
+    getUser(userId: number): Promise<User>;
 }
 
 export class UserInfoProviderImpl implements UserInfoProvider {
@@ -21,11 +21,11 @@ export class UserInfoProviderImpl implements UserInfoProvider {
         private readonly logger: Logger
     ) {}
 
-    public async getUser(userID: number): Promise<User> {
+    public async getUser(userId: number): Promise<User> {
         const { error: getUserError, response: getUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.getUser.bind(this.userServiceDM),
-                { id: userID }
+                { id: userId }
             );
         if (getUserError !== null) {
             this.logger.error("failed to call user_service.getUser()", {
@@ -39,7 +39,7 @@ export class UserInfoProviderImpl implements UserInfoProvider {
 
         if (getUserResponse?.user === undefined) {
             this.logger.error("invalid user_service.getUser() response", {
-                userID,
+                userId,
             });
 
             throw new ErrorWithHTTPCode(

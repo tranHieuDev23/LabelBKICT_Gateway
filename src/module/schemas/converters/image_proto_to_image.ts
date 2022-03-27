@@ -8,7 +8,7 @@ import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../../utils";
 import { Image, ImageStatus } from "../image";
 import { ImageType } from "../image_type";
 import {
-    UserIDToUserConverter,
+    UserIdToUserConverter,
     USER_ID_TO_USER_CONVERTER_TOKEN,
 } from "./user_id_to_user";
 
@@ -20,14 +20,14 @@ export class ImageProtoToImageConverterImpl
     implements ImageProtoToImageConverter
 {
     constructor(
-        private readonly userIDToUserConverter: UserIDToUserConverter,
+        private readonly userIdToUserConverter: UserIdToUserConverter,
         private readonly applicationConfig: ApplicationConfig,
         private readonly logger: Logger
     ) {}
 
     public async convert(imageProto: ImageProto | undefined): Promise<Image> {
-        const imageID = imageProto?.id || 0;
-        const uploadedByUser = await this.userIDToUserConverter.convert(
+        const imageId = imageProto?.id || 0;
+        const uploadedByUser = await this.userIdToUserConverter.convert(
             imageProto?.uploadedByUserId
         );
         if (uploadedByUser === null) {
@@ -37,11 +37,11 @@ export class ImageProtoToImageConverterImpl
             );
         }
         const uploadTime = +(imageProto?.uploadTime || 0);
-        const publishedByUser = await this.userIDToUserConverter.convert(
+        const publishedByUser = await this.userIdToUserConverter.convert(
             imageProto?.publishedByUserId
         );
         const publishTime = +(imageProto?.publishTime || 0);
-        const verifiedByUser = await this.userIDToUserConverter.convert(
+        const verifiedByUser = await this.userIdToUserConverter.convert(
             imageProto?.verifiedByUserId
         );
         const verifyTime = +(imageProto?.verifyTime || 0);
@@ -59,7 +59,7 @@ export class ImageProtoToImageConverterImpl
         const imageStatus = this.getStatusFromStatusProto(imageProto?.status);
 
         return new Image(
-            imageID,
+            imageId,
             uploadedByUser,
             uploadTime,
             publishedByUser,

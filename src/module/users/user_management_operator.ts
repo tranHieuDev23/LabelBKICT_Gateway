@@ -124,7 +124,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             return { totalUserCount, userList, userRoleList: undefined };
         }
 
-        const userIDList = userList.map((user) => user.id);
+        const userIdList = userList.map((user) => user.id);
         const {
             error: getUserRoleListOfUserListError,
             response: getUserRoleListOfUserListResponse,
@@ -132,7 +132,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             this.userServiceDM.getUserRoleListOfUserList.bind(
                 this.userServiceDM
             ),
-            { userIdList: userIDList }
+            { userIdList: userIdList }
         );
         if (getUserRoleListOfUserListError !== null) {
             this.logger.error(

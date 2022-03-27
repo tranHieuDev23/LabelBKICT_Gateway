@@ -16,7 +16,7 @@ import {
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
 } from "./region_proto_to_region";
 import {
-    UserIDToUserConverterImpl,
+    UserIdToUserConverterImpl,
     USER_ID_TO_USER_CONVERTER_TOKEN,
 } from "./user_id_to_user";
 
@@ -29,7 +29,7 @@ export * from "./region_operation_log_proto_to_region_operation_log";
 export function bindToContainer(container: Container): void {
     container
         .bind(USER_ID_TO_USER_CONVERTER_TOKEN)
-        .toInstance(UserIDToUserConverterImpl)
+        .toInstance(UserIdToUserConverterImpl)
         .inSingletonScope();
     container
         .bind(IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN)

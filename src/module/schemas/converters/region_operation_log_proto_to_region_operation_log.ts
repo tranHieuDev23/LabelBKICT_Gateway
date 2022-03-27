@@ -15,7 +15,7 @@ import {
     RegionOperationLogLabelMetadata,
 } from "../region_operator_log";
 import {
-    UserIDToUserConverter,
+    UserIdToUserConverter,
     USER_ID_TO_USER_CONVERTER_TOKEN,
 } from "./user_id_to_user";
 
@@ -27,7 +27,7 @@ export class RegionOperationLogProtoToRegionOperationLogConverterImpl
     implements RegionOperationLogProtoToRegionOperationLogConverter
 {
     constructor(
-        private readonly userIDToUserConverter: UserIDToUserConverter,
+        private readonly userIdToUserConverter: UserIdToUserConverter,
         private readonly logger: Logger
     ) {}
 
@@ -35,7 +35,7 @@ export class RegionOperationLogProtoToRegionOperationLogConverterImpl
         log: RegionOperationLogProto
     ): Promise<RegionOperationLog> {
         const id = log.id || 0;
-        const user = await this.userIDToUserConverter.convert(log.byUserId);
+        const user = await this.userIdToUserConverter.convert(log.byUserId);
         const operationTime = +(log.operationTime || 0);
         const operationType =
             this.getRegionOperationTypeFromRegionOperationTypeProto(

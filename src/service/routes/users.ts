@@ -39,8 +39,8 @@ export function getUsersRouter(
     );
     const sameUserOrUsersManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware((authUserInfo, request) => {
-            const userID = +request.params.userID;
-            if (authUserInfo.user.id === userID) {
+            const userId = +request.params.userId;
+            if (authUserInfo.user.id === userId) {
                 return true;
             }
             return checkUserHasUserPermission(
@@ -111,15 +111,15 @@ export function getUsersRouter(
     );
 
     router.patch(
-        "/api/users/:userID",
+        "/api/users/:userId",
         sameUserOrUsersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userID = +req.params.userID;
+            const userId = +req.params.userId;
             const username = req.body.username as string | undefined;
             const displayName = req.body.display_name as string | undefined;
             const password = req.body.password as string | undefined;
             const user = await userManagementOperator.updateUser(
-                userID,
+                userId,
                 username,
                 displayName,
                 password
@@ -129,28 +129,28 @@ export function getUsersRouter(
     );
 
     router.post(
-        "/api/users/:userID/roles",
+        "/api/users/:userId/roles",
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userID = +req.params.userID;
-            const userRoleID = +req.body.user_role_id;
+            const userId = +req.params.userId;
+            const userRoleId = +req.body.user_role_id;
             await userRoleManagementOperator.addUserRoleToUser(
-                userID,
-                userRoleID
+                userId,
+                userRoleId
             );
             res.json({});
         })
     );
 
     router.delete(
-        "/api/users/:userID/roles/:userRoleID",
+        "/api/users/:userId/roles/:userRoleId",
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userID = +req.params.userID;
-            const userRoleID = +req.params.userRoleID;
+            const userId = +req.params.userId;
+            const userRoleId = +req.params.userRoleId;
             await userRoleManagementOperator.removeUserRoleFromUser(
-                userID,
-                userRoleID
+                userId,
+                userRoleId
             );
             res.json({});
         })

@@ -83,14 +83,14 @@ export function getUserRolesRouter(
     );
 
     router.patch(
-        "/api/roles/:userRoleID",
+        "/api/roles/:userRoleId",
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userRoleID = +req.params.userRoleID;
+            const userRoleId = +req.params.userRoleId;
             const displayName = req.body.display_name as string | undefined;
             const description = req.body.description as string | undefined;
             const userRole = await userRoleManagementOperator.updateUserRole(
-                userRoleID,
+                userRoleId,
                 displayName,
                 description
             );
@@ -99,38 +99,38 @@ export function getUserRolesRouter(
     );
 
     router.delete(
-        "/api/roles/:userRoleID",
+        "/api/roles/:userRoleId",
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userRoleID = +req.params.userRoleID;
-            await userRoleManagementOperator.deleteUserRole(userRoleID);
+            const userRoleId = +req.params.userRoleId;
+            await userRoleManagementOperator.deleteUserRole(userRoleId);
             res.json({});
         })
     );
 
     router.post(
-        "/api/roles/:userRoleID/permissions",
+        "/api/roles/:userRoleId/permissions",
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userRoleID = +req.params.userRoleID;
-            const userPermissionID = +req.body.user_permission_id;
+            const userRoleId = +req.params.userRoleId;
+            const userPermissionId = +req.body.user_permission_id;
             await userPermissionManagementOperator.addUserPermissionToUserRole(
-                userRoleID,
-                userPermissionID
+                userRoleId,
+                userPermissionId
             );
             res.json({});
         })
     );
 
     router.delete(
-        "/api/roles/:userRoleID/permissions/:userPermissionID",
+        "/api/roles/:userRoleId/permissions/:userPermissionId",
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userRoleID = +req.params.userRoleID;
-            const userPermissionID = +req.params.userPermissionID;
+            const userRoleId = +req.params.userRoleId;
+            const userPermissionId = +req.params.userPermissionId;
             await userPermissionManagementOperator.removeUserPermissionFromUserRole(
-                userRoleID,
-                userPermissionID
+                userRoleId,
+                userPermissionId
             );
             res.json({});
         })

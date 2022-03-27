@@ -5,24 +5,24 @@ import {
 } from "../../info_providers";
 import { User } from "../user";
 
-export interface UserIDToUserConverter {
-    convert(userID: number | undefined): Promise<User | null>;
+export interface UserIdToUserConverter {
+    convert(userId: number | undefined): Promise<User | null>;
 }
 
-export class UserIDToUserConverterImpl implements UserIDToUserConverter {
+export class UserIdToUserConverterImpl implements UserIdToUserConverter {
     constructor(private readonly userInfoProvider: UserInfoProvider) {}
 
-    public async convert(userID: number | undefined): Promise<User | null> {
-        if (userID === undefined || userID === 0) {
+    public async convert(userId: number | undefined): Promise<User | null> {
+        if (userId === undefined || userId === 0) {
             return null;
         }
-        const userProto = await this.userInfoProvider.getUser(userID);
+        const userProto = await this.userInfoProvider.getUser(userId);
         return User.fromProto(userProto);
     }
 }
 
-injected(UserIDToUserConverterImpl, USER_INFO_PROVIDER_TOKEN);
+injected(UserIdToUserConverterImpl, USER_INFO_PROVIDER_TOKEN);
 
-export const USER_ID_TO_USER_CONVERTER_TOKEN = token<UserIDToUserConverter>(
-    "UserIDToUserConverter"
+export const USER_ID_TO_USER_CONVERTER_TOKEN = token<UserIdToUserConverter>(
+    "UserIdToUserConverter"
 );

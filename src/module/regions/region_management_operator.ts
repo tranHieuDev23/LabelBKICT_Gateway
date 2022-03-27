@@ -32,33 +32,33 @@ import {
 export interface RegionManagementOperator {
     createRegion(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         border: Polygon,
         holes: Polygon[],
-        regionLabelID: number
+        regionLabelId: number
     ): Promise<Region>;
     updateRegionBoundary(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number,
+        imageId: number,
+        regionId: number,
         border: Polygon,
         holes: Polygon[]
     ): Promise<Region>;
     updateRegionLabel(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number,
-        regionLabelID: number
+        imageId: number,
+        regionId: number,
+        regionLabelId: number
     ): Promise<Region>;
     deleteRegion(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number
+        imageId: number,
+        regionId: number
     ): Promise<void>;
     getRegionOperationLogList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number
+        imageId: number,
+        regionId: number
     ): Promise<RegionOperationLog[]>;
 }
 
@@ -78,13 +78,13 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
     public async createRegion(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
+        imageId: number,
         border: Polygon,
         holes: Polygon[],
-        regionLabelID: number
+        regionLabelId: number
     ): Promise<Region> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             true,
             true
         );
@@ -95,8 +95,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to create region",
@@ -104,17 +104,17 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             );
         }
 
-        const userID = authenticatedUserInfo.user.id;
+        const userId = authenticatedUserInfo.user.id;
         const { error: createRegionError, response: createRegionResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.createRegion.bind(this.imageServiceDM),
                 {
-                    ofImageId: imageID,
-                    drawnByUserId: userID,
-                    labeledByUserId: userID,
+                    ofImageId: imageId,
+                    drawnByUserId: userId,
+                    labeledByUserId: userId,
                     border: border,
                     holes: holes,
-                    labelId: regionLabelID,
+                    labelId: regionLabelId,
                 }
             );
         if (createRegionError !== null) {
@@ -133,13 +133,13 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
     public async updateRegionBoundary(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number,
+        imageId: number,
+        regionId: number,
         border: Polygon,
         holes: Polygon[]
     ): Promise<Region> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             true,
             true
         );
@@ -150,8 +150,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to update region boundary",
@@ -159,16 +159,16 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             );
         }
 
-        const userID = authenticatedUserInfo.user.id;
+        const userId = authenticatedUserInfo.user.id;
         const {
             error: updateRegionBoundaryError,
             response: updateRegionBoundaryResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateRegionBoundary.bind(this.imageServiceDM),
             {
-                ofImageId: imageID,
-                regionId: regionID,
-                drawnByUserId: userID,
+                ofImageId: imageId,
+                regionId: regionId,
+                drawnByUserId: userId,
                 border: border,
                 holes: holes,
             }
@@ -190,12 +190,12 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
     public async updateRegionLabel(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number,
-        regionLabelID: number
+        imageId: number,
+        regionId: number,
+        regionLabelId: number
     ): Promise<Region> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             true,
             true
         );
@@ -206,8 +206,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to update region's region label",
@@ -215,7 +215,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             );
         }
 
-        const userID = authenticatedUserInfo.user.id;
+        const userId = authenticatedUserInfo.user.id;
         const {
             error: updateRegionRegionLabelError,
             response: updateRegionRegionLabelResponse,
@@ -224,10 +224,10 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
                 this.imageServiceDM
             ),
             {
-                ofImageId: imageID,
-                regionId: regionID,
-                labeledByUserId: userID,
-                labelId: regionLabelID,
+                ofImageId: imageId,
+                regionId: regionId,
+                labeledByUserId: userId,
+                labelId: regionLabelId,
             }
         );
         if (updateRegionRegionLabelError !== null) {
@@ -247,11 +247,11 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
     public async deleteRegion(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number
+        imageId: number,
+        regionId: number
     ): Promise<void> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             true,
             true
         );
@@ -262,8 +262,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to create region",
@@ -274,8 +274,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         const { error: deleteRegionError } = await promisifyGRPCCall(
             this.imageServiceDM.deleteRegion.bind(this.imageServiceDM),
             {
-                ofImageId: imageID,
-                regionId: regionID,
+                ofImageId: imageId,
+                regionId: regionId,
             }
         );
         if (deleteRegionError !== null) {
@@ -291,11 +291,11 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 
     public async getRegionOperationLogList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageID: number,
-        regionID: number
+        imageId: number,
+        regionId: number
     ): Promise<RegionOperationLog[]> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageID,
+            imageId,
             true,
             true
         );
@@ -306,8 +306,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             )
         ) {
             this.logger.error("user is not allowed to access image", {
-                userID: authenticatedUserInfo.user.id,
-                imageID,
+                userId: authenticatedUserInfo.user.id,
+                imageId,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to get region operation log list",
@@ -322,7 +322,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             this.imageServiceDM.getRegionOperationLogList.bind(
                 this.imageServiceDM
             ),
-            { ofImageId: imageID, regionId: regionID }
+            { ofImageId: imageId, regionId: regionId }
         );
         if (getRegionOperationLogListError !== null) {
             this.logger.error(

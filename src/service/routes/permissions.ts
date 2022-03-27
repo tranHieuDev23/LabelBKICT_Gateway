@@ -55,15 +55,15 @@ export function getUserPermissionsRouter(
     );
 
     router.patch(
-        "/api/permissions/:userPermissionID",
+        "/api/permissions/:userPermissionId",
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
-            const userPermissionID = +req.params.userPermissionID;
+            const userPermissionId = +req.params.userPermissionId;
             const permissionName = req.body.permission_name as string;
             const description = req.body.description as string;
             const userPermission =
                 await userPermissionManagementOperator.updateUserPermission(
-                    userPermissionID,
+                    userPermissionId,
                     permissionName,
                     description
                 );
@@ -72,12 +72,12 @@ export function getUserPermissionsRouter(
     );
 
     router.delete(
-        "/api/permissions/:userPermissionID",
+        "/api/permissions/:userPermissionId",
         userPermissionsManageAuthMiddleware,
         async (req, res) => {
-            const userPermissionID = +req.params.userPermissionID;
+            const userPermissionId = +req.params.userPermissionId;
             await userPermissionManagementOperator.deleteUserPermission(
-                userPermissionID
+                userPermissionId
             );
             res.json({});
         }

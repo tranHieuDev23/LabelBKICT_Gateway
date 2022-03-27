@@ -20,7 +20,7 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
-    getCommaSeparatedIDList,
+    getCommaSeparatedIdList,
 } from "../utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
@@ -54,12 +54,12 @@ export function getImagesRouter(
 
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageTypeID =
+            const imageTypeId =
                 req.body.image_type_id === undefined ||
                 req.body.image_type_id === ""
                     ? undefined
                     : +req.body.image_type_id;
-            const imageTagIDList = getCommaSeparatedIDList(
+            const imageTagIdList = getCommaSeparatedIdList(
                 req.body.image_tag_id_list || ""
             );
             const description = req.body.description || "";
@@ -68,8 +68,8 @@ export function getImagesRouter(
 
             const image = await imageManagementOperator.createImage(
                 authenticatedUserInfo,
-                imageTypeID,
-                imageTagIDList,
+                imageTypeId,
+                imageTagIdList,
                 originalFileName,
                 description,
                 imageData
@@ -84,12 +84,12 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIDList = req.body.image_id_list as number[];
-            const imageTypeID = +req.body.image_type_id;
+            const imageIdList = req.body.image_id_list as number[];
+            const imageTypeId = +req.body.image_type_id;
             await imageListManagementOperator.updateImageList(
                 authenticatedUserInfo,
-                imageIDList,
-                imageTypeID
+                imageIdList,
+                imageTypeId
             );
             res.json({});
         })
@@ -101,26 +101,26 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIDList = req.body.image_id_list as number[];
+            const imageIdList = req.body.image_id_list as number[];
             await imageListManagementOperator.deleteImageList(
                 authenticatedUserInfo,
-                imageIDList
+                imageIdList
             );
             res.json({});
         })
     );
 
     router.get(
-        "/api/images/:imageID",
+        "/api/images/:imageId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             const { image, imageTagList, regionList } =
                 await imageManagementOperator.getImage(
                     authenticatedUserInfo,
-                    imageID
+                    imageId
                 );
             res.json({
                 image: image,
@@ -131,16 +131,16 @@ export function getImagesRouter(
     );
 
     router.patch(
-        "/api/images/:imageID",
+        "/api/images/:imageId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             const description = req.body.description as string | undefined;
             const image = await imageManagementOperator.updateImageMetadata(
                 authenticatedUserInfo,
-                imageID,
+                imageId,
                 description
             );
             res.json(image);
@@ -148,32 +148,32 @@ export function getImagesRouter(
     );
 
     router.delete(
-        "/api/images/:imageID",
+        "/api/images/:imageId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             await imageManagementOperator.deleteImage(
                 authenticatedUserInfo,
-                imageID
+                imageId
             );
             res.json({});
         })
     );
 
     router.get(
-        "/api/images/:imageID/region-snapshot",
+        "/api/images/:imageId/region-snapshot",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             const atStatus = +req.body.at_status;
             const regionSnapshotList =
                 await imageManagementOperator.getImageRegionSnapshotList(
                     authenticatedUserInfo,
-                    imageID,
+                    imageId,
                     atStatus
                 );
             res.json({
@@ -183,33 +183,33 @@ export function getImagesRouter(
     );
 
     router.patch(
-        "/api/images/:imageID/image-type",
+        "/api/images/:imageId/image-type",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const imageTypeID = +(req.body.image_type_id || 0);
+            const imageId = +req.params.imageId;
+            const imageTypeId = +(req.body.image_type_id || 0);
             const image = await imageManagementOperator.updateImageType(
                 authenticatedUserInfo,
-                imageID,
-                imageTypeID
+                imageId,
+                imageTypeId
             );
             res.json(image);
         })
     );
 
     router.patch(
-        "/api/images/:imageID/status",
+        "/api/images/:imageId/status",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             const status = +(req.body.status || 0);
             const image = await imageManagementOperator.updateImageStatus(
                 authenticatedUserInfo,
-                imageID,
+                imageId,
                 status
             );
             res.json(image);
@@ -217,91 +217,91 @@ export function getImagesRouter(
     );
 
     router.patch(
-        "/api/images/:imageID/tags",
+        "/api/images/:imageId/tags",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const imageTagID = +(req.body.image_tag_id || 0);
+            const imageId = +req.params.imageId;
+            const imageTagId = +(req.body.image_tag_id || 0);
             const image = await imageManagementOperator.addImageTagToImage(
                 authenticatedUserInfo,
-                imageID,
-                imageTagID
+                imageId,
+                imageTagId
             );
             res.json(image);
         })
     );
 
     router.delete(
-        "/api/images/:imageID/tags/:imageTagID",
+        "/api/images/:imageId/tags/:imageTagId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const imageTagID = +req.params.imageTagID;
+            const imageId = +req.params.imageId;
+            const imageTagId = +req.params.imageTagId;
             const image = await imageManagementOperator.removeImageTagFromImage(
                 authenticatedUserInfo,
-                imageID,
-                imageTagID
+                imageId,
+                imageTagId
             );
             res.json(image);
         })
     );
 
     router.post(
-        "/api/images/:imageID/regions",
+        "/api/images/:imageId/regions",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
+            const imageId = +req.params.imageId;
             const border = req.body.border as Polygon;
             const holes = req.body.holes as Polygon[];
-            const regionLabelID = +req.body.region_label_id;
+            const regionLabelId = +req.body.region_label_id;
             const image = await regionManagementOperator.createRegion(
                 authenticatedUserInfo,
-                imageID,
+                imageId,
                 border,
                 holes,
-                regionLabelID
+                regionLabelId
             );
             res.json(image);
         })
     );
 
     router.post(
-        "/api/images/:imageID/regions/:regionID",
+        "/api/images/:imageId/regions/:regionId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const regionID = +req.params.regionID;
+            const imageId = +req.params.imageId;
+            const regionId = +req.params.regionId;
             const image = await regionManagementOperator.deleteRegion(
                 authenticatedUserInfo,
-                imageID,
-                regionID
+                imageId,
+                regionId
             );
             res.json(image);
         })
     );
 
     router.patch(
-        "/api/images/:imageID/regions/:regionID/boundary",
+        "/api/images/:imageId/regions/:regionId/boundary",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const regionID = +req.params.regionID;
+            const imageId = +req.params.imageId;
+            const regionId = +req.params.regionId;
             const border = req.body.border as Polygon;
             const holes = req.body.holes as Polygon[];
             const image = await regionManagementOperator.updateRegionBoundary(
                 authenticatedUserInfo,
-                imageID,
-                regionID,
+                imageId,
+                regionId,
                 border,
                 holes
             );
@@ -310,37 +310,37 @@ export function getImagesRouter(
     );
 
     router.patch(
-        "/api/images/:imageID/regions/:regionID/label",
+        "/api/images/:imageId/regions/:regionId/label",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const regionID = +req.params.regionID;
-            const regionLabelID = +req.body.region_label_id;
+            const imageId = +req.params.imageId;
+            const regionId = +req.params.regionId;
+            const regionLabelId = +req.body.region_label_id;
             const image = await regionManagementOperator.updateRegionLabel(
                 authenticatedUserInfo,
-                imageID,
-                regionID,
-                regionLabelID
+                imageId,
+                regionId,
+                regionLabelId
             );
             res.json(image);
         })
     );
 
     router.get(
-        "/api/images/:imageID/regions/:regionID/operation-logs",
+        "/api/images/:imageId/regions/:regionId/operation-logs",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageID = +req.params.imageID;
-            const regionID = +req.params.regionID;
+            const imageId = +req.params.imageId;
+            const regionId = +req.params.regionId;
             const regionOperationLogList =
                 await regionManagementOperator.getRegionOperationLogList(
                     authenticatedUserInfo,
-                    imageID,
-                    regionID
+                    imageId,
+                    regionId
                 );
             res.json({
                 region_operation_log_list: regionOperationLogList,

@@ -26,19 +26,19 @@ export interface ImageTypeManagementOperator {
     ): Promise<ImageType>;
     deleteImageType(id: number): Promise<void>;
     addRegionLabelToImageType(
-        imageTypeID: number,
+        imageTypeId: number,
         displayName: string,
         color: string
     ): Promise<RegionLabel>;
     updateRegionLabelOfImageType(
-        imageTypeID: number,
-        regionLabelID: number,
+        imageTypeId: number,
+        regionLabelId: number,
         displayName: string | undefined,
         color: string | undefined
     ): Promise<RegionLabel>;
     removeRegionLabelFromImageType(
-        imageTypeID: number,
-        regionLabelID: number
+        imageTypeId: number,
+        regionLabelId: number
     ): Promise<void>;
 }
 
@@ -156,7 +156,7 @@ export class ImageTypeManagementOperatorImpl
     }
 
     public async addRegionLabelToImageType(
-        imageTypeID: number,
+        imageTypeId: number,
         displayName: string,
         color: string
     ): Promise<RegionLabel> {
@@ -165,7 +165,7 @@ export class ImageTypeManagementOperatorImpl
             response: createRegionLabelResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.createRegionLabel.bind(this.imageServiceDM),
-            { ofImageTypeId: imageTypeID, displayName, color }
+            { ofImageTypeId: imageTypeId, displayName, color }
         );
         if (createRegionLabelError !== null) {
             this.logger.error(
@@ -182,8 +182,8 @@ export class ImageTypeManagementOperatorImpl
     }
 
     public async updateRegionLabelOfImageType(
-        imageTypeID: number,
-        regionLabelID: number,
+        imageTypeId: number,
+        regionLabelId: number,
         displayName: string | undefined,
         color: string | undefined
     ): Promise<RegionLabel> {
@@ -193,8 +193,8 @@ export class ImageTypeManagementOperatorImpl
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateRegionLabel.bind(this.imageServiceDM),
             {
-                ofImageTypeId: imageTypeID,
-                id: regionLabelID,
+                ofImageTypeId: imageTypeId,
+                id: regionLabelId,
                 displayName,
                 color,
             }
@@ -214,14 +214,14 @@ export class ImageTypeManagementOperatorImpl
     }
 
     public async removeRegionLabelFromImageType(
-        imageTypeID: number,
-        regionLabelID: number
+        imageTypeId: number,
+        regionLabelId: number
     ): Promise<void> {
         const { error: deleteRegionLabel } = await promisifyGRPCCall(
             this.imageServiceDM.deleteRegionLabel.bind(this.imageServiceDM),
             {
-                ofImageTypeId: imageTypeID,
-                id: regionLabelID,
+                ofImageTypeId: imageTypeId,
+                id: regionLabelId,
             }
         );
         if (deleteRegionLabel !== null) {

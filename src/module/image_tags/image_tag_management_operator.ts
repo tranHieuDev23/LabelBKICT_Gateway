@@ -30,27 +30,27 @@ export interface ImageTagManagementOperator {
     ): Promise<ImageTagGroup>;
     deleteImageTagGroup(id: number): Promise<void>;
     addImageTagToImageTagGroup(
-        imageTypeID: number,
+        imageTypeId: number,
         displayName: string
     ): Promise<ImageTag>;
     updateImageTagOfImageTagGroup(
-        imageTypeID: number,
-        ImageTagID: number,
+        imageTypeId: number,
+        ImageTagId: number,
         displayName: string | undefined
     ): Promise<ImageTag>;
     removeImageTagFromImageTagGroup(
-        imageTypeID: number,
-        ImageTagID: number
+        imageTypeId: number,
+        ImageTagId: number
     ): Promise<void>;
     addImageTypeToImageTagGroup(
-        imageTagGroupID: number,
-        imageTypeID: number
+        imageTagGroupId: number,
+        imageTypeId: number
     ): Promise<void>;
     removeImageTypeFromImageTagGroup(
-        imageTagGroupID: number,
-        imageTypeID: number
+        imageTagGroupId: number,
+        imageTypeId: number
     ): Promise<void>;
-    getImageTagGroupListOfImageType(imageTypeID: number): Promise<{
+    getImageTagGroupListOfImageType(imageTypeId: number): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][];
     }>;
@@ -182,13 +182,13 @@ export class ImageTagManagementOperatorImpl
     }
 
     public async addImageTagToImageTagGroup(
-        imageTagGroupID: number,
+        imageTagGroupId: number,
         displayName: string
     ): Promise<ImageTag> {
         const { error: createImageTagError, response: createImageTagResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.createImageTag.bind(this.imageServiceDM),
-                { ofImageTagGroupId: imageTagGroupID, displayName }
+                { ofImageTagGroupId: imageTagGroupId, displayName }
             );
         if (createImageTagError !== null) {
             this.logger.error("failed to call image_service.createImageTag()", {
@@ -204,16 +204,16 @@ export class ImageTagManagementOperatorImpl
     }
 
     public async updateImageTagOfImageTagGroup(
-        imageTagGroupID: number,
-        imageTagID: number,
+        imageTagGroupId: number,
+        imageTagId: number,
         displayName: string | undefined
     ): Promise<ImageTag> {
         const { error: updateImageTagError, response: updateImageTagResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.updateImageTag.bind(this.imageServiceDM),
                 {
-                    ofImageTagGroupId: imageTagGroupID,
-                    id: imageTagID,
+                    ofImageTagGroupId: imageTagGroupId,
+                    id: imageTagId,
                     displayName,
                 }
             );
@@ -231,14 +231,14 @@ export class ImageTagManagementOperatorImpl
     }
 
     public async removeImageTagFromImageTagGroup(
-        imageTagGroupID: number,
-        imageTagID: number
+        imageTagGroupId: number,
+        imageTagId: number
     ): Promise<void> {
         const { error: deleteImageTagError } = await promisifyGRPCCall(
             this.imageServiceDM.deleteImageTag.bind(this.imageServiceDM),
             {
-                ofImageTagGroupId: imageTagGroupID,
-                id: imageTagID,
+                ofImageTagGroupId: imageTagGroupId,
+                id: imageTagId,
             }
         );
         if (deleteImageTagError !== null) {
@@ -253,15 +253,15 @@ export class ImageTagManagementOperatorImpl
     }
 
     public async addImageTypeToImageTagGroup(
-        imageTagGroupID: number,
-        imageTypeID: number
+        imageTagGroupId: number,
+        imageTypeId: number
     ): Promise<void> {
         const { error: addImageTypeToImageTagGroupError } =
             await promisifyGRPCCall(
                 this.imageServiceDM.addImageTypeToImageTagGroup.bind(
                     this.imageServiceDM
                 ),
-                { imageTagGroupId: imageTagGroupID, imageTypeId: imageTypeID }
+                { imageTagGroupId: imageTagGroupId, imageTypeId: imageTypeId }
             );
         if (addImageTypeToImageTagGroupError !== null) {
             this.logger.error(
@@ -276,15 +276,15 @@ export class ImageTagManagementOperatorImpl
     }
 
     public async removeImageTypeFromImageTagGroup(
-        imageTagGroupID: number,
-        imageTypeID: number
+        imageTagGroupId: number,
+        imageTypeId: number
     ): Promise<void> {
         const { error: removeImageTypeFromImageTagGroupError } =
             await promisifyGRPCCall(
                 this.imageServiceDM.removeImageTypeFromImageTagGroup.bind(
                     this.imageServiceDM
                 ),
-                { imageTagGroupId: imageTagGroupID, imageTypeId: imageTypeID }
+                { imageTagGroupId: imageTagGroupId, imageTypeId: imageTypeId }
             );
         if (removeImageTypeFromImageTagGroupError !== null) {
             this.logger.error(
@@ -300,7 +300,7 @@ export class ImageTagManagementOperatorImpl
         }
     }
 
-    public async getImageTagGroupListOfImageType(imageTypeID: number): Promise<{
+    public async getImageTagGroupListOfImageType(imageTypeId: number): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][];
     }> {
@@ -311,7 +311,7 @@ export class ImageTagManagementOperatorImpl
             this.imageServiceDM.getImageTagGroupListOfImageType.bind(
                 this.imageServiceDM
             ),
-            { imageTypeId: imageTypeID }
+            { imageTypeId: imageTypeId }
         );
         if (getImageTagGroupListOfImageTypeError !== null) {
             this.logger.error(
