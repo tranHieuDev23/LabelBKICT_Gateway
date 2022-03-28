@@ -2790,7 +2790,7 @@
                                             "$ref": "#/components/schemas/Image/properties/id"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 100,
+                                        "maxItems": 500,
                                         "description": "The list of image to be updated."
                                     },
                                     "image_type_id": {
@@ -2850,7 +2850,7 @@
                                             "$ref": "#/components/schemas/Image/properties/id"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 100,
+                                        "maxItems": 500,
                                         "description": "The list of image to be deleted."
                                     }
                                 }
