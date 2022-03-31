@@ -461,7 +461,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const { error: removeImageTagFromImageError } = await promisifyGRPCCall(
-            this.imageServiceDM.addImageTagToImage.bind(this.imageServiceDM),
+            this.imageServiceDM.removeImageTagFromImage.bind(
+                this.imageServiceDM
+            ),
             {
                 imageId: imageId,
                 imageTagId: imageTagId,
