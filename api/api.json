@@ -1687,6 +1687,68 @@
             }
         },
         "/api/image-types/{image_type_id}": {
+            "get": {
+                "description": "Get an image type. User needs to be logged in in order to call this API successfully.",
+                "tags": [
+                    "Image Type Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_type_id",
+                        "in": "path",
+                        "description": "The image type to get.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ImageType/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image type updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "image_type": {
+                                            "$ref": "#/components/schemas/ImageType"
+                                        },
+                                        "region_label_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/RegionLabel"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to get image type because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to get image type because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to get image type because no image type with the provided image_type_id is found."
+                    }
+                }
+            },
             "patch": {
                 "description": "Update image type. User needs to have `image_types.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [

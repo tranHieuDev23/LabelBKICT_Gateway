@@ -1,4 +1,5 @@
 import { injected, token } from "brandi";
+import httpStatus from "http-status";
 import { Logger } from "winston";
 import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
@@ -18,6 +19,10 @@ export interface ImageTypeManagementOperator {
     getImageTypeList(withRegionLabel: boolean): Promise<{
         imageTypeList: ImageType[];
         regionLabelList: RegionLabel[][] | undefined;
+    }>;
+    getImageType(id: number): Promise<{
+        imageType: ImageType;
+        regionLabelList: RegionLabel[];
     }>;
     updateImageType(
         id: number,
@@ -110,6 +115,44 @@ export class ImageTypeManagementOperatorImpl
             : undefined;
 
         return { imageTypeList, regionLabelList };
+    }
+
+    public async getImageType(id: number): Promise<{
+        imageType: ImageType;
+        regionLabelList: RegionLabel[];
+    }> {
+        const { error: getImageTypeError, response: getImageTypeResponse } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.getImageType.bind(this.imageServiceDM),
+                {
+                    id,
+                }
+            );
+        if (getImageTypeError !== null) {
+            this.logger.error("failed to call image_service.getImageType()", {
+                error: getImageTypeError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to get image type",
+                getHttpCodeFromGRPCStatus(getImageTypeError.code)
+            );
+        }
+
+        if (getImageTypeResponse?.imageType === undefined) {
+            this.logger.error(
+                "invalid response from image_service.getImageType()"
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to get image type",
+                httpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        const imageType = ImageType.fromProto(getImageTypeResponse.imageType);
+        const regionLabelList = (
+            getImageTypeResponse.regionLabelList || []
+        ).map(RegionLabel.fromProto);
+        return { imageType, regionLabelList };
     }
 
     public async updateImageType(

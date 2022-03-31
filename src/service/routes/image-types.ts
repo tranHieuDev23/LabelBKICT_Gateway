@@ -24,6 +24,11 @@ export function getImageTypesRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        () => true,
+        true
+    );
+
     const imageTagsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
@@ -58,6 +63,20 @@ export function getImageTypesRouter(
                 );
             res.json({
                 image_type_list: imageTypeList,
+                region_label_list: regionLabelList,
+            });
+        })
+    );
+
+    router.get(
+        "/api/image-types/:imageTypeId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTypeId = +req.params.imageTypeId;
+            const { imageType, regionLabelList } =
+                await imageTypeManagementOperator.getImageType(imageTypeId);
+            res.json({
+                image_type: imageType,
                 region_label_list: regionLabelList,
             });
         })
