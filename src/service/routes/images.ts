@@ -216,7 +216,7 @@ export function getImagesRouter(
         })
     );
 
-    router.patch(
+    router.post(
         "/api/images/:imageId/tags",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
