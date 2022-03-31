@@ -367,7 +367,11 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             response: updateImageStatusResponse,
         } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageStatus.bind(this.imageServiceDM),
-            { id: imageId, status: statusProto }
+            {
+                id: imageId,
+                status: statusProto,
+                byUserId: authenticatedUserInfo.user.id,
+            }
         );
         if (updateImageStatusError !== null) {
             this.logger.error(
