@@ -429,7 +429,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
             throw new ErrorWithHTTPCode(
                 "Failed to add image tag to image",
-                httpStatus.FORBIDDEN
+                getHttpCodeFromGRPCStatus(addImageTagToImageError.code)
             );
         }
     }
@@ -477,7 +477,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
             throw new ErrorWithHTTPCode(
                 "Failed to remove image tag from image",
-                httpStatus.FORBIDDEN
+                getHttpCodeFromGRPCStatus(removeImageTagFromImageError.code)
             );
         }
     }
@@ -518,7 +518,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             });
             throw new ErrorWithHTTPCode(
                 "Failed to delete image",
-                httpStatus.FORBIDDEN
+                getHttpCodeFromGRPCStatus(deleteImageError.code)
             );
         }
     }
