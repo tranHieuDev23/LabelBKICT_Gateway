@@ -4918,7 +4918,12 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Region"
+                                    "type": "object",
+                                    "properties": {
+                                        "region": {
+                                            "$ref": "#/components/schemas/Region"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -4998,7 +5003,12 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Region"
+                                    "type": "object",
+                                    "properties": {
+                                        "region": {
+                                            "$ref": "#/components/schemas/Region"
+                                        }
+                                    }
                                 }
                             }
                         }

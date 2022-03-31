@@ -143,7 +143,7 @@ export function getImagesRouter(
                 imageId,
                 description
             );
-            res.json(image);
+            res.json({ image });
         })
     );
 
@@ -195,7 +195,7 @@ export function getImagesRouter(
                 imageId,
                 imageTypeId
             );
-            res.json(image);
+            res.json({ image });
         })
     );
 
@@ -212,7 +212,7 @@ export function getImagesRouter(
                 imageId,
                 status
             );
-            res.json(image);
+            res.json({ image });
         })
     );
 
@@ -224,12 +224,12 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const imageTagId = +(req.body.image_tag_id || 0);
-            const image = await imageManagementOperator.addImageTagToImage(
+            await imageManagementOperator.addImageTagToImage(
                 authenticatedUserInfo,
                 imageId,
                 imageTagId
             );
-            res.json(image);
+            res.json({});
         })
     );
 
@@ -241,12 +241,12 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const imageTagId = +req.params.imageTagId;
-            const image = await imageManagementOperator.removeImageTagFromImage(
+            await imageManagementOperator.removeImageTagFromImage(
                 authenticatedUserInfo,
                 imageId,
                 imageTagId
             );
-            res.json(image);
+            res.json({});
         })
     );
 
@@ -260,18 +260,18 @@ export function getImagesRouter(
             const border = req.body.border as Polygon;
             const holes = req.body.holes as Polygon[];
             const regionLabelId = +req.body.region_label_id;
-            const image = await regionManagementOperator.createRegion(
+            const region = await regionManagementOperator.createRegion(
                 authenticatedUserInfo,
                 imageId,
                 border,
                 holes,
                 regionLabelId
             );
-            res.json(image);
+            res.json({ region });
         })
     );
 
-    router.post(
+    router.delete(
         "/api/images/:imageId/regions/:regionId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
@@ -279,12 +279,12 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const regionId = +req.params.regionId;
-            const image = await regionManagementOperator.deleteRegion(
+            await regionManagementOperator.deleteRegion(
                 authenticatedUserInfo,
                 imageId,
                 regionId
             );
-            res.json(image);
+            res.json({});
         })
     );
 
@@ -298,14 +298,14 @@ export function getImagesRouter(
             const regionId = +req.params.regionId;
             const border = req.body.border as Polygon;
             const holes = req.body.holes as Polygon[];
-            const image = await regionManagementOperator.updateRegionBoundary(
+            const region = await regionManagementOperator.updateRegionBoundary(
                 authenticatedUserInfo,
                 imageId,
                 regionId,
                 border,
                 holes
             );
-            res.json(image);
+            res.json({ region });
         })
     );
 
@@ -318,13 +318,13 @@ export function getImagesRouter(
             const imageId = +req.params.imageId;
             const regionId = +req.params.regionId;
             const regionLabelId = +req.body.region_label_id;
-            const image = await regionManagementOperator.updateRegionLabel(
+            const region = await regionManagementOperator.updateRegionLabel(
                 authenticatedUserInfo,
                 imageId,
                 regionId,
                 regionLabelId
             );
-            res.json(image);
+            res.json({ region });
         })
     );
 
