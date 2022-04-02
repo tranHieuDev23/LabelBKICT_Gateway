@@ -4426,7 +4426,7 @@
         },
         "/api/images/{image_id}/region-snapshots": {
             "get": {
-                "description": "Get all region snapshots of an image at a certain status. User needs to either (1) have `images.manage.self` permission and is getting an image of their own, (2) have `images.verify` permission and is getting an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is updating an image that they are allowed to manage in order to call this API successfully.",
+                "description": "Get all region snapshots of an image at a certain status. User needs to either (1) have `images.manage.self` permission and is getting the information of an image of their own, (2) have `images.verify` permission and is getting the information of an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is getting the information of an image that they are allowed to manage in order to call this API successfully.",
                 "tags": [
                     "Image Management"
                 ],
@@ -4494,6 +4494,262 @@
                     },
                     "404": {
                         "description": "Failed to retrieve region snapshot list of image because the image with image_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/images/{image_id}/position": {
+            "get": {
+                "description": "Get the position of an image within the filtered image list. User needs to either (1) have `images.manage.self` permission and is getting the information of an image of their own, (2) have `images.verify` permission and is getting is getting the information of an image with PUBLISHED status that they are allowed to verify, or (3) have `images.manage.all` permission and is getting the information of an image that they are allowed to manage in order to call this API successfully.",
+                "tags": [
+                    "Image List Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "image_id",
+                        "in": "path",
+                        "description": "The image to be retrieved.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Image/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "sort_order",
+                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending upload time), 3 (sorted by descending upload time), 4 (sorted by ascending publish time), 5 (sorted by descending publish time), 6 (sorted by ascending verify time), 7 (sorted by descending verify time).",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 7,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_image_types",
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_image_tags",
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1).",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_region_labels",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_uploaded_by_user_ids",
+                        "description": "A list of user IDs. If provided, filter for images that are uploaded by one of these users.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_published_by_user_ids",
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_verified_by_user_ids",
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_upload_time_start",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_upload_time_end",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_publish_time_start",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_publish_time_end",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_verify_time_start",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "filter_verify_time_end",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "original_file_name_query",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
+                        },
+                        "allowEmptyValue": true
+                    },
+                    {
+                        "name": "filter_image_statuses",
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Image/properties/status"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "must_match_all_image_tags",
+                        "description": "If equal to 1, images in the results must have all image tags provided in the filter.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_match_all_region_labels",
+                        "description": "If equal to 1, images in the results must have all region labels provided in the filter.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved position of image in filtered image list successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "position": {
+                                            "type": "integer",
+                                            "description": "1-indexed position of the image in the filtered image list."
+                                        },
+                                        "total_image_count": {
+                                            "type": "integer",
+                                            "description": "The total number of images meeting the filter condition."
+                                        },
+                                        "prev_image_id": {
+                                            "type": "integer",
+                                            "description": "The ID of the image before this image in the filter image list. If there is no previous image, this field is not returned."
+                                        },
+                                        "next_image_id": {
+                                            "type": "integer",
+                                            "description": "The ID of the image after this image in the filter image list. If there is no next image, this field is not returned."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve position of image in filtered image list because of invalid at_status value."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve position of image in filtered image list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve position of image in filtered image list because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to retrieve position of image in filtered image list because the image with image_id does not exist."
                     }
                 }
             }

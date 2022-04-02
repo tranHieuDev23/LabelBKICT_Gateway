@@ -1,8 +1,6 @@
 import { injected, token } from "brandi";
 import express from "express";
 import asyncHandler from "express-async-handler";
-import httpStatus from "http-status";
-import { Logger } from "winston";
 import {
     ImageListManagementOperator,
     ImageManagementOperator,
@@ -14,7 +12,6 @@ import {
     REGION_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/regions";
 import { Polygon } from "../../module/schemas";
-import { LOGGER_TOKEN } from "../../utils";
 import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
@@ -22,6 +19,7 @@ import {
     checkUserHasUserPermission,
     getCommaSeparatedIdList,
 } from "../utils";
+import { getImageListFilterOptionsFromRequest } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
 
@@ -179,6 +177,33 @@ export function getImagesRouter(
             res.json({
                 region_list: regionSnapshotList,
             });
+        })
+    );
+
+    router.get(
+        "/api/images/:imageId/position",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const { position, totalImageCount, prevImageId, nextImageId } =
+                await imageListManagementOperator.getImagePositionInList(
+                    authenticatedUserInfo,
+                    imageId,
+                    sortOrder,
+                    filterOptions
+                );
+
+            const responseBody: any = {
+                position,
+                total_image_count: totalImageCount,
+                prev_image_id: prevImageId,
+                next_image_id: nextImageId,
+            };
+            res.json(responseBody);
         })
     );
 

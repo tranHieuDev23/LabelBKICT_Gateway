@@ -120,6 +120,17 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
+    getImagePositionInList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
+    }>;
 }
 
 export class ImageListManagementOperatorImpl
@@ -477,6 +488,69 @@ export class ImageListManagementOperatorImpl
         );
 
         return { totalImageCount, imageList, imageTagList };
+    }
+
+    public async getImagePositionInList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
+    }> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: getImagePositionInListError,
+            response: getImagePositionInListResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getImagePositionInList.bind(
+                this.imageServiceDM
+            ),
+            {
+                id: imageId,
+                sortOrder: sortOrder,
+                filterOptions,
+            }
+        );
+        if (getImagePositionInListError !== null) {
+            this.logger.error(
+                "failed to call image_service.getImagePositionInList()"
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to get image position in list",
+                getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
+            );
+        }
+
+        const position = getImagePositionInListResponse?.position || 0;
+        const totalImageCount =
+            getImagePositionInListResponse?.totalImageCount || 0;
+        const prevImageId = getImagePositionInListResponse?.prevImageId;
+        const nextImageId = getImagePositionInListResponse?.nextImageId;
+        return { position, totalImageCount, prevImageId, nextImageId };
     }
 }
 
