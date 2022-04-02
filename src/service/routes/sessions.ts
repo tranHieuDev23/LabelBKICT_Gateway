@@ -231,7 +231,7 @@ export function getSessionsRouter(
     );
 
     router.get(
-        "/api/sessions/user/manageable-image-users",
+        "/api/sessions/user/exportable-image-users",
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInformation = res.locals
