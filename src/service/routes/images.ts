@@ -161,13 +161,13 @@ export function getImagesRouter(
     );
 
     router.get(
-        "/api/images/:imageId/region-snapshot",
+        "/api/images/:imageId/region-snapshots",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const atStatus = +req.body.at_status;
+            const atStatus = +(req.query.at_status || 0);
             const regionSnapshotList =
                 await imageManagementOperator.getImageRegionSnapshotList(
                     authenticatedUserInfo,
