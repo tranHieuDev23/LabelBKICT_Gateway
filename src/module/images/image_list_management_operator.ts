@@ -388,7 +388,10 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        filterOptions.imageStatusList = [ImageStatus.PUBLISHED];
+        filterOptions.imageStatusList = [
+            ImageStatus.PUBLISHED,
+            ImageStatus.VERIFIED,
+        ];
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
