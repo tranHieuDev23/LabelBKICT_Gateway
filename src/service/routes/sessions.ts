@@ -16,7 +16,7 @@ import {
     checkUserHasUserPermission,
     LABEL_BKICT_AUTH_COOKIE_NAME,
 } from "../utils";
-import { getImageListFilterOptionsFromRequest } from "./utils";
+import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_MANAGE_SELF_PERMISSION = "images.manage.self";
 const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
@@ -125,7 +125,9 @@ export function getSessionsRouter(
             const offset = +(req.query.offset || 0);
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
-            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(
+                req.query
+            );
             const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserImageList(
                     authenticatedUserInformation,
@@ -169,7 +171,9 @@ export function getSessionsRouter(
             const offset = +(req.query.offset || 0);
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
-            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(
+                req.query
+            );
             const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserManageableImageList(
                     authenticatedUserInformation,
@@ -213,7 +217,9 @@ export function getSessionsRouter(
             const offset = +(req.query.offset || 0);
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
-            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(
+                req.query
+            );
             const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserVerifiableImageList(
                     authenticatedUserInformation,
@@ -257,7 +263,9 @@ export function getSessionsRouter(
             const offset = +(req.query.offset || 0);
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
-            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(
+                req.query
+            );
             const { totalImageCount, imageList, imageTagList } =
                 await imageListManagementOperator.getUserExportableImageList(
                     authenticatedUserInformation,

@@ -9,6 +9,7 @@ import * as imageTypes from "./image_types";
 import * as imageTags from "./image_tags";
 import * as images from "./images";
 import * as regions from "./regions";
+import * as exportModule from "./exports";
 
 export function bindToContainer(container: Container): void {
     schemas.bindToContainer(container);
@@ -21,4 +22,5 @@ export function bindToContainer(container: Container): void {
     imageTags.bindToContainer(container);
     images.bindToContainer(container);
     regions.bindToContainer(container);
+    exportModule.bindToContainer(container);
 }

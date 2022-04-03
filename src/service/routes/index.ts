@@ -13,6 +13,7 @@ import {
     getImageTagGroupsRouter,
 } from "./image-tag-groups";
 import { getImagesRouter, IMAGES_ROUTER_TOKEN } from "./images";
+import { EXPORTS_ROUTER_TOKEN, getExportsRouter } from "./exports";
 
 export * from "./users";
 export * from "./sessions";
@@ -51,6 +52,10 @@ export function bindToContainer(container: Container): void {
         .toInstance(getImagesRouter)
         .inSingletonScope();
     container
+        .bind(EXPORTS_ROUTER_TOKEN)
+        .toInstance(getExportsRouter)
+        .inSingletonScope();
+    container
         .bind(ROUTES_TOKEN)
         .toInstance(() => [
             container.get(USERS_ROUTER_TOKEN),
@@ -60,6 +65,7 @@ export function bindToContainer(container: Container): void {
             container.get(IMAGE_TYPES_ROUTER_TOKEN),
             container.get(IMAGE_TAG_GROUPS_ROUTER_TOKEN),
             container.get(IMAGES_ROUTER_TOKEN),
+            container.get(EXPORTS_ROUTER_TOKEN),
         ])
         .inSingletonScope();
 }

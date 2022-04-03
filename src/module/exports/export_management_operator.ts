@@ -1,3 +1,4 @@
+import { Readable, Transform } from "stream";
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
@@ -43,7 +44,10 @@ export interface ExportManagementOperator {
     getExportFile(
         authenticatedUserInfo: AuthenticatedUserInformation,
         id: number
-    ): Promise<WritableStream<Buffer>>;
+    ): Promise<{
+        export: Export;
+        exportFileStream: Readable;
+    }>;
     deleteExport(
         authenticatedUserInfo: AuthenticatedUserInformation,
         id: number
@@ -127,9 +131,12 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
     public async getExportFile(
         authenticatedUserInfo: AuthenticatedUserInformation,
         id: number
-    ): Promise<WritableStream<Buffer>> {
-        const exportRequest = await this.exportInfoProvider.getExport(id);
-        if (exportRequest === null) {
+    ): Promise<{
+        export: Export;
+        exportFileStream: Readable;
+    }> {
+        const exportProto = await this.exportInfoProvider.getExport(id);
+        if (exportProto === null) {
             this.logger.error("no export with export_id found", {
                 exportId: id,
             });
@@ -139,7 +146,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
             );
         }
 
-        if (exportRequest.requestedByUserId !== authenticatedUserInfo.user.id) {
+        if (exportProto.requestedByUserId !== authenticatedUserInfo.user.id) {
             this.logger.error("user is not allowed to access export", {
                 userId: authenticatedUserInfo.user.id,
                 exportId: id,
@@ -150,45 +157,24 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
             );
         }
 
-        if (exportRequest.status !== _ExportStatus_Values.DONE) {
-            this.logger.error("export status is not done", {
-                userId: authenticatedUserInfo.user.id,
-                exportId: id,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get export file",
-                httpStatus.NOT_FOUND
-            );
-        }
+        const exportRequest = await this.exportProtoToExportConverter.convert(
+            exportProto
+        );
 
         const getExportFileResponseStream = this.exportServiceDM.getExportFile({
             id,
         });
-        const exportFileStream = new WritableStream<Buffer>();
-        const exportFileStreamWriter = exportFileStream.getWriter();
-
-        getExportFileResponseStream.on(
-            "data",
-            async (response: GetExportFileResponse) => {
-                const data = Buffer.from(response.data || "");
-                exportFileStreamWriter.write(data);
-            }
+        const exportFileStream = getExportFileResponseStream.pipe(
+            new Transform({
+                readableObjectMode: true,
+                writableObjectMode: true,
+                transform: (chunk: GetExportFileResponse, _, callback) => {
+                    callback(null, Buffer.from(chunk?.data || ""));
+                },
+            })
         );
-        getExportFileResponseStream.on("error", (error) => {
-            this.logger.error("failed to get export file", {
-                exportId: id,
-                error,
-            });
-            throw new ErrorWithHTTPCode(
-                "Failed to get export file",
-                httpStatus.INTERNAL_SERVER_ERROR
-            );
-        });
-        getExportFileResponseStream.on("close", async () => {
-            await exportFileStreamWriter.close();
-        });
 
-        return exportFileStream;
+        return { export: exportRequest, exportFileStream };
     }
 
     public async deleteExport(

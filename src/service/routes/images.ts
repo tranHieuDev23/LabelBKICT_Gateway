@@ -19,7 +19,7 @@ import {
     checkUserHasUserPermission,
     getCommaSeparatedIdList,
 } from "../utils";
-import { getImageListFilterOptionsFromRequest } from "./utils";
+import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
 
@@ -188,7 +188,9 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const sortOrder = +(req.query.sort_order || 0);
-            const filterOptions = getImageListFilterOptionsFromRequest(req);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(
+                req.query
+            );
             const { position, totalImageCount, prevImageId, nextImageId } =
                 await imageListManagementOperator.getImagePositionInList(
                     authenticatedUserInfo,

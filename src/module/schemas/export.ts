@@ -19,6 +19,6 @@ export class Export {
         public request_time: number,
         public status: ExportStatus,
         public expire_time: number,
-        public exported_file_url: string
+        public exported_file_filename: string
     ) {}
 }

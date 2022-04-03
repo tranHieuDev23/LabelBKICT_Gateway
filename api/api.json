@@ -304,7 +304,9 @@
                     "filter_image_status_list": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/Image/properties/status"
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3
                         },
                         "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
                         "maxItems": 10
@@ -457,6 +459,12 @@
                     },
                     "requested_by_user": {
                         "$ref": "#/components/schemas/User"
+                    },
+                    "type": {
+                        "type": "integer",
+                        "description": "The type of the export. Can take a value of 0 (DATASET) - for full dataset export or 1 (EXCEL) - for dataset information Excel worksheet export.",
+                        "minimum": 0,
+                        "maximum": 1
                     },
                     "request_time": {
                         "type": "integer",
@@ -5573,6 +5581,9 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
+                                    "type": {
+                                        "$ref": "#/components/schemas/Export/properties/type"
+                                    },
                                     "filter_options": {
                                         "$ref": "#/components/schemas/ImageListFilterOptions"
                                     }
@@ -5595,7 +5606,12 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Export"
+                                    "type": "object",
+                                    "properties": {
+                                        "export": {
+                                            "$ref": "#/components/schemas/Export"
+                                        }
+                                    }
                                 }
                             }
                         }

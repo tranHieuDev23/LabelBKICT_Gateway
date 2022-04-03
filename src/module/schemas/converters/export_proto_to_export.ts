@@ -1,7 +1,6 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { ApplicationConfig, APPLICATION_CONFIG_TOKEN } from "../../../config";
 import { Export as ExportProto } from "../../../proto/gen/Export";
 import { _ExportStatus_Values } from "../../../proto/gen/ExportStatus";
 import { _ExportType_Values } from "../../../proto/gen/ExportType";
@@ -21,7 +20,6 @@ export class ExportProtoToExportConverterImpl
 {
     constructor(
         private readonly userIdToUserConverter: UserIdToUserConverter,
-        private readonly applicationConfig: ApplicationConfig,
         private readonly logger: Logger
     ) {}
 
@@ -44,7 +42,7 @@ export class ExportProtoToExportConverterImpl
             +(exportProto?.expireTime || 0),
             this.getStatusFromStatusProto(exportProto?.status),
             +(exportProto?.expireTime || 0),
-            this.getExportedFileURL(exportProto?.exportedFileFilename || "")
+            exportProto?.exportedFileFilename || ""
         );
     }
 
@@ -91,16 +89,11 @@ export class ExportProtoToExportConverterImpl
                 );
         }
     }
-
-    private getExportedFileURL(exportedFileFilename: string): string {
-        return `/${this.applicationConfig.exportFileURLPrefix}/${exportedFileFilename}`;
-    }
 }
 
 injected(
     ExportProtoToExportConverterImpl,
     USER_ID_TO_USER_CONVERTER_TOKEN,
-    APPLICATION_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
 
