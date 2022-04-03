@@ -4,7 +4,6 @@ import httpStatus from "http-status";
 import { Logger } from "winston";
 import { EXPORT_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ExportServiceClient } from "../../proto/gen/ExportService";
-import { _ExportStatus_Values } from "../../proto/gen/ExportStatus";
 import { _ExportType_Values } from "../../proto/gen/ExportType";
 import { GetExportFileResponse } from "../../proto/gen/GetExportFileResponse";
 import { AuthenticatedUserInformation } from "../../service/utils";
