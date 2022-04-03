@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import { EXPORT_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ExportServiceClient } from "../../proto/gen/ExportService";
 import { _ExportType_Values } from "../../proto/gen/ExportType";
+import { GetExportFileResponse } from "../../proto/gen/GetExportFileResponse";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import {
     ErrorWithHTTPCode,
@@ -38,6 +39,10 @@ export interface ExportManagementOperator {
         totalExportCount: number;
         exportList: Export[];
     }>;
+    getExportFile(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        id: number
+    ): Promise<WritableStream<Buffer>>;
     deleteExport(
         authenticatedUserInfo: AuthenticatedUserInformation,
         id: number
@@ -118,6 +123,62 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         return { totalExportCount, exportList };
     }
 
+    public async getExportFile(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        id: number
+    ): Promise<WritableStream<Buffer>> {
+        const exportRequest = await this.exportInfoProvider.getExport(id);
+        if (exportRequest === null) {
+            this.logger.error("no export with export_id found", {
+                exportId: id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get export file",
+                httpStatus.NOT_FOUND
+            );
+        }
+
+        if (exportRequest.requestedByUserId !== authenticatedUserInfo.user.id) {
+            this.logger.error("user is not allowed to access export", {
+                userId: authenticatedUserInfo.user.id,
+                exportId: id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get export file",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const getExportFileResponseStream = this.exportServiceDM.getExportFile({
+            id,
+        });
+        const exportFileStream = new WritableStream<Buffer>();
+        const exportFileStreamWriter = exportFileStream.getWriter();
+
+        getExportFileResponseStream.on(
+            "data",
+            async (response: GetExportFileResponse) => {
+                const data = Buffer.from(response.data || "");
+                exportFileStreamWriter.write(data);
+            }
+        );
+        getExportFileResponseStream.on("error", (error) => {
+            this.logger.error("failed to get export file", {
+                exportId: id,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get export file",
+                httpStatus.INTERNAL_SERVER_ERROR
+            );
+        });
+        getExportFileResponseStream.on("close", async () => {
+            await exportFileStreamWriter.close();
+        });
+
+        return exportFileStream;
+    }
+
     public async deleteExport(
         authenticatedUserInfo: AuthenticatedUserInformation,
         id: number
@@ -128,8 +189,19 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
                 exportId: id,
             });
             throw new ErrorWithHTTPCode(
-                `no export with export_id ${id} found`,
+                "Failed to delete export",
                 httpStatus.NOT_FOUND
+            );
+        }
+
+        if (exportRequest.requestedByUserId !== authenticatedUserInfo.user.id) {
+            this.logger.error("user is not allowed to access export", {
+                userId: authenticatedUserInfo.user.id,
+                exportId: id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete export",
+                httpStatus.FORBIDDEN
             );
         }
 
