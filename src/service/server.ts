@@ -5,7 +5,12 @@ import { middleware } from "express-openapi-validator";
 import { injected, token } from "brandi";
 import { ROUTES_TOKEN } from "./routes";
 import { Logger } from "winston";
-import { GatewayServerConfig, GATEWAY_SERVER_CONFIG_TOKEN } from "../config";
+import {
+    GatewayServerConfig,
+    GATEWAY_SERVER_CONFIG_TOKEN,
+    ImageServiceConfig,
+    IMAGE_SERVICE_CONFIG_TOKEN,
+} from "../config";
 import { LOGGER_TOKEN } from "../utils";
 import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./utils";
 
@@ -14,6 +19,7 @@ export class GatewayHTTPServer {
         private readonly routes: express.Router[],
         private readonly errorHandler: express.ErrorRequestHandler,
         private readonly gatewayServerConfig: GatewayServerConfig,
+        private readonly imageServiceConfig: ImageServiceConfig,
         private readonly logger: Logger
     ) {}
 
@@ -39,11 +45,11 @@ export class GatewayHTTPServer {
 
         server.use(
             "/static",
-            express.static(this.gatewayServerConfig.originalImageDir)
+            express.static(this.imageServiceConfig.originalImageDir)
         );
         server.use(
             "/static",
-            express.static(this.gatewayServerConfig.thumbnailImageDir)
+            express.static(this.imageServiceConfig.thumbnailImageDir)
         );
 
         server.use(
@@ -64,6 +70,7 @@ injected(
     ROUTES_TOKEN,
     ERROR_HANDLER_MIDDLEWARE_TOKEN,
     GATEWAY_SERVER_CONFIG_TOKEN,
+    IMAGE_SERVICE_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
 
