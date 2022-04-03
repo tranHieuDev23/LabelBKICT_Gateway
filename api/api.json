@@ -295,7 +295,7 @@
                         "description": "If non-zero, filter for images that are verified before or on this timestamp.",
                         "default": 0
                     },
-                    "original_file_name_query": {
+                    "original_filename_query": {
                         "type": "string",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "maxLength": 256,
@@ -3242,7 +3242,7 @@
                         }
                     },
                     {
-                        "name": "original_file_name_query",
+                        "name": "original_filename_query",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "in": "query",
                         "schema": {
@@ -3585,7 +3585,7 @@
                         }
                     },
                     {
-                        "name": "original_file_name_query",
+                        "name": "original_filename_query",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "in": "query",
                         "schema": {
@@ -3928,7 +3928,7 @@
                         }
                     },
                     {
-                        "name": "original_file_name_query",
+                        "name": "original_filename_query",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "in": "query",
                         "schema": {
@@ -4271,7 +4271,7 @@
                         }
                     },
                     {
-                        "name": "original_file_name_query",
+                        "name": "original_filename_query",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "in": "query",
                         "schema": {
@@ -4793,7 +4793,7 @@
                         }
                     },
                     {
-                        "name": "original_file_name_query",
+                        "name": "original_filename_query",
                         "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
                         "in": "query",
                         "schema": {

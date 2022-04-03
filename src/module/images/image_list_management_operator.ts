@@ -15,11 +15,14 @@ import {
 } from "../../utils";
 import {
     Image,
+    ImageListFilterOptions,
     ImageProtoToImageConverter,
     ImageStatus,
     ImageTag,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     User,
+    FilterOptionsToFilterOptionsProtoConverter,
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
 } from "../schemas";
 import {
     ImagesManageAllChecker,
@@ -31,25 +34,6 @@ import {
     IMAGE_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import { UserServiceClient } from "../../proto/gen/UserService";
-
-export class ImageListFilterOptions {
-    public imageTypeIdList: number[] = [];
-    public imageTagIdList: number[] = [];
-    public regionLabelIdList: number[] = [];
-    public uploadedByUserIdList: number[] = [];
-    public publishedByUserIdList: number[] = [];
-    public verifiedByUserIdList: number[] = [];
-    public uploadTimeStart = 0;
-    public uploadTimeEnd = 0;
-    public publishTimeStart = 0;
-    public publishTimeEnd = 0;
-    public verifyTimeStart = 0;
-    public verifyTimeEnd = 0;
-    public originalFileNameQuery = "";
-    public imageStatusList: ImageStatus[] = [];
-    public mustMatchAllImageTags = false;
-    public mustMatchAllRegionLabels = false;
-}
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -145,6 +129,7 @@ export class ImageListManagementOperatorImpl
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
+        private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly logger: Logger
@@ -251,11 +236,21 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        filterOptions.uploadedByUserIdList = [authenticatedUserInfo.user.id];
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+        filterOptionsProto.uploadedByUserIdList = [
+            authenticatedUserInfo.user.id,
+        ];
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+                {
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions: filterOptionsProto,
+                    withImageTag: true,
+                }
             );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
@@ -320,10 +315,18 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+                {
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions: filterOptionsProto,
+                    withImageTag: true,
+                }
             );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
@@ -388,14 +391,22 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        filterOptions.imageStatusList = [
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+        filterOptionsProto.imageStatusList = [
             ImageStatus.PUBLISHED,
             ImageStatus.VERIFIED,
         ];
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+                {
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions: filterOptionsProto,
+                    withImageTag: true,
+                }
             );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
@@ -460,10 +471,18 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                { offset, limit, sortOrder, filterOptions, withImageTag: true }
+                {
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions: filterOptionsProto,
+                    withImageTag: true,
+                }
             );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
@@ -525,6 +544,8 @@ export class ImageListManagementOperatorImpl
             );
         }
 
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
         const {
             error: getImagePositionInListError,
             response: getImagePositionInListResponse,
@@ -535,7 +556,7 @@ export class ImageListManagementOperatorImpl
             {
                 id: imageId,
                 sortOrder: sortOrder,
-                filterOptions,
+                filterOptions: filterOptionsProto,
             }
         );
         if (getImagePositionInListError !== null) {
@@ -561,6 +582,7 @@ injected(
     ImageListManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     LOGGER_TOKEN

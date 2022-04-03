@@ -1,5 +1,13 @@
 import { Container } from "brandi";
 import {
+    ExportProtoToExportConverterImpl,
+    EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
+} from "./export_proto_to_export";
+import {
+    FilterOptionsToFilterOptionsProtoConverterImpl,
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+} from "./filter_options_to_filter_options_proto";
+import {
     ImageProtoToImageConverterImpl,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
 } from "./image_proto_to_image";
@@ -24,7 +32,9 @@ export * from "./user_id_to_user";
 export * from "./image_proto_to_image";
 export * from "./region_proto_to_region";
 export * from "./image_status_to_image_status_proto";
+export * from "./filter_options_to_filter_options_proto";
 export * from "./region_operation_log_proto_to_region_operation_log";
+export * from "./export_proto_to_export";
 
 export function bindToContainer(container: Container): void {
     container
@@ -44,9 +54,17 @@ export function bindToContainer(container: Container): void {
         .toInstance(ImageStatusToImageStatusProtoConverterImpl)
         .inSingletonScope();
     container
+        .bind(FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER)
+        .toInstance(FilterOptionsToFilterOptionsProtoConverterImpl)
+        .inSingletonScope();
+    container
         .bind(
             REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN
         )
         .toInstance(RegionOperationLogProtoToRegionOperationLogConverterImpl)
+        .inSingletonScope();
+    container
+        .bind(EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN)
+        .toInstance(ExportProtoToExportConverterImpl)
         .inSingletonScope();
 }

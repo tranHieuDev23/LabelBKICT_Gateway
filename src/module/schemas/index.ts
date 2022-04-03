@@ -9,9 +9,11 @@ export * from "./region_label";
 export * from "./image_tag_group";
 export * from "./image_tag";
 export * from "./image";
+export * from "./image_list_filter_options";
 export * from "./polygon";
 export * from "./region";
 export * from "./region_operator_log";
+export * from "./export";
 export * from "./converters";
 
 export function bindToContainer(container: Container): void {

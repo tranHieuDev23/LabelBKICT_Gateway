@@ -31,6 +31,7 @@ export class ImageProtoToImageConverterImpl
             imageProto?.uploadedByUserId
         );
         if (uploadedByUser === null) {
+            this.logger.error("image has no uploader", { imageId });
             throw new ErrorWithHTTPCode(
                 "image has no uploader",
                 httpStatus.INTERNAL_SERVER_ERROR

@@ -1,3 +1,4 @@
+import { status } from "@grpc/grpc-js";
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
@@ -12,7 +13,7 @@ import {
 } from "../../utils";
 
 export interface UserInfoProvider {
-    getUser(userId: number): Promise<User>;
+    getUser(userId: number): Promise<User | null>;
 }
 
 export class UserInfoProviderImpl implements UserInfoProvider {
@@ -21,13 +22,17 @@ export class UserInfoProviderImpl implements UserInfoProvider {
         private readonly logger: Logger
     ) {}
 
-    public async getUser(userId: number): Promise<User> {
+    public async getUser(userId: number): Promise<User | null> {
         const { error: getUserError, response: getUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.getUser.bind(this.userServiceDM),
                 { id: userId }
             );
         if (getUserError !== null) {
+            if (getUserError.code === status.NOT_FOUND) {
+                return null;
+            }
+
             this.logger.error("failed to call user_service.getUser()", {
                 error: getUserError,
             });
@@ -41,7 +46,6 @@ export class UserInfoProviderImpl implements UserInfoProvider {
             this.logger.error("invalid user_service.getUser() response", {
                 userId,
             });
-
             throw new ErrorWithHTTPCode(
                 "Failed to get user",
                 getHttpCodeFromGRPCStatus(httpStatus.INTERNAL_SERVER_ERROR)

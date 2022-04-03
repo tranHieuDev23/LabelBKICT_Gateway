@@ -17,7 +17,7 @@ export class UserIdToUserConverterImpl implements UserIdToUserConverter {
             return null;
         }
         const userProto = await this.userInfoProvider.getUser(userId);
-        return User.fromProto(userProto);
+        return userProto ? User.fromProto(userProto) : null;
     }
 }
 
