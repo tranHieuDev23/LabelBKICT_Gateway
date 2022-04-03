@@ -104,6 +104,21 @@ export function getExportsRouter(
         })
     );
 
+    router.delete(
+        "/api/exports/:exportId",
+        imagesExportAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const exportId = +req.params.exportId;
+            await exportManagementOperator.deleteExport(
+                authenticatedUserInfo,
+                exportId
+            );
+            res.json({});
+        })
+    );
+
     return router;
 }
 
