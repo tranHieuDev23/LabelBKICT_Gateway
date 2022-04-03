@@ -4,11 +4,13 @@ import { LogConfig } from "./log";
 import { GatewayServerConfig } from "./gateway_server";
 import { ImageServiceConfig } from "./image_service";
 import { ApplicationConfig } from "./application";
+import { ExportServiceConfig } from "./export_service";
 
 export class GatewayConfig {
     public gatewayServerConfig = new GatewayServerConfig();
     public userServiceConfig = new UserServiceConfig();
     public imageServiceConfig = new ImageServiceConfig();
+    public exportServiceConfig = new ExportServiceConfig();
     public logConfig = new LogConfig();
     public applicationConfig = new ApplicationConfig();
 
@@ -17,6 +19,7 @@ export class GatewayConfig {
         config.gatewayServerConfig = GatewayServerConfig.fromEnv();
         config.userServiceConfig = UserServiceConfig.fromEnv();
         config.imageServiceConfig = ImageServiceConfig.fromEnv();
+        config.exportServiceConfig = ExportServiceConfig.fromEnv();
         config.logConfig = LogConfig.fromEnv();
         config.applicationConfig = ApplicationConfig.fromEnv();
         return config;

@@ -5,11 +5,13 @@ import { USER_SERVICE_CONFIG_TOKEN } from "./user_service";
 import { LOG_CONFIG_TOKEN } from "./log";
 import { IMAGE_SERVICE_CONFIG_TOKEN } from "./image_service";
 import { APPLICATION_CONFIG_TOKEN } from "./application";
+import { EXPORT_SERVICE_CONFIG_TOKEN } from "./export_service";
 
 export * from "./config";
 export * from "./gateway_server";
 export * from "./user_service";
 export * from "./image_service";
+export * from "./export_service";
 export * from "./log";
 export * from "./application";
 
@@ -32,6 +34,12 @@ export function bindToContainer(container: Container): void {
         .bind(IMAGE_SERVICE_CONFIG_TOKEN)
         .toInstance(
             () => container.get(GATEWAY_CONFIG_TOKEN).imageServiceConfig
+        )
+        .inSingletonScope();
+    container
+        .bind(EXPORT_SERVICE_CONFIG_TOKEN)
+        .toInstance(
+            () => container.get(GATEWAY_CONFIG_TOKEN).exportServiceConfig
         )
         .inSingletonScope();
     container
