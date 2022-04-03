@@ -5688,6 +5688,61 @@
                 }
             }
         },
+        "/api/exports/{export_id}/exported-file": {
+            "get": {
+                "description": "Get the exported file of an export current session user. User needs to have `images.export` permission in order to call this API successfully.",
+                "tags": [
+                    "Export Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "export_id",
+                        "in": "path",
+                        "description": "The export to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Export/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved export file successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary",
+                                    "description": "The exported file."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to retrieve exported file because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve exported file because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to retrieve exported file because the export cannot be found, or the export is not yet in DONE status."
+                    }
+                }
+            }
+        },
         "/api/exports/{export_id}": {
             "delete": {
                 "description": "Delete an export request. User needs to have `images.export` permission and needs to be deleting an export they created in order to call this API successfully.",
