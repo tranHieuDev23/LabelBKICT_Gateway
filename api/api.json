@@ -214,6 +214,111 @@
                     }
                 }
             },
+            "ImageListFilterOptions": {
+                "type": "object",
+                "description": "An object representing the filter options available to filter for images on the system.",
+                "properties": {
+                    "image_type_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of image type IDs. If provided, filter for images that belong to one of these image types.",
+                        "maxItems": 10
+                    },
+                    "image_tag_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1)."
+                    },
+                    "region_label_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "maxItems": 10
+                    },
+                    "uploaded_by_user_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of user IDs. If provided, filter for images that are uploaded by one of these users.",
+                        "maxItems": 10
+                    },
+                    "published_by_user_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of user IDs. If provided, filter for images that are published by one of these users.",
+                        "maxItems": 10
+                    },
+                    "verified_by_user_id_list": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "A list of user IDs. If provided, filter for images that are verified by one of these users.",
+                        "maxItems": 10
+                    },
+                    "upload_time_start": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are uploaded from or after this timestamp.",
+                        "default": 0
+                    },
+                    "upload_time_end": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are uploaded before or on this timestamp.",
+                        "default": 0
+                    },
+                    "publish_time_start": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are published from or after this timestamp.",
+                        "default": 0
+                    },
+                    "publish_time_end": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are published before or on this timestamp.",
+                        "default": 0
+                    },
+                    "verify_time_start": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are verified from or after this timestamp.",
+                        "default": 0
+                    },
+                    "verify_time_end": {
+                        "type": "integer",
+                        "description": "If non-zero, filter for images that are verified before or on this timestamp.",
+                        "default": 0
+                    },
+                    "original_file_name_query": {
+                        "type": "string",
+                        "description": "If provided, filter for images that have original name containing this query string (case insensitive).",
+                        "maxLength": 256,
+                        "default": ""
+                    },
+                    "filter_image_status_list": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Image/properties/status"
+                        },
+                        "description": "A list of image statuses. If provided, filter for images that have one of these statuses.",
+                        "maxItems": 10
+                    },
+                    "must_match_all_image_tags": {
+                        "type": "boolean",
+                        "description": "If true, images in the results must have all image tags provided in the filter."
+                    },
+                    "must_match_all_region_labels": {
+                        "type": "boolean",
+                        "description": "If true, images in the results must have all region labels provided in the filter."
+                    }
+                }
+            },
             "Point": {
                 "type": "object",
                 "description": "A point on a 2D plane.",
@@ -339,6 +444,37 @@
                     },
                     "new_label": {
                         "$ref": "#/components/schemas/Region/properties/label"
+                    }
+                }
+            },
+            "Export": {
+                "type": "object",
+                "description": "Export result from the system. Can be either a dataset export - the entire dataset compressed into a zip file, along with metadata files - or an Excel report of the dataset information. An export is valid for 7 days before being deleted from the system.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Export ID, should be unique across all export."
+                    },
+                    "requested_by_user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "request_time": {
+                        "type": "integer",
+                        "description": "The time when this export was requested."
+                    },
+                    "status": {
+                        "type": "integer",
+                        "description": "The status of the export on the system. Can take a value of 0 (REQUESTED) - for exports that have just been requested, 1 (PROCESSING) - for exports that are currently being processed and 2 (DONE) - for exports that have been successfully processed.",
+                        "minimum": 0,
+                        "maximum": 2
+                    },
+                    "expire_time": {
+                        "type": "integer",
+                        "description": "The time when this export will stop being available on the system."
+                    },
+                    "exported_file_url": {
+                        "type": "string",
+                        "description": "The URL to download the exported file."
                     }
                 }
             }
@@ -5415,6 +5551,185 @@
                     },
                     "404": {
                         "description": "Failed to update region because the image with image_id or the region with region_id does not exist."
+                    }
+                }
+            }
+        },
+        "/api/exports": {
+            "post": {
+                "description": "Request for a new export. User needs to have `images.export` permission in order to call this API successfully.",
+                "tags": [
+                    "Export Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "filter_options": {
+                                        "$ref": "#/components/schemas/ImageListFilterOptions"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Export requested successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Export"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to request for export because the filter options are invalid."
+                    },
+                    "401": {
+                        "description": "Failed to request for export because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to request for export because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get the list of exports requested by the current session user. User needs to have `images.export` permission in order to call this API successfully.",
+                "tags": [
+                    "Export Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved exports list successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_export_count": {
+                                            "type": "integer",
+                                            "description": "The total number of exports the session user has requested."
+                                        },
+                                        "export_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Export"
+                                            },
+                                            "description": "The list of exports."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve export list because the arguments provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve export list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve export list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/exports/{export_id}": {
+            "delete": {
+                "description": "Delete an export request. User needs to have `images.export` permission and needs to be deleting an export they created in order to call this API successfully.",
+                "tags": [
+                    "Export Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "export_id",
+                        "in": "path",
+                        "description": "The export to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/Export/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted export successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete export because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete export because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete export because the export cannot be found."
                     }
                 }
             }
