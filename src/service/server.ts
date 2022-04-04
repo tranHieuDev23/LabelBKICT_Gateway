@@ -6,6 +6,8 @@ import { injected, token } from "brandi";
 import { ROUTES_TOKEN } from "./routes";
 import { Logger } from "winston";
 import {
+    ApplicationConfig,
+    APPLICATION_CONFIG_TOKEN,
     GatewayServerConfig,
     GATEWAY_SERVER_CONFIG_TOKEN,
     ImageServiceConfig,
@@ -19,6 +21,7 @@ export class GatewayHTTPServer {
         private readonly routes: express.Router[],
         private readonly errorHandler: express.ErrorRequestHandler,
         private readonly gatewayServerConfig: GatewayServerConfig,
+        private readonly applicationConfig: ApplicationConfig,
         private readonly imageServiceConfig: ImageServiceConfig,
         private readonly logger: Logger
     ) {}
@@ -44,11 +47,11 @@ export class GatewayHTTPServer {
         server.use(compression());
 
         server.use(
-            "/static",
+            `/${this.applicationConfig.originalImageURLPrefix}`,
             express.static(this.imageServiceConfig.originalImageDir)
         );
         server.use(
-            "/static",
+            `/${this.applicationConfig.thumbnailImageURLPrefix}`,
             express.static(this.imageServiceConfig.thumbnailImageDir)
         );
 
@@ -70,6 +73,7 @@ injected(
     ROUTES_TOKEN,
     ERROR_HANDLER_MIDDLEWARE_TOKEN,
     GATEWAY_SERVER_CONFIG_TOKEN,
+    APPLICATION_CONFIG_TOKEN,
     IMAGE_SERVICE_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
