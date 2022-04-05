@@ -71,8 +71,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.createPinnedPage()",
                 { error: createPinnedPageError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                createPinnedPageError,
+            throw new ErrorWithHTTPCode(
+                "Failed to create pinned page",
                 getHttpCodeFromGRPCStatus(createPinnedPageError.code)
             );
         }
@@ -102,8 +102,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.getPinnedPageList()",
                 { error: getPinnedPageListError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                getPinnedPageListError,
+            throw new ErrorWithHTTPCode(
+                "Failed to get pinned page list",
                 getHttpCodeFromGRPCStatus(getPinnedPageListError.code)
             );
         }
@@ -134,8 +134,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.getPinnedPage()",
                 { error: getPinnedPageError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                getPinnedPageError,
+            throw new ErrorWithHTTPCode(
+                "Failed to update pinned page",
                 getHttpCodeFromGRPCStatus(getPinnedPageError.code)
             );
         }
@@ -164,8 +164,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.updatePinnedPage()",
                 { error: updatePinnedPageError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                updatePinnedPageError,
+            throw new ErrorWithHTTPCode(
+                "Failed to update pinned page",
                 getHttpCodeFromGRPCStatus(updatePinnedPageError.code)
             );
         }
@@ -194,8 +194,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.getPinnedPage()",
                 { error: getPinnedPageError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                getPinnedPageError,
+            throw new ErrorWithHTTPCode(
+                "Failed to delete pinned page",
                 getHttpCodeFromGRPCStatus(getPinnedPageError.code)
             );
         }
@@ -221,8 +221,8 @@ export class PinnedPageManagementOperatorImpl
                 "failed to call pin_page_service.deletePinnedPage()",
                 { error: deletePinnedPageError }
             );
-            throw ErrorWithHTTPCode.wrapWithStatus(
-                deletePinnedPageError,
+            throw new ErrorWithHTTPCode(
+                "Failed to delete pinned page",
                 getHttpCodeFromGRPCStatus(deletePinnedPageError.code)
             );
         }

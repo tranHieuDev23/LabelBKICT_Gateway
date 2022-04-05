@@ -5943,9 +5943,6 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Failed to create pinned page because url is not a valid URL."
-                    },
                     "401": {
                         "description": "Failed to create pinned page because the user is not logged in."
                     }
