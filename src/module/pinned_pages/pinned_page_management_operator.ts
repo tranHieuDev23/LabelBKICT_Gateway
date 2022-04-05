@@ -22,7 +22,6 @@ export interface PinnedPageManagementOperator {
         offset: number,
         limit: number
     ): Promise<{ totalPinnedPageCount: number; pinnedPageList: PinnedPage[] }>;
-    getPinnedPage(id: number): Promise<PinnedPage>;
     updatePinnedPage(
         id: number,
         description: string | undefined
@@ -54,10 +53,6 @@ export class PinnedPageManagementOperatorImpl
         offset: number,
         limit: number
     ): Promise<{ totalPinnedPageCount: number; pinnedPageList: PinnedPage[] }> {
-        throw new Error("Method not implemented.");
-    }
-
-    public async getPinnedPage(id: number): Promise<PinnedPage> {
         throw new Error("Method not implemented.");
     }
 
