@@ -4,7 +4,7 @@ import { PinnedPage as PinnedPageProto } from "../../../proto/gen/PinnedPage";
 import { PinnedPage } from "../pinned_page";
 
 export interface PinnedPageProtoToPinnedPageConverter {
-    convert(pinnedPageProto: PinnedPageProto): PinnedPage;
+    convert(pinnedPageProto: PinnedPageProto | undefined): PinnedPage;
 }
 
 export class PinnedPageProtoToPinnedPageConverterImpl
@@ -12,13 +12,13 @@ export class PinnedPageProtoToPinnedPageConverterImpl
 {
     constructor(private readonly applicationConfig: ApplicationConfig) {}
 
-    public convert(pinnedPageProto: PinnedPageProto): PinnedPage {
+    public convert(pinnedPageProto: PinnedPageProto | undefined): PinnedPage {
         return new PinnedPage(
-            pinnedPageProto.id || 0,
-            +(pinnedPageProto.pinTime || 0),
-            pinnedPageProto.url || "",
-            pinnedPageProto.description || "",
-            this.getScreenshotURL(pinnedPageProto.screenshotFilename || "")
+            pinnedPageProto?.id || 0,
+            +(pinnedPageProto?.pinTime || 0),
+            pinnedPageProto?.url || "",
+            pinnedPageProto?.description || "",
+            this.getScreenshotURL(pinnedPageProto?.screenshotFilename || "")
         );
     }
 

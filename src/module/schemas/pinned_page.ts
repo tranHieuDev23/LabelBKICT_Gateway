@@ -1,5 +1,3 @@
-import { PinnedPage as PinnedPageProto } from "../../proto/gen/PinnedPage";
-
 export class PinnedPage {
     constructor(
         public id: number,
