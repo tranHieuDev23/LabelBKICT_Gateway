@@ -1,7 +1,6 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { ApplicationConfig, APPLICATION_CONFIG_TOKEN } from "../../config";
 import { PIN_PAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { PinPageServiceClient } from "../../proto/gen/PinPageService";
 import { AuthenticatedUserInformation } from "../../service/utils";
@@ -46,7 +45,6 @@ export class PinnedPageManagementOperatorImpl
     constructor(
         private readonly pinPageServiceDM: PinPageServiceClient,
         private readonly pinnedPageProtoToPinnedPageConverter: PinnedPageProtoToPinnedPageConverter,
-        private readonly applicationConfig: ApplicationConfig,
         private readonly logger: Logger
     ) {}
 
@@ -235,7 +233,6 @@ injected(
     PinnedPageManagementOperatorImpl,
     PIN_PAGE_SERVICE_DM_TOKEN,
     PINNED_PAGE_PROTO_TO_PINNED_PAGE_CONVERTER_TOKEN,
-    APPLICATION_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
 
