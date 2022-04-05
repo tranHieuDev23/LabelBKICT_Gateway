@@ -21,7 +21,7 @@ export function getPinnedPagesRouter(
     const router = express.Router();
 
     const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
-        (authUserInfo) => true,
+        () => true,
         true
     );
 
