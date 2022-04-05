@@ -260,6 +260,21 @@ export function getImagesRouter(
         })
     );
 
+    router.post(
+        "/api/images/:imageId/detection-task",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            await imageManagementOperator.createDetectionTaskForImage(
+                authenticatedUserInfo,
+                imageId
+            );
+            res.json({});
+        })
+    );
+
     router.delete(
         "/api/images/:imageId/tags/:imageTagId",
         userLoggedInAuthMiddleware,

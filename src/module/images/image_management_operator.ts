@@ -1,8 +1,12 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
+import {
+    IMAGE_SERVICE_DM_TOKEN,
+    MODEL_SERVICE_DM_TOKEN,
+} from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
+import { ModelServiceClient } from "../../proto/gen/ModelService";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import {
     ErrorWithHTTPCode,
@@ -79,6 +83,10 @@ export interface ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void>;
+    createDetectionTaskForImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void>;
     deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
@@ -98,6 +106,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
         private readonly imageServiceDM: ImageServiceClient,
+        private readonly modelServiceDM: ModelServiceClient,
         private readonly logger: Logger
     ) {}
 
@@ -488,6 +497,47 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
     }
 
+    public async createDetectionTaskForImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.managePermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: createDetectionTaskError } = await promisifyGRPCCall(
+            this.modelServiceDM.createDetectionTask.bind(this.modelServiceDM),
+            { imageId }
+        );
+        if (createDetectionTaskError !== null) {
+            this.logger.error(
+                "failed to call model_service.createDetectionTask()",
+                { userId: authenticatedUserInfo.user.id, imageId }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to create detection task for image",
+                getHttpCodeFromGRPCStatus(createDetectionTaskError.code)
+            );
+        }
+    }
+
     public async deleteImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
@@ -537,6 +587,7 @@ injected(
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
+    MODEL_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
 

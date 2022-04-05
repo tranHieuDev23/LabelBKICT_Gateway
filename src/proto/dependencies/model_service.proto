@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+service ModelService {
+    rpc CreateDetectionTask(CreateDetectionTaskRequest) returns (CreateDetectionTaskResponse) {}
+}
+
+message CreateDetectionTaskRequest {
+    uint32 image_id = 1;
+}
+
+message CreateDetectionTaskResponse {}
