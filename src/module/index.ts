@@ -10,6 +10,7 @@ import * as imageTags from "./image_tags";
 import * as images from "./images";
 import * as regions from "./regions";
 import * as exportModule from "./exports";
+import * as pinnedPages from "./pinned_pages";
 
 export function bindToContainer(container: Container): void {
     schemas.bindToContainer(container);
@@ -23,4 +24,5 @@ export function bindToContainer(container: Container): void {
     images.bindToContainer(container);
     regions.bindToContainer(container);
     exportModule.bindToContainer(container);
+    pinnedPages.bindToContainer(container);
 }

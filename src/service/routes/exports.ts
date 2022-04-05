@@ -4,7 +4,7 @@ import asyncHandler from "express-async-handler";
 import {
     ExportManagementOperator,
     EXPORT_MANAGEMENT_OPERATOR_TOKEN,
-} from "../../module/exports/export_management_operator";
+} from "../../module/exports";
 import { ExportType } from "../../module/schemas";
 import { _ExportType_Values } from "../../proto/gen/ExportType";
 import {

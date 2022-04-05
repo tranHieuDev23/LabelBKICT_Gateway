@@ -14,11 +14,10 @@ import {
 } from "./image-tag-groups";
 import { getImagesRouter, IMAGES_ROUTER_TOKEN } from "./images";
 import { EXPORTS_ROUTER_TOKEN, getExportsRouter } from "./exports";
-
-export * from "./users";
-export * from "./sessions";
-export * from "./roles";
-export * from "./permissions";
+import {
+    getPinnedPagesRouter,
+    PINNED_PAGES_ROUTER_TOKEN,
+} from "./pinned-pages";
 
 export const ROUTES_TOKEN = token<express.Router[]>("Routes");
 
@@ -56,6 +55,10 @@ export function bindToContainer(container: Container): void {
         .toInstance(getExportsRouter)
         .inSingletonScope();
     container
+        .bind(PINNED_PAGES_ROUTER_TOKEN)
+        .toInstance(getPinnedPagesRouter)
+        .inSingletonScope();
+    container
         .bind(ROUTES_TOKEN)
         .toInstance(() => [
             container.get(USERS_ROUTER_TOKEN),
@@ -66,6 +69,7 @@ export function bindToContainer(container: Container): void {
             container.get(IMAGE_TAG_GROUPS_ROUTER_TOKEN),
             container.get(IMAGES_ROUTER_TOKEN),
             container.get(EXPORTS_ROUTER_TOKEN),
+            container.get(PINNED_PAGES_ROUTER_TOKEN),
         ])
         .inSingletonScope();
 }
