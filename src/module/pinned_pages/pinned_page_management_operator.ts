@@ -3,6 +3,7 @@ import { Logger } from "winston";
 import { ApplicationConfig, APPLICATION_CONFIG_TOKEN } from "../../config";
 import { PIN_PAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { PinPageServiceClient } from "../../proto/gen/PinPageService";
+import { AuthenticatedUserInformation } from "../../service/utils";
 import { LOGGER_TOKEN } from "../../utils";
 import {
     PinnedPage,
@@ -12,21 +13,25 @@ import {
 
 export interface PinnedPageManagementOperator {
     createPinnedPage(
-        ofUserId: number,
+        authUserInfo: AuthenticatedUserInformation,
         url: string,
         description: string,
         screenshotData: Buffer
     ): Promise<PinnedPage>;
     getPinnedPageList(
-        ofUserId: number,
+        authUserInfo: AuthenticatedUserInformation,
         offset: number,
         limit: number
     ): Promise<{ totalPinnedPageCount: number; pinnedPageList: PinnedPage[] }>;
     updatePinnedPage(
+        authUserInfo: AuthenticatedUserInformation,
         id: number,
         description: string | undefined
     ): Promise<PinnedPage>;
-    deletePinnedPage(id: number): Promise<void>;
+    deletePinnedPage(
+        authUserInfo: AuthenticatedUserInformation,
+        id: number
+    ): Promise<void>;
 }
 
 export class PinnedPageManagementOperatorImpl
@@ -40,7 +45,7 @@ export class PinnedPageManagementOperatorImpl
     ) {}
 
     public async createPinnedPage(
-        ofUserId: number,
+        authUserInfo: AuthenticatedUserInformation,
         url: string,
         description: string,
         screenshotData: Buffer
@@ -49,7 +54,7 @@ export class PinnedPageManagementOperatorImpl
     }
 
     public async getPinnedPageList(
-        ofUserId: number,
+        authUserInfo: AuthenticatedUserInformation,
         offset: number,
         limit: number
     ): Promise<{ totalPinnedPageCount: number; pinnedPageList: PinnedPage[] }> {
@@ -57,13 +62,17 @@ export class PinnedPageManagementOperatorImpl
     }
 
     public async updatePinnedPage(
+        authUserInfo: AuthenticatedUserInformation,
         id: number,
         description: string | undefined
     ): Promise<PinnedPage> {
         throw new Error("Method not implemented.");
     }
 
-    public async deletePinnedPage(id: number): Promise<void> {
+    public async deletePinnedPage(
+        authUserInfo: AuthenticatedUserInformation,
+        id: number
+    ): Promise<void> {
         throw new Error("Method not implemented.");
     }
 }
