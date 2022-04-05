@@ -14,6 +14,7 @@ export * from "./polygon";
 export * from "./region";
 export * from "./region_operator_log";
 export * from "./export";
+export * from "./pinned_page";
 export * from "./converters";
 
 export function bindToContainer(container: Container): void {

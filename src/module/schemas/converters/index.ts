@@ -16,6 +16,10 @@ import {
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
 } from "./image_status_to_image_status_proto";
 import {
+    PinnedPageProtoToPinnedPageConverterImpl,
+    PINNED_PAGE_PROTO_TO_PINNED_PAGE_CONVERTER_TOKEN,
+} from "./pinned_page_proto_to_pinned_page";
+import {
     RegionOperationLogProtoToRegionOperationLogConverterImpl,
     REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN,
 } from "./region_operation_log_proto_to_region_operation_log";
@@ -35,6 +39,7 @@ export * from "./image_status_to_image_status_proto";
 export * from "./filter_options_to_filter_options_proto";
 export * from "./region_operation_log_proto_to_region_operation_log";
 export * from "./export_proto_to_export";
+export * from "./pinned_page_proto_to_pinned_page";
 
 export function bindToContainer(container: Container): void {
     container
@@ -66,5 +71,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN)
         .toInstance(ExportProtoToExportConverterImpl)
+        .inSingletonScope();
+    container
+        .bind(PINNED_PAGE_PROTO_TO_PINNED_PAGE_CONVERTER_TOKEN)
+        .toInstance(PinnedPageProtoToPinnedPageConverterImpl)
         .inSingletonScope();
 }

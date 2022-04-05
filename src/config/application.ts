@@ -3,6 +3,7 @@ import { token } from "brandi";
 export class ApplicationConfig {
     public originalImageURLPrefix = "static";
     public thumbnailImageURLPrefix = "static";
+    public screenshotImageURLPrefix = "static";
 
     public static fromEnv(): ApplicationConfig {
         const config = new ApplicationConfig();
@@ -13,6 +14,10 @@ export class ApplicationConfig {
         if (process.env.GATEWAY_THUMBNAIL_IMAGE_URL_PREFIX !== undefined) {
             config.thumbnailImageURLPrefix =
                 process.env.GATEWAY_THUMBNAIL_IMAGE_URL_PREFIX;
+        }
+        if (process.env.GATEWAY_SCREENSHOT_IMAGE_URL_PREFIX !== undefined) {
+            config.screenshotImageURLPrefix =
+                process.env.GATEWAY_SCREENSHOT_IMAGE_URL_PREFIX;
         }
         return config;
     }
