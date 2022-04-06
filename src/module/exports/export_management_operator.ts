@@ -68,7 +68,10 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         filterOptions: ImageListFilterOptions
     ): Promise<Export> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         const { error: createExportError, response: createExportResponse } =
             await promisifyGRPCCall(
                 this.exportServiceDM.createExport.bind(this.exportServiceDM),

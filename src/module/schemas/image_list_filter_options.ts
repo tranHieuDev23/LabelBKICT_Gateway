@@ -17,4 +17,5 @@ export class ImageListFilterOptions {
     public image_status_list: ImageStatus[] = [];
     public must_match_all_image_tags = false;
     public must_match_all_region_labels = false;
+    public must_be_bookmarked = false;
 }

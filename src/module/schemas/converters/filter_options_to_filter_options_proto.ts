@@ -1,15 +1,20 @@
 import { ImageListFilterOptions } from "../image_list_filter_options";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../../proto/gen/ImageListFilterOptions";
 import { injected, token } from "brandi";
+import { AuthenticatedUserInformation } from "../../../service/utils";
 
 export interface FilterOptionsToFilterOptionsProtoConverter {
-    convert(filterOptions: ImageListFilterOptions): ImageListFilterOptionsProto;
+    convert(
+        authUserInfo: AuthenticatedUserInformation,
+        filterOptions: ImageListFilterOptions
+    ): ImageListFilterOptionsProto;
 }
 
 export class FilterOptionsToFilterOptionsProtoConverterImpl
     implements FilterOptionsToFilterOptionsProtoConverter
 {
     public convert(
+        authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto {
         return {
@@ -30,6 +35,9 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
             mustMatchAllImageTags: filterOptions.must_match_all_image_tags,
             mustMatchAllRegionLabels:
                 filterOptions.must_match_all_region_labels,
+            bookmarkedByUserIdList: filterOptions.must_be_bookmarked
+                ? [authUserInfo.user.id]
+                : [],
         };
     }
 }

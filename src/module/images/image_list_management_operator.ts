@@ -237,7 +237,10 @@ export class ImageListManagementOperatorImpl
         imageTagList: ImageTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         filterOptionsProto.uploadedByUserIdList = [
             authenticatedUserInfo.user.id,
         ];
@@ -316,7 +319,10 @@ export class ImageListManagementOperatorImpl
         imageTagList: ImageTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
@@ -392,7 +398,10 @@ export class ImageListManagementOperatorImpl
         imageTagList: ImageTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         filterOptionsProto.imageStatusList = [
             ImageStatus.PUBLISHED,
             ImageStatus.VERIFIED,
@@ -472,7 +481,10 @@ export class ImageListManagementOperatorImpl
         imageTagList: ImageTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
@@ -545,7 +557,10 @@ export class ImageListManagementOperatorImpl
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(filterOptions);
+            this.filterOptionsToFilterOptionsProto.convert(
+                authenticatedUserInfo,
+                filterOptions
+            );
         const {
             error: getImagePositionInListError,
             response: getImagePositionInListResponse,
