@@ -838,6 +838,523 @@
                 }
             }
         },
+        "/api/users/{user_id}/manageable-image-users": {
+            "post": {
+                "description": "Add a new user to the list of users, whose images can be managed by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image_of_user_id": {
+                                        "$ref": "#/components/schemas/User/properties/id"
+                                    },
+                                    "can_edit": {
+                                        "type": "boolean",
+                                        "description": "If true, the user can edit images of this user. If false, the user can only view the images."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user because the user whose image can be managed is the same as the one being updated."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because either one of the users cannot be found."
+                    },
+                    "409": {
+                        "description": "Failed to update user because the user has already been in the list."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get the list of users, whose images can be managed by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be retrieved.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User list retrieved successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_user_count": {
+                                            "type": "integer",
+                                            "description": "The total number of user in the list."
+                                        },
+                                        "user_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "user": {
+                                                        "$ref": "#/components/schemas/User"
+                                                    },
+                                                    "can_edit": {
+                                                        "type": "boolean",
+                                                        "description": "If true, the user can edit images of this user. If false, the user can only view the images."
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to get user list because the arguments provided do not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because the user cannot be found."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/manageable-image-users/{image_of_user_id}": {
+            "patch": {
+                "description": "Update the relation of a new user in the list of users, whose images can be managed by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_of_user_id",
+                        "in": "path",
+                        "description": "The user whose image can be managed.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "can_edit": {
+                                        "type": "boolean",
+                                        "description": "If true, the user can edit images of this user. If false, the user can only view the images."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user because the user whose image being managed is the same as the one being updated."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because either one of the users cannot be found."
+                    },
+                    "409": {
+                        "description": "Failed to remove user because the user is not in the list."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove an user from the list of users, whose images can be managed by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_of_user_id",
+                        "in": "path",
+                        "description": "The user whose image can be managed.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because either one of the users cannot be found."
+                    },
+                    "409": {
+                        "description": "Failed to remove user because the user is not in the list."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/verifiable-image-users": {
+            "post": {
+                "description": "Add a new user to the list of users, whose images can be verified by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image_of_user_id": {
+                                        "$ref": "#/components/schemas/User/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user because the user whose image can be verified is the same as the one being updated."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update user because either one of the users cannot be found."
+                    },
+                    "409": {
+                        "description": "Failed to update user because the user has already been in the list."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get the list of users, whose images can be verified by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be retrieved.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User list retrieved successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_user_count": {
+                                            "type": "integer",
+                                            "description": "The total number of user in the list."
+                                        },
+                                        "user_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "user": {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to get user list because the arguments provided do not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because the user cannot be found."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/verifiable-image-users/{image_of_user_id}": {
+            "delete": {
+                "description": "Remove an user from the list of users, whose images can be verified by the provided user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user whose information will be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "image_of_user_id",
+                        "in": "path",
+                        "description": "The user whose image can be verified.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user because either one of the users cannot be found."
+                    },
+                    "409": {
+                        "description": "Failed to remove user because the user is not in the list."
+                    }
+                }
+            }
+        },
         "/api/sessions/password": {
             "post": {
                 "description": "Login with password. If the user is successfully logged in, an authorization token is included in the response as a cookie, allowing the user to operate on the system.",
