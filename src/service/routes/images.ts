@@ -283,12 +283,15 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const description = req.body.description || "";
-            await imageManagementOperator.createImageBookmark(
-                authenticatedUserInfo,
-                imageId,
-                description
-            );
-            res.json({});
+            const imageBookmark =
+                await imageManagementOperator.createImageBookmark(
+                    authenticatedUserInfo,
+                    imageId,
+                    description
+                );
+            res.json({
+                image_bookmark: imageBookmark,
+            });
         })
     );
 
@@ -299,11 +302,14 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            await imageManagementOperator.getImageBookmark(
-                authenticatedUserInfo,
-                imageId
-            );
-            res.json({});
+            const imageBookmark =
+                await imageManagementOperator.getImageBookmark(
+                    authenticatedUserInfo,
+                    imageId
+                );
+            res.json({
+                image_bookmark: imageBookmark,
+            });
         })
     );
 
@@ -315,12 +321,15 @@ export function getImagesRouter(
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const description = req.body.description || "";
-            await imageManagementOperator.updateImageBookmark(
-                authenticatedUserInfo,
-                imageId,
-                description
-            );
-            res.json({});
+            const imageBookmark =
+                await imageManagementOperator.updateImageBookmark(
+                    authenticatedUserInfo,
+                    imageId,
+                    description
+                );
+            res.json({
+                image_bookmark: imageBookmark,
+            });
         })
     );
 
