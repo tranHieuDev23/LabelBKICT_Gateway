@@ -16,6 +16,7 @@ import {
 } from "../../utils";
 import {
     Image,
+    ImageBookmark,
     ImageProtoToImageConverter,
     ImageStatus,
     ImageStatusToImageStatusProtoConverter,
@@ -35,6 +36,7 @@ import {
     ImageInfoProvider,
     IMAGE_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
+import { status } from "@grpc/grpc-js";
 
 export interface ImageManagementOperator {
     createImage(
@@ -84,6 +86,24 @@ export interface ImageManagementOperator {
         imageTagId: number
     ): Promise<void>;
     createDetectionTaskForImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void>;
+    createImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        description: string
+    ): Promise<ImageBookmark>;
+    getImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<ImageBookmark>;
+    updateImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        description: string
+    ): Promise<ImageBookmark>;
+    deleteImageBookmark(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void>;
@@ -534,6 +554,238 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode(
                 "Failed to create detection task for image",
                 getHttpCodeFromGRPCStatus(createDetectionTaskError.code)
+            );
+        }
+    }
+
+    public async createImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        description: string
+    ): Promise<ImageBookmark> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create image bookmark",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: createImageBookmarkError,
+            response: createImageBookmarkResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.createImageBookmark.bind(this.imageServiceDM),
+            {
+                userId: authenticatedUserInfo.user.id,
+                imageId: imageId,
+                description: description,
+            }
+        );
+        if (createImageBookmarkError !== null) {
+            this.logger.error(
+                "failed to call image_service.createImageBookmark()",
+                { error: createImageBookmarkError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to create image bookmark",
+                getHttpCodeFromGRPCStatus(createImageBookmarkError.code)
+            );
+        }
+
+        return ImageBookmark.fromProto(
+            createImageBookmarkResponse?.imageBookmark
+        );
+    }
+
+    public async getImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<ImageBookmark> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image bookmark",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: getImageBookmarkError,
+            response: getImageBookmarkResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageBookmark.bind(this.imageServiceDM),
+            {
+                userId: authenticatedUserInfo.user.id,
+                imageId: imageId,
+            }
+        );
+        if (getImageBookmarkError !== null) {
+            if (getImageBookmarkError.code === status.NOT_FOUND) {
+                this.logger.error("user has not yet bookmarked the image", {
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to get image bookmark",
+                    httpStatus.CONFLICT
+                );
+            }
+
+            this.logger.error(
+                "failed to call image_service.getImageBookmark()",
+                { error: getImageBookmarkError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to get image bookmark",
+                getHttpCodeFromGRPCStatus(getImageBookmarkError.code)
+            );
+        }
+
+        return ImageBookmark.fromProto(getImageBookmarkResponse?.imageBookmark);
+    }
+
+    public async updateImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        description: string
+    ): Promise<ImageBookmark> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update image bookmark",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const {
+            error: deleteImageBookmarkError,
+            response: updateImageBookmarkResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.updateImageBookmark.bind(this.imageServiceDM),
+            {
+                userId: authenticatedUserInfo.user.id,
+                imageId: imageId,
+                description: description,
+            }
+        );
+        if (deleteImageBookmarkError !== null) {
+            if (deleteImageBookmarkError.code === status.NOT_FOUND) {
+                this.logger.error("user has not yet bookmarked the image", {
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to update image bookmark",
+                    httpStatus.CONFLICT
+                );
+            }
+
+            this.logger.error(
+                "failed to call image_service.updateImageBookmark()",
+                { error: deleteImageBookmarkError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to update image bookmark",
+                getHttpCodeFromGRPCStatus(deleteImageBookmarkError.code)
+            );
+        }
+
+        return ImageBookmark.fromProto(
+            updateImageBookmarkResponse?.imageBookmark
+        );
+    }
+
+    public async deleteImageBookmark(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            false,
+            false
+        );
+        if (
+            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image bookmark",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: deleteImageBookmarkError } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteImageBookmark.bind(this.imageServiceDM),
+            {
+                userId: authenticatedUserInfo.user.id,
+                imageId: imageId,
+            }
+        );
+        if (deleteImageBookmarkError !== null) {
+            if (deleteImageBookmarkError.code === status.NOT_FOUND) {
+                this.logger.error("user has not yet bookmarked the image", {
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to delete image bookmark",
+                    httpStatus.CONFLICT
+                );
+            }
+
+            this.logger.error(
+                "failed to call image_service.deleteImageBookmark()",
+                { error: deleteImageBookmarkError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image bookmark",
+                getHttpCodeFromGRPCStatus(deleteImageBookmarkError.code)
             );
         }
     }
