@@ -231,14 +231,14 @@
                         "items": {
                             "type": "integer"
                         },
-                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = 1)."
+                        "description": "A list of image tag IDs. If provided, filter for images that has one of these image tags (or all of these image tags, if must_match_all_image_tags = true)."
                     },
                     "region_label_id_list": {
                         "type": "array",
                         "items": {
                             "type": "integer"
                         },
-                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = 1).",
+                        "description": "A list of region label IDs. If provided, filter for images that has one of these region labels (or all of these region labels, if must_match_all_region_labels = true).",
                         "maxItems": 10
                     },
                     "uploaded_by_user_id_list": {
@@ -318,6 +318,10 @@
                     "must_match_all_region_labels": {
                         "type": "boolean",
                         "description": "If true, images in the results must have all region labels provided in the filter."
+                    },
+                    "must_be_bookmarked": {
+                        "type": "boolean",
+                        "description": "If true, images in the results must be bookmarked by the session user."
                     }
                 }
             },
@@ -3329,6 +3333,17 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "must_be_bookmarked",
+                        "description": "If equal to 1, images in the results must be bookmarked by the session user.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -3665,6 +3680,17 @@
                     {
                         "name": "must_match_all_region_labels",
                         "description": "If equal to 1, images in the results must have all region labels provided in the filter.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_be_bookmarked",
+                        "description": "If equal to 1, images in the results must be bookmarked by the session user.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4015,6 +4041,17 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "must_be_bookmarked",
+                        "description": "If equal to 1, images in the results must be bookmarked by the session user.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -4351,6 +4388,17 @@
                     {
                         "name": "must_match_all_region_labels",
                         "description": "If equal to 1, images in the results must have all region labels provided in the filter.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_be_bookmarked",
+                        "description": "If equal to 1, images in the results must be bookmarked by the session user.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4873,6 +4921,17 @@
                     {
                         "name": "must_match_all_region_labels",
                         "description": "If equal to 1, images in the results must have all region labels provided in the filter.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_be_bookmarked",
+                        "description": "If equal to 1, images in the results must be bookmarked by the session user.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
