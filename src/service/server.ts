@@ -12,6 +12,8 @@ import {
     GATEWAY_SERVER_CONFIG_TOKEN,
     ImageServiceConfig,
     IMAGE_SERVICE_CONFIG_TOKEN,
+    PinPageServiceConfig,
+    PIN_PAGE_SERVICE_CONFIG_TOKEN,
 } from "../config";
 import { LOGGER_TOKEN } from "../utils";
 import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./utils";
@@ -23,6 +25,7 @@ export class GatewayHTTPServer {
         private readonly gatewayServerConfig: GatewayServerConfig,
         private readonly applicationConfig: ApplicationConfig,
         private readonly imageServiceConfig: ImageServiceConfig,
+        private readonly pinPageServiceConfig: PinPageServiceConfig,
         private readonly logger: Logger
     ) {}
 
@@ -54,6 +57,10 @@ export class GatewayHTTPServer {
             `/${this.applicationConfig.thumbnailImageURLPrefix}`,
             express.static(this.imageServiceConfig.thumbnailImageDir)
         );
+        server.use(
+            `/${this.applicationConfig.screenshotImageURLPrefix}`,
+            express.static(this.pinPageServiceConfig.screenshotDir)
+        );
 
         server.use(
             middleware({
@@ -75,6 +82,7 @@ injected(
     GATEWAY_SERVER_CONFIG_TOKEN,
     APPLICATION_CONFIG_TOKEN,
     IMAGE_SERVICE_CONFIG_TOKEN,
+    PIN_PAGE_SERVICE_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
 
