@@ -275,6 +275,70 @@ export function getImagesRouter(
         })
     );
 
+    router.post(
+        "/api/images/:imageId/bookmark",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const description = req.body.description || "";
+            await imageManagementOperator.createImageBookmark(
+                authenticatedUserInfo,
+                imageId,
+                description
+            );
+            res.json({});
+        })
+    );
+
+    router.get(
+        "/api/images/:imageId/bookmark",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            await imageManagementOperator.getImageBookmark(
+                authenticatedUserInfo,
+                imageId
+            );
+            res.json({});
+        })
+    );
+
+    router.patch(
+        "/api/images/:imageId/bookmark",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const description = req.body.description || "";
+            await imageManagementOperator.updateImageBookmark(
+                authenticatedUserInfo,
+                imageId,
+                description
+            );
+            res.json({});
+        })
+    );
+
+    router.delete(
+        "/api/images/:imageId/bookmark",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            await imageManagementOperator.deleteImageBookmark(
+                authenticatedUserInfo,
+                imageId
+            );
+            res.json({});
+        })
+    );
+
     router.delete(
         "/api/images/:imageId/tags/:imageTagId",
         userLoggedInAuthMiddleware,
