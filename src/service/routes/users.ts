@@ -182,10 +182,11 @@ export function getUsersRouter(
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
-            const offset = +req.body.offset || 0;
-            const limit =
-                +req.body.limit ||
-                DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT;
+            const offset = +(req.query.offset || 0);
+            const limit = +(
+                req.query.limit ||
+                DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT
+            );
             const { totalUserCount, userList } =
                 await userManagementOperator.getUserCanManageUserImageListOfUser(
                     userId,
@@ -254,10 +255,11 @@ export function getUsersRouter(
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
-            const offset = +req.body.offset || 0;
-            const limit =
-                +req.body.limit ||
-                DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT;
+            const offset = +(req.query.offset || 0);
+            const limit = +(
+                req.query.limit ||
+                DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT
+            );
             const { totalUserCount, userList } =
                 await userManagementOperator.getUserCanVerifyUserImageListOfUser(
                     userId,
