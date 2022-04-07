@@ -1,4 +1,5 @@
 import { Image as ImageProto } from "../../proto/gen/Image";
+import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 import {
     AuthenticatedUserInformation,
     checkUserHasUserPermission,
@@ -76,6 +77,12 @@ export class ImagesVerifyAllChecker extends ImagePermissionCheckerDecorator {
     ): boolean {
         if (super.checkUserHasPermissionForImage(authUserInfo, image)) {
             return true;
+        }
+        if (
+            image.status !== _ImageStatus_Values.PUBLISHED &&
+            image.status !== _ImageStatus_Values.VERIFIED
+        ) {
+            return false;
         }
         const { userPermissionList } = authUserInfo;
         return checkUserHasUserPermission(

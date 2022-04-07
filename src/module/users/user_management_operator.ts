@@ -1,7 +1,11 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
+import {
+    IMAGE_SERVICE_DM_TOKEN,
+    USER_SERVICE_DM_TOKEN,
+} from "../../dataaccess/grpc";
+import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { _UserListSortOrder_Values } from "../../proto/gen/UserListSortOrder";
 import { UserServiceClient } from "../../proto/gen/UserService";
 import {
@@ -10,7 +14,17 @@ import {
     LOGGER_TOKEN,
 } from "../../utils";
 import { promisifyGRPCCall } from "../../utils/grpc";
-import { User, UserRole } from "../schemas";
+import { UserInfoProvider, USER_INFO_PROVIDER_TOKEN } from "../info_providers";
+import {
+    User,
+    UserCanManageUserImage,
+    UserCanManageUserImageProtoToUserCanManageUserImage,
+    UserCanVerifyUserImage,
+    UserCanVerifyUserImageProtoToUserCanVerifyUserImage,
+    UserRole,
+    USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
+    USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
+} from "../schemas";
 
 export interface UserManagementOperator {
     createUser(
@@ -35,11 +49,47 @@ export interface UserManagementOperator {
         displayName: string | undefined,
         password: string | undefined
     ): Promise<User>;
+    addUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number,
+        canEdit: boolean
+    ): Promise<UserCanManageUserImage>;
+    getUserCanManageUserImageListOfUser(
+        userId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: UserCanManageUserImage[] }>;
+    updateUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number,
+        canEdit: boolean | undefined
+    ): Promise<UserCanManageUserImage>;
+    deleteUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<void>;
+    addUserCanVerifyUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<UserCanVerifyUserImage>;
+    getUserCanVerifyUserImageListOfUser(
+        userId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: UserCanVerifyUserImage[] }>;
+    deleteUserCanVerifyUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<void>;
 }
 
 export class UserManagementOperatorImpl implements UserManagementOperator {
     constructor(
+        private readonly userInfoProvider: UserInfoProvider,
         private readonly userServiceDM: UserServiceClient,
+        private readonly imageServiceDM: ImageServiceClient,
+        private readonly userCanManageUserImageProtoToUserCanManageUserImageConverter: UserCanManageUserImageProtoToUserCanManageUserImage,
+        private readonly userCanVerifyUserImageProtoToUserCanVerifyUserImageConverter: UserCanVerifyUserImageProtoToUserCanVerifyUserImage,
         private readonly logger: Logger
     ) {}
 
@@ -229,9 +279,307 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         const user = User.fromProto(updateUserResponse?.user);
         return user;
     }
+
+    public async addUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number,
+        canEdit: boolean
+    ): Promise<UserCanManageUserImage> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can manage user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const imageOfUser = await this.userInfoProvider.getUser(imageOfUserId);
+        if (imageOfUser === null) {
+            this.logger.error("user cannot be found", { imageOfUserId });
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can manage user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const { error: createUserCanManageUserImageError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.createUserCanManageUserImage.bind(
+                    this.imageServiceDM
+                ),
+                { userId, imageOfUserId, canEdit }
+            );
+        if (createUserCanManageUserImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.createUserCanManageUserImage()",
+                { error: createUserCanManageUserImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can manage user image",
+                getHttpCodeFromGRPCStatus(
+                    createUserCanManageUserImageError.code
+                )
+            );
+        }
+        return new UserCanManageUserImage(User.fromProto(imageOfUser), canEdit);
+    }
+
+    public async getUserCanManageUserImageListOfUser(
+        userId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: UserCanManageUserImage[] }> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can manage user image list",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const {
+            error: getUserCanManageUserImageOfUserIdError,
+            response: getUserCanManageUserImageOfUserIdResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getUserCanManageUserImageOfUserId.bind(
+                this.imageServiceDM
+            ),
+            { userId, offset, limit }
+        );
+        if (getUserCanManageUserImageOfUserIdError !== null) {
+            this.logger.error(
+                "failed to call image_service.getUserCanManageUserImageOfUserId()",
+                { error: getUserCanManageUserImageOfUserIdError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can manage user image list",
+                getHttpCodeFromGRPCStatus(
+                    getUserCanManageUserImageOfUserIdError.code
+                )
+            );
+        }
+        const totalUserCount =
+            getUserCanManageUserImageOfUserIdResponse?.totalUserCount || 0;
+        const userCanManageUserImageProtoList =
+            getUserCanManageUserImageOfUserIdResponse?.userList || [];
+        const userCanManageUserImageList = await Promise.all(
+            userCanManageUserImageProtoList.map((proto) =>
+                this.userCanManageUserImageProtoToUserCanManageUserImageConverter.convert(
+                    proto
+                )
+            )
+        );
+        return { totalUserCount, userList: userCanManageUserImageList };
+    }
+
+    public async updateUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number,
+        canEdit: boolean
+    ): Promise<UserCanManageUserImage> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to update user can manage user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const imageOfUser = await this.userInfoProvider.getUser(imageOfUserId);
+        if (imageOfUser === null) {
+            this.logger.error("user cannot be found", { imageOfUserId });
+            throw new ErrorWithHTTPCode(
+                "Failed to update user can manage user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const { error: updateUserCanManageUserImageError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.updateUserCanManageUserImage.bind(
+                    this.imageServiceDM
+                ),
+                { userId, imageOfUserId, canEdit }
+            );
+        if (updateUserCanManageUserImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.updateUserCanManageUserImage()",
+                { error: updateUserCanManageUserImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to update user can manage user image",
+                getHttpCodeFromGRPCStatus(
+                    updateUserCanManageUserImageError.code
+                )
+            );
+        }
+        return new UserCanManageUserImage(User.fromProto(imageOfUser), canEdit);
+    }
+
+    public async deleteUserCanManageUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<void> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can manage user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const { error: deleteUserCanManageUserImageError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.deleteUserCanManageUserImage.bind(
+                    this.imageServiceDM
+                ),
+                { userId, imageOfUserId }
+            );
+        if (deleteUserCanManageUserImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.deleteUserCanManageUserImage()",
+                { error: deleteUserCanManageUserImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can manage user image",
+                getHttpCodeFromGRPCStatus(
+                    deleteUserCanManageUserImageError.code
+                )
+            );
+        }
+    }
+
+    public async addUserCanVerifyUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<UserCanVerifyUserImage> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can verify user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const imageOfUser = await this.userInfoProvider.getUser(imageOfUserId);
+        if (imageOfUser === null) {
+            this.logger.error("user cannot be found", { imageOfUserId });
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can verify user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const { error: createUserCanVerifyUserImageError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.createUserCanVerifyUserImage.bind(
+                    this.imageServiceDM
+                ),
+                { userId, imageOfUserId }
+            );
+        if (createUserCanVerifyUserImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.createUserCanVerifyUserImage()",
+                { error: createUserCanVerifyUserImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to add user can verify user image",
+                getHttpCodeFromGRPCStatus(
+                    createUserCanVerifyUserImageError.code
+                )
+            );
+        }
+        return new UserCanVerifyUserImage(User.fromProto(imageOfUser));
+    }
+
+    public async getUserCanVerifyUserImageListOfUser(
+        userId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: UserCanVerifyUserImage[] }> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can verify user image list",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const {
+            error: getUserCanVerifyUserImageOfUserIdError,
+            response: getUserCanVerifyUserImageOfUserIdResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getUserCanVerifyUserImageOfUserId.bind(
+                this.imageServiceDM
+            ),
+            { userId, offset, limit }
+        );
+        if (getUserCanVerifyUserImageOfUserIdError !== null) {
+            this.logger.error(
+                "failed to call image_service.getUserCanVerifyUserImageOfUserId()",
+                { error: getUserCanVerifyUserImageOfUserIdError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can verify user image list",
+                getHttpCodeFromGRPCStatus(
+                    getUserCanVerifyUserImageOfUserIdError.code
+                )
+            );
+        }
+        const totalUserCount =
+            getUserCanVerifyUserImageOfUserIdResponse?.totalUserCount || 0;
+        const userCanVerifyUserImageProtoList =
+            getUserCanVerifyUserImageOfUserIdResponse?.userList || [];
+        const userCanVerifyUserImageList = await Promise.all(
+            userCanVerifyUserImageProtoList.map((proto) =>
+                this.userCanVerifyUserImageProtoToUserCanVerifyUserImageConverter.convert(
+                    proto
+                )
+            )
+        );
+        return { totalUserCount, userList: userCanVerifyUserImageList };
+    }
+
+    public async deleteUserCanVerifyUserImage(
+        userId: number,
+        imageOfUserId: number
+    ): Promise<void> {
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("user cannot be found", { userId });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can verify user image",
+                httpStatus.NOT_FOUND
+            );
+        }
+        const { error: deleteUserCanVerifyUserImageError } =
+            await promisifyGRPCCall(
+                this.imageServiceDM.deleteUserCanVerifyUserImage.bind(
+                    this.imageServiceDM
+                ),
+                { userId, imageOfUserId }
+            );
+        if (deleteUserCanVerifyUserImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.deleteUserCanVerifyUserImage()",
+                { error: deleteUserCanVerifyUserImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can verify user image",
+                getHttpCodeFromGRPCStatus(
+                    deleteUserCanVerifyUserImageError.code
+                )
+            );
+        }
+    }
 }
 
-injected(UserManagementOperatorImpl, USER_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(
+    UserManagementOperatorImpl,
+    USER_INFO_PROVIDER_TOKEN,
+    USER_SERVICE_DM_TOKEN,
+    IMAGE_SERVICE_DM_TOKEN,
+    USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
+    USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
+    LOGGER_TOKEN
+);
 
 export const USER_MANAGEMENT_OPERATOR_TOKEN = token<UserManagementOperator>(
     "UserManagementOperator"

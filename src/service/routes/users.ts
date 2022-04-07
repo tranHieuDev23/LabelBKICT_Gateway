@@ -17,6 +17,8 @@ import {
 
 const USERS_MANAGE_PERMISSION = "users.manage";
 const DEFAULT_GET_USER_LIST_LIMIT = 10;
+const DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT = 10;
+const DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT = 10;
 
 export function getUsersRouter(
     userManagementOperator: UserManagementOperator,
@@ -151,6 +153,133 @@ export function getUsersRouter(
             await userRoleManagementOperator.removeUserRoleFromUser(
                 userId,
                 userRoleId
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/users/:userId/manageable-image-users",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const imageOfUserId = +req.body.image_of_user_id;
+            const canEdit = req.body.can_edit || false;
+            const userCanManageUserImage =
+                await userManagementOperator.addUserCanManageUserImage(
+                    userId,
+                    imageOfUserId,
+                    canEdit
+                );
+            res.json({
+                user_can_manage_user_image: userCanManageUserImage,
+            });
+        })
+    );
+
+    router.get(
+        "/api/users/:userId/manageable-image-users",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const offset = +req.body.offset || 0;
+            const limit =
+                +req.body.limit ||
+                DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT;
+            const { totalUserCount, userList } =
+                await userManagementOperator.getUserCanManageUserImageListOfUser(
+                    userId,
+                    offset,
+                    limit
+                );
+            res.json({
+                total_user_count: totalUserCount,
+                user_list: userList,
+            });
+        })
+    );
+
+    router.patch(
+        "/api/users/:userId/manageable-image-users/:imageOfUserId",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const imageOfUserId = +req.params.imageOfUserId;
+            const canEdit = req.body.can_edit || false;
+            const userCanManageUserImage =
+                await userManagementOperator.updateUserCanManageUserImage(
+                    userId,
+                    imageOfUserId,
+                    canEdit
+                );
+            res.json({
+                user_can_manage_user_image: userCanManageUserImage,
+            });
+        })
+    );
+
+    router.delete(
+        "/api/users/:userId/manageable-image-users/:imageOfUserId",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const imageOfUserId = +req.params.imageOfUserId;
+            await userManagementOperator.deleteUserCanManageUserImage(
+                userId,
+                imageOfUserId
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/users/:userId/verifiable-image-users",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const imageOfUserId = +req.body.image_of_user_id;
+            const userCanVerifyUserImage =
+                await userManagementOperator.addUserCanVerifyUserImage(
+                    userId,
+                    imageOfUserId
+                );
+            res.json({
+                user_can_verify_user_image: userCanVerifyUserImage,
+            });
+        })
+    );
+
+    router.get(
+        "/api/users/:userId/verifiable-image-users",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const offset = +req.body.offset || 0;
+            const limit =
+                +req.body.limit ||
+                DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT;
+            const { totalUserCount, userList } =
+                await userManagementOperator.getUserCanVerifyUserImageListOfUser(
+                    userId,
+                    offset,
+                    limit
+                );
+            res.json({
+                total_user_count: totalUserCount,
+                user_list: userList,
+            });
+        })
+    );
+
+    router.delete(
+        "/api/users/:userId/verifiable-image-users/:imageOfUserId",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const imageOfUserId = +req.params.imageOfUserId;
+            await userManagementOperator.deleteUserCanVerifyUserImage(
+                userId,
+                imageOfUserId
             );
             res.json({});
         })

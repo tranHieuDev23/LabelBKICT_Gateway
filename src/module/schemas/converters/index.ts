@@ -28,6 +28,14 @@ import {
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
 } from "./region_proto_to_region";
 import {
+    UserCanManageUserImageProtoToUserCanManageUserImageImpl,
+    USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
+} from "./user_can_manage_user_image_proto_to_user_can_manage_user_image";
+import {
+    UserCanVerifyUserImageProtoToUserCanVerifyUserImageImpl,
+    USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
+} from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
+import {
     UserIdToUserConverterImpl,
     USER_ID_TO_USER_CONVERTER_TOKEN,
 } from "./user_id_to_user";
@@ -40,6 +48,8 @@ export * from "./filter_options_to_filter_options_proto";
 export * from "./region_operation_log_proto_to_region_operation_log";
 export * from "./export_proto_to_export";
 export * from "./pinned_page_proto_to_pinned_page";
+export * from "./user_can_manage_user_image_proto_to_user_can_manage_user_image";
+export * from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
 
 export function bindToContainer(container: Container): void {
     container
@@ -75,5 +85,17 @@ export function bindToContainer(container: Container): void {
     container
         .bind(PINNED_PAGE_PROTO_TO_PINNED_PAGE_CONVERTER_TOKEN)
         .toInstance(PinnedPageProtoToPinnedPageConverterImpl)
+        .inSingletonScope();
+    container
+        .bind(
+            USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN
+        )
+        .toInstance(UserCanManageUserImageProtoToUserCanManageUserImageImpl)
+        .inSingletonScope();
+    container
+        .bind(
+            USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN
+        )
+        .toInstance(UserCanVerifyUserImageProtoToUserCanVerifyUserImageImpl)
         .inSingletonScope();
 }
