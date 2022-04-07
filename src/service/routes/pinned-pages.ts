@@ -5,7 +5,6 @@ import {
     PinnedPageManagementOperator,
     PINNED_PAGE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/pinned_pages";
-import { _ExportType_Values } from "../../proto/gen/ExportType";
 import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
