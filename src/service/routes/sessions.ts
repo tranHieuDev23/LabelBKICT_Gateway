@@ -153,7 +153,7 @@ export function getSessionsRouter(
             const query = `${req.query.query}`;
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
             const userList =
-                await imageListManagementOperator.getUserManageableImageUserList(
+                await imageListManagementOperator.searchUserManageableImageUserList(
                     authenticatedUserInformation,
                     query,
                     limit
@@ -199,7 +199,7 @@ export function getSessionsRouter(
             const query = `${req.query.query}`;
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
             const userList =
-                await imageListManagementOperator.getUserVerifiableImageUserList(
+                await imageListManagementOperator.searchUserVerifiableImageUserList(
                     authenticatedUserInformation,
                     query,
                     limit
@@ -245,7 +245,7 @@ export function getSessionsRouter(
             const query = `${req.query.query}`;
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
             const userList =
-                await imageListManagementOperator.getUserExportableImageUserList(
+                await imageListManagementOperator.searchUserExportableImageUserList(
                     authenticatedUserInformation,
                     query,
                     limit

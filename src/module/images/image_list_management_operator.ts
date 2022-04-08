@@ -32,6 +32,10 @@ import {
 import {
     ImageInfoProvider,
     IMAGE_INFO_PROVIDER_TOKEN,
+    UserCanManageUserImageInfoProvider,
+    UserCanVerifyUserImageInfoProvider,
+    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import { UserServiceClient } from "../../proto/gen/UserService";
 
@@ -56,7 +60,7 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
-    getUserManageableImageUserList(
+    searchUserManageableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
@@ -72,7 +76,7 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
-    getUserVerifiableImageUserList(
+    searchUserVerifiableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
@@ -88,7 +92,7 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
-    getUserExportableImageUserList(
+    searchUserExportableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
@@ -128,6 +132,8 @@ export class ImageListManagementOperatorImpl
 
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
+        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
+        private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userServiceDM: UserServiceClient,
@@ -283,15 +289,29 @@ export class ImageListManagementOperatorImpl
         return { totalImageCount, imageList, imageTagList };
     }
 
-    public async getUserManageableImageUserList(
+    public async searchUserManageableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
     ): Promise<User[]> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanManageUserImageList =
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
+                userId
+            );
+        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+        userCanManageUserImageUserIdList.push(userId);
+
         const { error: searchUserError, response: searchUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.searchUser.bind(this.userServiceDM),
-                { query, limit }
+                {
+                    query,
+                    limit,
+                    includedUserIdList: userCanManageUserImageUserIdList,
+                }
             );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
@@ -302,7 +322,6 @@ export class ImageListManagementOperatorImpl
                 getHttpCodeFromGRPCStatus(searchUserError.code)
             );
         }
-
         const userProtoList = searchUserResponse?.userList || [];
         return userProtoList.map((userProto) => User.fromProto(userProto));
     }
@@ -318,11 +337,33 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanManageUserImageList =
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
+                userId
+            );
+        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+
+        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
+        if (userCanManageUserImageUserIdList.length > 0) {
+            uploadedByUserIdList = Array.from(
+                new Set([
+                    ...uploadedByUserIdList,
+                    ...userCanManageUserImageUserIdList,
+                    userId,
+                ])
+            );
+        }
+
         const filterOptionsProto =
             this.filterOptionsToFilterOptionsProto.convert(
                 authenticatedUserInfo,
                 filterOptions
             );
+        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
+
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
@@ -362,15 +403,29 @@ export class ImageListManagementOperatorImpl
         return { totalImageCount, imageList, imageTagList };
     }
 
-    public async getUserVerifiableImageUserList(
+    public async searchUserVerifiableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
     ): Promise<User[]> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanVerifyUserImageList =
+            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
+                userId
+            );
+        const userCanVerifyUserImageUserIdList = userCanVerifyUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+        userCanVerifyUserImageUserIdList.push(userId);
+
         const { error: searchUserError, response: searchUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.searchUser.bind(this.userServiceDM),
-                { query, limit }
+                {
+                    query,
+                    limit,
+                    includedUserIdList: userCanVerifyUserImageUserIdList,
+                }
             );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
@@ -397,15 +452,37 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanVerifyUserImageList =
+            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
+                userId
+            );
+        const userCanVerifyUserImageUserIdList = userCanVerifyUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+
+        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
+        if (userCanVerifyUserImageUserIdList.length > 0) {
+            uploadedByUserIdList = Array.from(
+                new Set([
+                    ...uploadedByUserIdList,
+                    ...userCanVerifyUserImageUserIdList,
+                    userId,
+                ])
+            );
+        }
+
         const filterOptionsProto =
             this.filterOptionsToFilterOptionsProto.convert(
                 authenticatedUserInfo,
                 filterOptions
             );
+        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
         filterOptionsProto.imageStatusList = [
             ImageStatus.PUBLISHED,
             ImageStatus.VERIFIED,
         ];
+
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
@@ -445,7 +522,7 @@ export class ImageListManagementOperatorImpl
         return { totalImageCount, imageList, imageTagList };
     }
 
-    public async getUserExportableImageUserList(
+    public async searchUserExportableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
         limit: number
@@ -596,6 +673,8 @@ export class ImageListManagementOperatorImpl
 injected(
     ImageListManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
+    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_SERVICE_DM_TOKEN,
