@@ -39,7 +39,7 @@ export class ExportProtoToExportConverterImpl
             exportProto?.id || 0,
             requestedByUser,
             this.getTypeFromTypeProto(exportProto?.type),
-            +(exportProto?.expireTime || 0),
+            +(exportProto?.requestTime || 0),
             this.getStatusFromStatusProto(exportProto?.status),
             +(exportProto?.expireTime || 0),
             exportProto?.exportedFileFilename || ""
