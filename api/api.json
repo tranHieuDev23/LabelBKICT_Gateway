@@ -322,6 +322,10 @@
                     "must_be_bookmarked": {
                         "type": "boolean",
                         "description": "If true, images in the results must be bookmarked by the session user."
+                    },
+                    "must_have_description": {
+                        "type": "boolean",
+                        "description": "If true, images in the results must have non-empty description."
                     }
                 }
             },
@@ -3923,6 +3927,17 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "must_have_description",
+                        "description": "If equal to 1, images in the results must have non-empty description.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -4273,6 +4288,17 @@
                     {
                         "name": "must_be_bookmarked",
                         "description": "If equal to 1, images in the results must be bookmarked by the session user.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_have_description",
+                        "description": "If equal to 1, images in the results must have non-empty description.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -4637,6 +4663,17 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "must_have_description",
+                        "description": "If equal to 1, images in the results must have non-empty description.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -4987,6 +5024,17 @@
                     {
                         "name": "must_be_bookmarked",
                         "description": "If equal to 1, images in the results must be bookmarked by the session user.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_have_description",
+                        "description": "If equal to 1, images in the results must have non-empty description.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -5525,6 +5573,17 @@
                     {
                         "name": "must_be_bookmarked",
                         "description": "If equal to 1, images in the results must be bookmarked by the session user.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "must_have_description",
+                        "description": "If equal to 1, images in the results must have non-empty description.",
                         "in": "query",
                         "schema": {
                             "type": "integer",

@@ -38,6 +38,7 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
             bookmarkedByUserIdList: filterOptions.must_be_bookmarked
                 ? [authUserInfo.user.id]
                 : [],
+            mustHaveDescription: filterOptions.must_have_description,
         };
     }
 }

@@ -51,6 +51,8 @@ export function getImageListFilterOptionsFromQueryParams(
         +(queryParams.must_match_all_region_labels || 0) === 1;
     filterOptions.must_be_bookmarked =
         +(queryParams.must_be_bookmarked || 0) === 1;
+    filterOptions.must_have_description =
+        +(queryParams.must_have_description || 0) === 1;
     return filterOptions;
 }
 
@@ -83,5 +85,7 @@ export function getImageListFilterOptionsFromBody(
         filter_options.must_match_all_region_labels || false;
     filterOptions.must_be_bookmarked =
         filter_options.must_be_bookmarked || false;
+    filterOptions.must_have_description =
+        filter_options.must_have_description || false;
     return filterOptions;
 }
