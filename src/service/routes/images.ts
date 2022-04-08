@@ -115,7 +115,7 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const { image, imageTagList, regionList } =
+            const { image, imageTagList, regionList, canEdit } =
                 await imageManagementOperator.getImage(
                     authenticatedUserInfo,
                     imageId
@@ -124,6 +124,7 @@ export function getImagesRouter(
                 image: image,
                 image_tag_list: imageTagList,
                 region_list: regionList,
+                can_edit: canEdit,
             });
         })
     );

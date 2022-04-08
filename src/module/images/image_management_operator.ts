@@ -55,6 +55,7 @@ export interface ImageManagementOperator {
         image: Image;
         imageTagList: ImageTag[];
         regionList: Region[];
+        canEdit: boolean;
     }>;
     getImageRegionSnapshotList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -170,12 +171,14 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         image: Image;
         imageTagList: ImageTag[];
         regionList: Region[];
+        canEdit: boolean;
     }> {
         const {
             image: imageProto,
             imageTagList: imageTagProtoList,
             regionList: regionProtoList,
         } = await this.imageInfoProvider.getImage(imageId, true, true);
+
         const canUserAccessImage =
             await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
@@ -199,7 +202,13 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 this.regionProtoToRegionConverter.convert(regionProto)
             )
         );
-        return { image, imageTagList, regionList };
+        const canEdit =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            );
+
+        return { image, imageTagList, regionList, canEdit };
     }
 
     public async getImageRegionSnapshotList(
