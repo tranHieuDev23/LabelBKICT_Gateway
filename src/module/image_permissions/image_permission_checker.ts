@@ -1,5 +1,4 @@
 import { Image as ImageProto } from "../../proto/gen/Image";
-import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 import { AuthenticatedUserInformation } from "../../service/utils";
 
 export interface ImagePermissionChecker {
