@@ -28,9 +28,10 @@ import {
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
 } from "../schemas";
 import {
-    ImagesManageAllChecker,
-    ImagesManageSelfChecker,
-    ImagesVerifyAllChecker,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
+    ImagePermissionChecker,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -114,14 +115,11 @@ export interface ImageManagementOperator {
 }
 
 export class ImageManagementOperatorImpl implements ImageManagementOperator {
-    private readonly managePermissionChecker = new ImagesManageSelfChecker(
-        new ImagesManageAllChecker(null)
-    );
-    private readonly manageAndVerifyPermissionChecker =
-        new ImagesVerifyAllChecker(this.managePermissionChecker);
-
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
+        private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
@@ -178,12 +176,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             imageTagList: imageTagProtoList,
             regionList: regionProtoList,
         } = await this.imageInfoProvider.getImage(imageId, true, true);
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -214,12 +212,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -272,12 +270,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -322,12 +320,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -372,12 +370,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -429,12 +427,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -477,12 +475,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -526,12 +524,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.managePermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -568,12 +566,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -620,12 +618,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -681,12 +679,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -744,12 +742,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -799,12 +797,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false,
             false
         );
-        if (
-            !this.managePermissionChecker.checkUserHasPermissionForImage(
+        const canUserAccessImage =
+            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -835,6 +833,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 injected(
     ImageManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,

@@ -11,9 +11,9 @@ import {
     promisifyGRPCCall,
 } from "../../utils";
 import {
-    ImagesManageAllChecker,
-    ImagesManageSelfChecker,
-    ImagesVerifyAllChecker,
+    ImagePermissionChecker,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -63,13 +63,10 @@ export interface RegionManagementOperator {
 }
 
 export class RegionManagementOperatorImpl implements RegionManagementOperator {
-    private readonly manageAndVerifyPermissionChecker =
-        new ImagesVerifyAllChecker(
-            new ImagesManageSelfChecker(new ImagesManageAllChecker(null))
-        );
-
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
+        private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly regionOperationLogProtoToRegionOperationLogConverter: RegionOperationLogProtoToRegionOperationLogConverter,
         private readonly imageServiceDM: ImageServiceClient,
@@ -89,7 +86,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             true
         );
         if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             )
@@ -144,7 +141,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             true
         );
         if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             )
@@ -200,7 +197,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             true
         );
         if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             )
@@ -256,7 +253,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             true
         );
         if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             )
@@ -300,7 +297,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             true
         );
         if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+            !this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             )
@@ -352,6 +349,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
 injected(
     RegionManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,

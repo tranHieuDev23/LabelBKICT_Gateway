@@ -25,9 +25,9 @@ import {
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
 } from "../schemas";
 import {
-    ImagesManageAllChecker,
-    ImagesManageSelfChecker,
-    ImagesVerifyAllChecker,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
+    ImagePermissionChecker,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -124,16 +124,12 @@ export interface ImageListManagementOperator {
 export class ImageListManagementOperatorImpl
     implements ImageListManagementOperator
 {
-    private readonly managePermissionChecker = new ImagesManageSelfChecker(
-        new ImagesManageAllChecker(null)
-    );
-    private readonly manageAndVerifyPermissionChecker =
-        new ImagesVerifyAllChecker(this.managePermissionChecker);
-
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
+        private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userServiceDM: UserServiceClient,
@@ -146,27 +142,30 @@ export class ImageListManagementOperatorImpl
         imageIdList: number[],
         imageTypeId: number
     ): Promise<void> {
-        for (const imageId of imageIdList) {
-            const { image } = await this.imageInfoProvider.getImage(
-                imageId,
-                false,
-                false
-            );
-            if (
-                !this.managePermissionChecker.checkUserHasPermissionForImage(
-                    authenticatedUserInfo,
-                    image
-                )
-            ) {
-                this.logger.error("user is not allowed to access image", {
-                    userId: authenticatedUserInfo.user.id,
+        const imageList = await Promise.all(
+            imageIdList.map(async (imageId) => {
+                const { image } = await this.imageInfoProvider.getImage(
                     imageId,
-                });
-                throw new ErrorWithHTTPCode(
-                    "Failed to update image list",
-                    httpStatus.FORBIDDEN
+                    false,
+                    false
                 );
-            }
+                return image;
+            })
+        );
+
+        const canUserAccessImageList =
+            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+                authenticatedUserInfo,
+                imageList
+            );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update image list",
+                httpStatus.FORBIDDEN
+            );
         }
 
         const { error: updateImageListImageTypeError } =
@@ -192,27 +191,30 @@ export class ImageListManagementOperatorImpl
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
-        for (const imageId of imageIdList) {
-            const { image } = await this.imageInfoProvider.getImage(
-                imageId,
-                false,
-                false
-            );
-            if (
-                !this.managePermissionChecker.checkUserHasPermissionForImage(
-                    authenticatedUserInfo,
-                    image
-                )
-            ) {
-                this.logger.error("user is not allowed to access image", {
-                    userId: authenticatedUserInfo.user.id,
+        const imageList = await Promise.all(
+            imageIdList.map(async (imageId) => {
+                const { image } = await this.imageInfoProvider.getImage(
                     imageId,
-                });
-                throw new ErrorWithHTTPCode(
-                    "Failed to delete image list",
-                    httpStatus.FORBIDDEN
+                    false,
+                    false
                 );
-            }
+                return image;
+            })
+        );
+
+        const canUserAccessImageList =
+            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+                authenticatedUserInfo,
+                imageList
+            );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image list",
+                httpStatus.FORBIDDEN
+            );
         }
 
         const { error: deleteImageListError } = await promisifyGRPCCall(
@@ -617,12 +619,13 @@ export class ImageListManagementOperatorImpl
             false,
             false
         );
-        if (
-            !this.manageAndVerifyPermissionChecker.checkUserHasPermissionForImage(
+
+        const canUSerAccessImage =
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
-            )
-        ) {
+            );
+        if (!canUSerAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
@@ -675,6 +678,8 @@ injected(
     IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_SERVICE_DM_TOKEN,
