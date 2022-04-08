@@ -576,7 +576,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false
         );
         const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             );
@@ -628,7 +628,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false
         );
         const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             );
@@ -689,7 +689,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false
         );
         const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             );
@@ -752,7 +752,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             false
         );
         const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
                 authenticatedUserInfo,
                 imageProto
             );
