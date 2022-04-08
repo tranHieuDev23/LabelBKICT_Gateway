@@ -891,6 +891,27 @@
                                     "$ref": "#/components/schemas/Token"
                                 }
                             }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user_can_manage_user_image": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "can_edit": {
+                                                    "type": "boolean",
+                                                    "description": "If true, the user can edit images of this user. If false, the user can only view the images."
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     "400": {
@@ -1064,6 +1085,27 @@
                                     "$ref": "#/components/schemas/Token"
                                 }
                             }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user_can_manage_user_image": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "can_edit": {
+                                                    "type": "boolean",
+                                                    "description": "If true, the user can edit images of this user. If false, the user can only view the images."
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     },
                     "400": {
@@ -1185,6 +1227,23 @@
                                 "description": "Renewed authentication token, if the user old token is about to expire.",
                                 "schema": {
                                     "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user_can_verify_user_image": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
