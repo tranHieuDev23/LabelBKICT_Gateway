@@ -304,7 +304,10 @@ export class ImageListManagementOperatorImpl
         const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
             (item) => item.imageOfUserId || 0
         );
-        userCanManageUserImageUserIdList.push(userId);
+
+        if (userCanManageUserImageUserIdList.length > 0) {
+            userCanManageUserImageUserIdList.push(userId);
+        }
 
         const { error: searchUserError, response: searchUserResponse } =
             await promisifyGRPCCall(
@@ -418,7 +421,10 @@ export class ImageListManagementOperatorImpl
         const userCanVerifyUserImageUserIdList = userCanVerifyUserImageList.map(
             (item) => item.imageOfUserId || 0
         );
-        userCanVerifyUserImageUserIdList.push(userId);
+
+        if (userCanVerifyUserImageUserIdList.length > 0) {
+            userCanVerifyUserImageUserIdList.push(userId);
+        }
 
         const { error: searchUserError, response: searchUserResponse } =
             await promisifyGRPCCall(
