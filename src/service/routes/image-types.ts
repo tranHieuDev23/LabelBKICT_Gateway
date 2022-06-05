@@ -55,6 +55,7 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types",
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const withRegionLabel = +(req.query.with_region_label || 0) === 1;
             const { imageTypeList, regionLabelList } =
@@ -160,7 +161,7 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types/:imageTypeId/image-tag-groups",
-        imageTagsManageAuthMiddleware,
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
             const { imageTagGroupList, imageTagList } =
