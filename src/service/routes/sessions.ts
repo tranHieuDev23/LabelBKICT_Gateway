@@ -14,6 +14,7 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
+    getCookieOptions,
     LABEL_BKICT_AUTH_COOKIE_NAME,
 } from "../utils";
 import { getImageListFilterOptionsFromQueryParams } from "./utils";
@@ -80,7 +81,11 @@ export function getSessionsRouter(
                     username,
                     password
                 );
-            res.cookie(LABEL_BKICT_AUTH_COOKIE_NAME, token).json({
+            res.cookie(
+                LABEL_BKICT_AUTH_COOKIE_NAME,
+                token,
+                getCookieOptions()
+            ).json({
                 user: user,
                 user_role_list: userRoleList,
                 user_permission_list: userPermissionList,

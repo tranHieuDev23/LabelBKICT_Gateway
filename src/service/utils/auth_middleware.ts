@@ -8,6 +8,7 @@ import {
     SESSION_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/sessions";
 import { ErrorWithHTTPCode } from "../../utils";
+import { getCookieOptions } from "./cookie";
 
 export class AuthenticatedUserInformation {
     constructor(
@@ -31,8 +32,6 @@ export interface AuthMiddlewareFactory {
 }
 
 export const LABEL_BKICT_AUTH_COOKIE_NAME = "LABEL_BKICT_AUTH";
-// Authentication cookie should expire in 7 days
-const LABEL_BKICT_AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 export class AuthMiddlewareFactoryImpl implements AuthMiddlewareFactory {
     constructor(
@@ -102,20 +101,12 @@ export class AuthMiddlewareFactoryImpl implements AuthMiddlewareFactory {
                 response.cookie(
                     LABEL_BKICT_AUTH_COOKIE_NAME,
                     newToken,
-                    this.getCookieOptions()
+                    getCookieOptions()
                 );
             }
 
             next();
         });
-    }
-
-    private getCookieOptions(): CookieOptions {
-        return {
-            httpOnly: true,
-            sameSite: "strict",
-            maxAge: LABEL_BKICT_AUTH_COOKIE_MAX_AGE,
-        };
     }
 }
 
