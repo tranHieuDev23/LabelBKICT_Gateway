@@ -3,9 +3,11 @@ import httpStatus from "http-status";
 import { Logger } from "winston";
 import {
     IMAGE_SERVICE_DM_TOKEN,
+    MODEL_SERVICE_DM_TOKEN,
     USER_SERVICE_DM_TOKEN,
 } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
+import { ModelServiceClient } from "../../proto/gen/ModelService";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import {
     ErrorWithHTTPCode,
@@ -46,6 +48,10 @@ export interface ImageListManagementOperator {
         imageTypeId: number
     ): Promise<void>;
     deleteImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<void>;
+    createDetectionTaskImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void>;
@@ -134,6 +140,7 @@ export class ImageListManagementOperatorImpl
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
+        private readonly modelServiceDM: ModelServiceClient,
         private readonly logger: Logger
     ) {}
 
@@ -229,6 +236,52 @@ export class ImageListManagementOperatorImpl
             throw new ErrorWithHTTPCode(
                 "Failed to delete image list",
                 getHttpCodeFromGRPCStatus(deleteImageListError.code)
+            );
+        }
+    }
+
+    public async createDetectionTaskImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<void> {
+        const imageList = await Promise.all(
+            imageIdList.map(async (imageId) => {
+                const { image } = await this.imageInfoProvider.getImage(
+                    imageId,
+                    false,
+                    false
+                );
+                return image;
+            })
+        );
+
+        const canUserAccessImageList =
+            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+                authenticatedUserInfo,
+                imageList
+            );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete image list",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: createDetectionTaskError } = await promisifyGRPCCall(
+            this.modelServiceDM.createDetectionTask.bind(this.modelServiceDM),
+            { imageId: imageIdList }
+        );
+        if (createDetectionTaskError !== null) {
+            this.logger.error(
+                "failed to call model_service.createDetectionTask()",
+                { error: createDetectionTaskError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to create detection task for image(s)",
+                getHttpCodeFromGRPCStatus(createDetectionTaskError.code)
             );
         }
     }
@@ -684,6 +737,7 @@ injected(
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
+    MODEL_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
 

@@ -5919,7 +5919,7 @@
                 }
             }
         },
-        "/api/images/{image_id}/detection-task": {
+        "/api/images/detection-task": {
             "post": {
                 "description": "Request for region detection on the image. User needs to either (1) have `images.manage.self` permission and is updating an image of their own,  (2) have `images.manage.all` permission and is updating an image that they are allowed to edit in order to call this API successfully.",
                 "tags": [
@@ -5930,17 +5930,26 @@
                         "AuthenticationToken": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "image_id",
-                        "in": "path",
-                        "description": "The image to be updated.",
-                        "schema": {
-                            "$ref": "#/components/schemas/Image/properties/id"
-                        },
-                        "required": true
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "imageIdList": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Image/properties/id"
+                                        },
+                                        "description": "The imageID list to be updated.",
+                                        "maxItems": 500
+                                    }
+                                }
+                            }
+                        }
                     }
-                ],
+                },
                 "responses": {
                     "200": {
                         "description": "Requested for region detection successfully.",

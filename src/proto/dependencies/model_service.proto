@@ -5,7 +5,7 @@ service ModelService {
 }
 
 message CreateDetectionTaskRequest {
-    uint32 image_id = 1;
+    repeated uint32 image_id = 1;
 }
 
 message CreateDetectionTaskResponse {}
