@@ -16,6 +16,8 @@ import {
 import {
     ExportInfoProvider,
     EXPORT_INFO_PROVIDER_TOKEN,
+    UserCanManageUserImageInfoProvider,
+    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import {
     Export,
@@ -56,6 +58,7 @@ export interface ExportManagementOperator {
 export class ExportManagementOperatorImpl implements ExportManagementOperator {
     constructor(
         private readonly exportServiceDM: ExportServiceClient,
+        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly exportInfoProvider: ExportInfoProvider,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly exportProtoToExportConverter: ExportProtoToExportConverter,
@@ -67,11 +70,33 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         type: _ExportType_Values,
         filterOptions: ImageListFilterOptions
     ): Promise<Export> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanManageUserImageList =
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
+                userId
+            );
+        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+
+        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
+        if (userCanManageUserImageUserIdList.length > 0) {
+            uploadedByUserIdList = Array.from(
+                new Set([
+                    ...uploadedByUserIdList,
+                    ...userCanManageUserImageUserIdList,
+                    userId,
+                ])
+            );
+        }
+
         const filterOptionsProto =
             this.filterOptionsToFilterOptionsProto.convert(
                 authenticatedUserInfo,
                 filterOptions
             );
+        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
+
         const { error: createExportError, response: createExportResponse } =
             await promisifyGRPCCall(
                 this.exportServiceDM.createExport.bind(this.exportServiceDM),
@@ -224,6 +249,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
 injected(
     ExportManagementOperatorImpl,
     EXPORT_SERVICE_DM_TOKEN,
+    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     EXPORT_INFO_PROVIDER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
