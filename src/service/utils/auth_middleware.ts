@@ -1,5 +1,5 @@
 import { injected, token } from "brandi";
-import { CookieOptions, Request, RequestHandler } from "express";
+import { Request, RequestHandler } from "express";
 import asyncHandler from "express-async-handler";
 import httpStatus from "http-status";
 import { User, UserPermission, UserRole } from "../../module/schemas";
