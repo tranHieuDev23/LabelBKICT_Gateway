@@ -535,21 +535,37 @@ export class ImageListManagementOperatorImpl
         query: string,
         limit: number
     ): Promise<User[]> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanManageUserImageList =
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
+                userId
+            );
+        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+
+        if (userCanManageUserImageUserIdList.length > 0) {
+            userCanManageUserImageUserIdList.push(userId);
+        }
+
         const { error: searchUserError, response: searchUserResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.searchUser.bind(this.userServiceDM),
-                { query, limit }
+                {
+                    query,
+                    limit,
+                    includedUserIdList: userCanManageUserImageUserIdList,
+                }
             );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
                 error: searchUserError,
             });
             throw new ErrorWithHTTPCode(
-                "Failed to get user list with exportable images",
+                "Failed to get user list with manageable images",
                 getHttpCodeFromGRPCStatus(searchUserError.code)
             );
         }
-
         const userProtoList = searchUserResponse?.userList || [];
         return userProtoList.map((userProto) => User.fromProto(userProto));
     }
@@ -565,11 +581,33 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
+        const userId = authenticatedUserInfo.user.id;
+        const userCanManageUserImageList =
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
+                userId
+            );
+        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
+            (item) => item.imageOfUserId || 0
+        );
+
+        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
+        if (userCanManageUserImageUserIdList.length > 0) {
+            uploadedByUserIdList = Array.from(
+                new Set([
+                    ...uploadedByUserIdList,
+                    ...userCanManageUserImageUserIdList,
+                    userId,
+                ])
+            );
+        }
+
         const filterOptionsProto =
             this.filterOptionsToFilterOptionsProto.convert(
                 authenticatedUserInfo,
                 filterOptions
             );
+        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
+
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
                 this.imageServiceDM.getImageList.bind(this.imageServiceDM),
