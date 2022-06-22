@@ -486,10 +486,18 @@ export class ImageListManagementOperatorImpl
                 filterOptions
             );
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-        filterOptionsProto.imageStatusList = [
-            ImageStatus.PUBLISHED,
-            ImageStatus.VERIFIED,
-        ];
+        filterOptionsProto.imageStatusList = filterOptionsProto.imageStatusList?.filter((imageStatus) => {
+            return (
+                imageStatus === ImageStatus.PUBLISHED ||
+                imageStatus === ImageStatus.VERIFIED
+            );
+        });
+        if (!filterOptionsProto.imageStatusList?.length) {
+            filterOptionsProto.imageStatusList = [
+                ImageStatus.PUBLISHED,
+                ImageStatus.VERIFIED,
+            ];
+        }
 
         const { error: getImageListError, response: getImageListResponse } =
             await promisifyGRPCCall(
