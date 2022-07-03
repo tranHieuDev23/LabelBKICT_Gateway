@@ -120,7 +120,9 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
     ): boolean {
         return (
             status === _ImageStatus_Values.PUBLISHED ||
-            status === _ImageStatus_Values.VERIFIED
+            status === "PUBLISHED" ||
+            status === _ImageStatus_Values.VERIFIED ||
+            status === "VERIFIED"
         );
     }
 }

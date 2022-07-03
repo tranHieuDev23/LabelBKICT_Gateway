@@ -31,8 +31,23 @@ export class ImagesManageSelfChecker extends ImagePermissionCheckerDecorator {
         authUserInfo: AuthenticatedUserInformation,
         imageList: ImageProto[]
     ): Promise<boolean> {
-        return imageList.every((image) =>
-            this.checkUserHasPermissionForImage(authUserInfo, image)
-        );
+        if (
+            await super.checkUserHasPermissionForImageList(
+                authUserInfo,
+                imageList
+            )
+        ) {
+            return true;
+        }
+        const { user, userPermissionList } = authUserInfo;
+        if (
+            !checkUserHasUserPermission(
+                userPermissionList,
+                IMAGES_MANAGE_SELF_PERMISSION
+            )
+        ) {
+            return false;
+        }
+        return imageList.every((image) => user.id === image?.uploadedByUserId);
     }
 }
