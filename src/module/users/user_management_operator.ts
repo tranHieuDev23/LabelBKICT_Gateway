@@ -16,12 +16,16 @@ import {
 import { promisifyGRPCCall } from "../../utils/grpc";
 import { UserInfoProvider, USER_INFO_PROVIDER_TOKEN } from "../info_providers";
 import {
+    FilterOptionsToFilterOptionsProtoConverter,
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     User,
     UserCanManageUserImage,
     UserCanManageUserImageProtoToUserCanManageUserImage,
     UserCanVerifyUserImage,
     UserCanVerifyUserImageProtoToUserCanVerifyUserImage,
+    UserListFilterOptions,
     UserRole,
+    UserTag,
     USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
 } from "../schemas";
@@ -36,11 +40,13 @@ export interface UserManagementOperator {
         offset: number,
         limit: number,
         sortOrder: number,
-        withUserRole: boolean
+        withUserRole: boolean,
+        filterOptions: UserListFilterOptions
     ): Promise<{
         totalUserCount: number;
         userList: User[];
         userRoleList: UserRole[][] | undefined;
+        userTagList: UserTag[][];
     }>;
     searchUserList(query: string, limit: number): Promise<User[]>;
     updateUser(
@@ -90,6 +96,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         private readonly imageServiceDM: ImageServiceClient,
         private readonly userCanManageUserImageProtoToUserCanManageUserImageConverter: UserCanManageUserImageProtoToUserCanManageUserImage,
         private readonly userCanVerifyUserImageProtoToUserCanVerifyUserImageConverter: UserCanVerifyUserImageProtoToUserCanVerifyUserImage,
+        private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly logger: Logger
     ) {}
 
@@ -143,17 +150,23 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         offset: number,
         limit: number,
         sortOrder: number,
-        withUserRole: boolean
+        withUserRole: boolean,
+        filterOptions: UserListFilterOptions
     ): Promise<{
         totalUserCount: number;
         userList: User[];
         userRoleList: UserRole[][] | undefined;
+        userTagList: UserTag[][];
     }> {
+        const filterOptionsProto =
+            this.filterOptionsToFilterOptionsProto.convertForUserFilter(
+                filterOptions
+            );
         const sortOrderEnumValue = this.getSortOrderEnumValue(sortOrder);
         const { error: getUserListError, response: getUserListResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.getUserList.bind(this.userServiceDM),
-                { limit, offset, sortOrder: sortOrderEnumValue }
+                { limit, offset, sortOrder: sortOrderEnumValue, filterOptions: filterOptionsProto }
             );
         if (getUserListError !== null) {
             this.logger.error("failed to call user_service.getUserList()", {
@@ -170,11 +183,43 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             getUserListResponse?.userList?.map((userProto) =>
                 User.fromProto(userProto)
             ) || [];
+        
+        const userIdList = userList.map((user) => user.id);
+        const { 
+            error: getUserTagListOfUserListError,
+            response: getUserTagListOfUserListResponse
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserTagListOfUserList.bind(
+                this.userServiceDM
+            ),
+            { userIdList: userIdList }
+        );
+        if (getUserTagListOfUserListError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserTagListOfUserList()",
+                {
+                    error: getUserTagListOfUserListError,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to call user_service.getUserTagListOfUserList()",
+                getHttpCodeFromGRPCStatus(getUserTagListOfUserListError.code)
+            );
+        }
+        const userTagList: UserTag[][] = userList.map(() => []);
+        getUserTagListOfUserListResponse?.userTagListOfUserList?.forEach(
+            (userTagListOfUser, index) => {
+                userTagList[index] =
+                    userTagListOfUser.userTagList?.map((userTagProto) =>
+                        UserTag.fromProto(userTagProto)
+                    ) || [];
+            }
+        );
+
         if (!withUserRole) {
-            return { totalUserCount, userList, userRoleList: undefined };
+            return { totalUserCount, userList, userRoleList: undefined, userTagList };
         }
 
-        const userIdList = userList.map((user) => user.id);
         const {
             error: getUserRoleListOfUserListError,
             response: getUserRoleListOfUserListResponse,
@@ -206,7 +251,8 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                     ) || [];
             }
         );
-        return { totalUserCount, userList, userRoleList };
+        // console.log({ totalUserCount, userList, userRoleList, userTagList })
+        return { totalUserCount, userList, userRoleList, userTagList};
     }
 
     private getSortOrderEnumValue(
@@ -578,6 +624,7 @@ injected(
     IMAGE_SERVICE_DM_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     LOGGER_TOKEN
 );
 

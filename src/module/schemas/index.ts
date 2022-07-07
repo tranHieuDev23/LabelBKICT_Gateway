@@ -4,6 +4,8 @@ import * as converters from "./converters";
 export * from "./user";
 export * from "./user_role";
 export * from "./user_permission";
+export * from "./user_tag";
+export * from "./user_list_filter_options";
 export * from "./image_type";
 export * from "./region_label";
 export * from "./image_tag_group";

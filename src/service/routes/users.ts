@@ -10,10 +10,15 @@ import {
     USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/user_roles";
 import {
+    UserTagManagementOperator,
+    USER_TAG_MANAGEMENT_OPERATOR_TOKEN,
+} from "../../module/user_tags";
+import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
 } from "../utils";
+import { getUserListFilterOptionsFromQueryParams } from "./utils";
 
 const USERS_MANAGE_PERMISSION = "users.manage";
 const DEFAULT_GET_USER_LIST_LIMIT = 10;
@@ -23,6 +28,7 @@ const DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT = 10;
 export function getUsersRouter(
     userManagementOperator: UserManagementOperator,
     userRoleManagementOperator: UserRoleManagementOperator,
+    userTagManagementOperator: UserTagManagementOperator,
     authMiddlewareFactory: AuthMiddlewareFactory
 ): express.Router {
     const router = express.Router();
@@ -74,23 +80,29 @@ export function getUsersRouter(
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const withUserRole = +(req.query.with_user_role || 0) === 1;
-            const { totalUserCount, userList, userRoleList } =
+            const filterOptions = getUserListFilterOptionsFromQueryParams(
+                req.query
+            );
+            const { totalUserCount, userList, userRoleList , userTagList } =
                 await userManagementOperator.getUserList(
                     offset,
                     limit,
                     sortOrder,
-                    withUserRole
+                    withUserRole,
+                    filterOptions
                 );
             if (withUserRole) {
                 res.json({
                     total_user_count: totalUserCount,
                     user_list: userList,
                     user_role_list: userRoleList,
+                    user_tag_list: userTagList,
                 });
             } else {
                 res.json({
                     total_user_count: totalUserCount,
                     user_list: userList,
+                    user_tag_list: userTagList,
                 });
             }
         })
@@ -153,6 +165,34 @@ export function getUsersRouter(
             await userRoleManagementOperator.removeUserRoleFromUser(
                 userId,
                 userRoleId
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/users/:userId/tags",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const userTagId = +req.body.user_tag_id;
+            await userTagManagementOperator.addUserTagToUser(
+                userId,
+                userTagId
+            );
+            res.json({});
+        })
+    );
+
+    router.delete(
+        "/api/users/:userId/tags/:userTagId",
+        usersManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const userId = +req.params.userId;
+            const userTagId = +req.params.userTagId;
+            await userTagManagementOperator.removeUserTagFromUser(
+                userId,
+                userTagId
             );
             res.json({});
         })
@@ -294,6 +334,7 @@ injected(
     getUsersRouter,
     USER_MANAGEMENT_OPERATOR_TOKEN,
     USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
+    USER_TAG_MANAGEMENT_OPERATOR_TOKEN,
     AUTH_MIDDLEWARE_FACTORY_TOKEN
 );
 
