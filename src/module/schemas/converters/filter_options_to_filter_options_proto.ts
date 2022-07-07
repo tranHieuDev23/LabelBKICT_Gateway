@@ -1,13 +1,18 @@
 import { ImageListFilterOptions } from "../image_list_filter_options";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../../proto/gen/ImageListFilterOptions";
+import { UserListFilterOptions as UserListFilterOptionsProto } from "../../../proto/gen/UserListFilterOptions";
 import { injected, token } from "brandi";
 import { AuthenticatedUserInformation } from "../../../service/utils";
+import { UserListFilterOptions } from "../user_list_filter_options";
 
 export interface FilterOptionsToFilterOptionsProtoConverter {
     convert(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto;
+    convertForUserFilter(
+        filterOptions: UserListFilterOptions
+    ): UserListFilterOptionsProto;
 }
 
 export class FilterOptionsToFilterOptionsProtoConverterImpl
@@ -39,6 +44,16 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
                 ? [authUserInfo.user.id]
                 : [],
             mustHaveDescription: filterOptions.must_have_description,
+        };
+    }
+
+    public convertForUserFilter(
+        filterOptions: UserListFilterOptions
+    ): UserListFilterOptionsProto {
+        return {
+            usernameQuery: filterOptions.username_query,
+            userTagIdList: filterOptions.user_tag_id_list,
+            userRoleIdList: filterOptions.user_role_id_list
         };
     }
 }
