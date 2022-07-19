@@ -42,6 +42,7 @@ service UserService {
     rpc AddUserTagToUser(AddUserTagToUserRequest) returns (AddUserTagToUserResponse) {}
     rpc RemoveUserTagFromUser(RemoveUserTagFromUserRequest) returns (RemoveUserTagFromUserResponse) {}
     rpc GetUserTagListOfUserList(GetUserTagListOfUserListRequest) returns (GetUserTagListOfUserListResponse) {}
+    rpc GetUserListOfUserTagList(GetUserListOfUserTagListRequest) returns (GetUserListOfUserTagListResponse) {}
 }
 
 // Business objects
@@ -375,4 +376,13 @@ message GetUserTagListOfUserListRequest {
 
 message GetUserTagListOfUserListResponse {
     repeated UserTagList user_tag_list_of_user_list = 1;
+}
+
+message GetUserListOfUserTagListRequest {
+    repeated uint32 user_tag_id_list = 1;
+}
+
+message GetUserListOfUserTagListResponse {
+    uint32 total_user_count = 1;
+    repeated User user_list = 2;
 }

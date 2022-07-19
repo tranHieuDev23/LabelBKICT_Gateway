@@ -5,6 +5,7 @@ export class ImageListFilterOptions {
     public image_tag_id_list: number[] = [];
     public region_label_id_list: number[] = [];
     public uploaded_by_user_id_list: number[] = [];
+    public not_uploaded_by_user_id_list: number[] = [];
     public published_by_user_id_list: number[] = [];
     public verified_by_user_id_list: number[] = [];
     public upload_time_start = 0;

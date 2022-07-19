@@ -23,6 +23,7 @@ import {
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    UserTag,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -38,6 +39,8 @@ import {
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import { UserServiceClient } from "../../proto/gen/UserService";
+
+const DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS = "Disabled";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -367,6 +370,59 @@ export class ImageListManagementOperatorImpl
                 authenticatedUserInfo,
                 filterOptions
             );
+
+        const { error: getUserTagError, response: getUserTagResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.GetUserTagList.bind(this.userServiceDM),
+                {}
+            );
+        if (getUserTagError !== null) {
+            this.logger.error("failed to call user_service.getUserTagList()", {
+                error: getUserTagError
+            })
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getUserTagError.code)
+            );
+        }
+        const userTagList: UserTag[] =
+            getUserTagResponse?.userTagList?.map((userTagProto) =>
+                UserTag.fromProto(userTagProto)
+            ) || [];
+        const userDisabledTagIndex: number = 
+            userTagList.findIndex((userTag) => userTag.display_name == DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+        let userTagIdList: number[] = [];
+        if (userDisabledTagIndex !== -1) {
+            userTagIdList.push(userTagList[userDisabledTagIndex].id);
+        }
+        
+        const { error: getDisabledUserListError, response: getDisabledUserListResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.GetUserListOfUserTagList.bind(
+                    this.userServiceDM
+                ),
+                { userTagIdList: userTagIdList }
+            );
+        if (getDisabledUserListError !== null) {
+            this.logger.error("failed to call user_service.getUserListOfUserTagList()", {
+                error: getDisabledUserListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getDisabledUserListError.code)
+            );
+        }
+        const userList: User[] =
+            getDisabledUserListResponse?.userList?.map((userProto) =>
+                    User.fromProto(userProto)
+                ) || [];
+        let notUploadedByUserIdList: number[] = userList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
+        })
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
 
         const { error: getImageListError, response: getImageListResponse } =
@@ -485,7 +541,60 @@ export class ImageListManagementOperatorImpl
                 authenticatedUserInfo,
                 filterOptions
             );
+        const { error: getUserTagError, response: getUserTagResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.GetUserTagList.bind(this.userServiceDM),
+                {}
+            );
+        if (getUserTagError !== null) {
+            this.logger.error("failed to call user_service.getUserTagList()", {
+                error: getUserTagError
+            })
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getUserTagError.code)
+            );
+        }
+        const userTagList: UserTag[] =
+            getUserTagResponse?.userTagList?.map((userTagProto) =>
+                UserTag.fromProto(userTagProto)
+            ) || [];
+        const userDisabledTagIndex: number = 
+            userTagList.findIndex((userTag) => userTag.display_name == DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+        let userTagIdList: number[] = [];
+        if (userDisabledTagIndex !== -1) {
+            userTagIdList.push(userTagList[userDisabledTagIndex].id);
+        }
+
+        const { error: getDisabledUserListError, response: getDisabledUserListResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.getUserListOfUserTagList.bind(
+                    this.userServiceDM
+                ),
+                { userTagIdList: userTagIdList }
+            );
+        if (getDisabledUserListError !== null) {
+            this.logger.error("failed to call user_service.getUserListOfUserTagList()", {
+                error: getDisabledUserListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getDisabledUserListError.code)
+            );
+        }
+        const userList: User[] =
+            getDisabledUserListResponse?.userList?.map((userProto) =>
+                    User.fromProto(userProto)
+                ) || [];
+        let notUploadedByUserIdList: number[] = userList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
+        })
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
+
         filterOptionsProto.imageStatusList = filterOptionsProto.imageStatusList?.filter((imageStatus) => {
             return (
                 imageStatus === ImageStatus.PUBLISHED ||
@@ -614,6 +723,58 @@ export class ImageListManagementOperatorImpl
                 authenticatedUserInfo,
                 filterOptions
             );
+        const { error: getUserTagError, response: getUserTagResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.GetUserTagList.bind(this.userServiceDM),
+                {}
+            );
+        if (getUserTagError !== null) {
+            this.logger.error("failed to call user_service.getUserTagList()", {
+                error: getUserTagError
+            })
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getUserTagError.code)
+            );
+        }
+        const userTagList: UserTag[] =
+            getUserTagResponse?.userTagList?.map((userTagProto) =>
+                UserTag.fromProto(userTagProto)
+            ) || [];
+        const userDisabledTagIndex: number = 
+            userTagList.findIndex((userTag) => userTag.display_name == DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+        let userTagIdList: number[] = [];
+        if (userDisabledTagIndex !== -1) {
+            userTagIdList.push(userTagList[userDisabledTagIndex].id);
+        }
+
+        const { error: getDisabledUserListError, response: getDisabledUserListResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.getUserListOfUserTagList.bind(
+                    this.userServiceDM
+                ),
+                { userTagIdList: userTagIdList }
+            );
+        if (getDisabledUserListError !== null) {
+            this.logger.error("failed to call user_service.getUserListOfUserTagList()", {
+                error: getDisabledUserListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user list with manageable images",
+                getHttpCodeFromGRPCStatus(getDisabledUserListError.code)
+            );
+        }
+        const userList: User[] =
+            getDisabledUserListResponse?.userList?.map((userProto) =>
+                    User.fromProto(userProto)
+                ) || [];
+        let notUploadedByUserIdList: number[] = userList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
+        })
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
 
         const { error: getImageListError, response: getImageListResponse } =

@@ -27,6 +27,7 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
             imageTagIdList: filterOptions.image_tag_id_list,
             regionLabelIdList: filterOptions.region_label_id_list,
             uploadedByUserIdList: filterOptions.uploaded_by_user_id_list,
+            notUploadedByUserIdList: filterOptions.not_uploaded_by_user_id_list,
             publishedByUserIdList: filterOptions.published_by_user_id_list,
             verifiedByUserIdList: filterOptions.verified_by_user_id_list,
             uploadTimeStart: filterOptions.upload_time_start,
