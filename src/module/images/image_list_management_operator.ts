@@ -51,7 +51,7 @@ export interface ImageListManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void>;
-    createDetectionTaskImageList(
+    createImageDetectionTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void>;
@@ -240,7 +240,7 @@ export class ImageListManagementOperatorImpl
         }
     }
 
-    public async createDetectionTaskImageList(
+    public async createImageDetectionTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
@@ -271,8 +271,8 @@ export class ImageListManagementOperatorImpl
         }
 
         const { error: createDetectionTaskError } = await promisifyGRPCCall(
-            this.modelServiceDM.createDetectionTask.bind(this.modelServiceDM),
-            { imageId: imageIdList }
+            this.modelServiceDM.CreateDetectionTaskBatch.bind(this.modelServiceDM),
+            { imageIdList: imageIdList }
         );
         if (createDetectionTaskError !== null) {
             this.logger.error(

@@ -268,7 +268,7 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIdList = req.body.imageIdList as number[];
-            await imageListManagementOperator.createDetectionTaskImageList(
+            await imageListManagementOperator.createImageDetectionTaskList(
                 authenticatedUserInfo,
                 imageIdList
             );

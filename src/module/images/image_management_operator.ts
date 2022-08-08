@@ -548,12 +548,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 httpStatus.FORBIDDEN
             );
         }
-        let imageIdList: number[] = [];
-        imageIdList.push(imageId);
 
         const { error: createDetectionTaskError } = await promisifyGRPCCall(
             this.modelServiceDM.createDetectionTask.bind(this.modelServiceDM),
-            { imageId: imageIdList }
+            { imageId: imageId }
         );
         if (createDetectionTaskError !== null) {
             this.logger.error(
