@@ -276,6 +276,23 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             );
         }
 
+        if (password !== undefined) {
+            const { error: updateUserPasswordError } = await promisifyGRPCCall(
+                this.userServiceDM.updateUserPassword.bind(this.userServiceDM),
+                { password: { ofUserId: id, password: password } }
+            );
+            if (updateUserPasswordError !== null) {
+                this.logger.error(
+                    "failed to call user_service.updateUserPassword()",
+                    { error: updateUserPasswordError }
+                );
+                throw new ErrorWithHTTPCode(
+                    "failed to update user's information",
+                    getHttpCodeFromGRPCStatus(updateUserPasswordError.code)
+                );
+            }
+        }
+
         const user = User.fromProto(updateUserResponse?.user);
         return user;
     }
