@@ -2,6 +2,7 @@ syntax = "proto3";
 
 service ModelService {
     rpc CreateDetectionTask(CreateDetectionTaskRequest) returns (CreateDetectionTaskResponse) {}
+    rpc CreateDetectionTaskBatch(CreateDetectionTaskBatchRequest) returns (CreateDetectionTaskBatchResponse) {}
 }
 
 message CreateDetectionTaskRequest {
@@ -9,3 +10,9 @@ message CreateDetectionTaskRequest {
 }
 
 message CreateDetectionTaskResponse {}
+
+message CreateDetectionTaskBatchRequest {
+    repeated uint32 image_id_list = 1;
+}
+
+message CreateDetectionTaskBatchResponse {} 

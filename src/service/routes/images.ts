@@ -262,15 +262,15 @@ export function getImagesRouter(
     );
 
     router.post(
-        "/api/images/:imageId/detection-task",
+        "/api/images/detection-task",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageId = +req.params.imageId;
-            await imageManagementOperator.createDetectionTaskForImage(
+            const imageIdList = req.body.image_id_list as number[];
+            await imageListManagementOperator.createImageDetectionTaskList(
                 authenticatedUserInfo,
-                imageId
+                imageIdList
             );
             res.json({});
         })
