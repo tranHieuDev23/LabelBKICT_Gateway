@@ -83,7 +83,7 @@ export function getUsersRouter(
             const filterOptions = getUserListFilterOptionsFromQueryParams(
                 req.query
             );
-            const { totalUserCount, userList, userRoleList , userTagList } =
+            const { totalUserCount, userList, userRoleList, userTagList } =
                 await userManagementOperator.getUserList(
                     offset,
                     limit,
@@ -176,10 +176,7 @@ export function getUsersRouter(
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
             const userTagId = +req.body.user_tag_id;
-            await userTagManagementOperator.addUserTagToUser(
-                userId,
-                userTagId
-            );
+            await userTagManagementOperator.addUserTagToUser(userId, userTagId);
             res.json({});
         })
     );

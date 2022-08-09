@@ -159,14 +159,19 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         userTagList: UserTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertForUserFilter(
+            this.filterOptionsToFilterOptionsProto.convertUserFilterOptions(
                 filterOptions
             );
         const sortOrderEnumValue = this.getSortOrderEnumValue(sortOrder);
         const { error: getUserListError, response: getUserListResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.getUserList.bind(this.userServiceDM),
-                { limit, offset, sortOrder: sortOrderEnumValue, filterOptions: filterOptionsProto }
+                {
+                    limit,
+                    offset,
+                    sortOrder: sortOrderEnumValue,
+                    filterOptions: filterOptionsProto,
+                }
             );
         if (getUserListError !== null) {
             this.logger.error("failed to call user_service.getUserList()", {
@@ -183,11 +188,11 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             getUserListResponse?.userList?.map((userProto) =>
                 User.fromProto(userProto)
             ) || [];
-        
+
         const userIdList = userList.map((user) => user.id);
-        const { 
+        const {
             error: getUserTagListOfUserListError,
-            response: getUserTagListOfUserListResponse
+            response: getUserTagListOfUserListResponse,
         } = await promisifyGRPCCall(
             this.userServiceDM.getUserTagListOfUserList.bind(
                 this.userServiceDM
@@ -217,7 +222,12 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         );
 
         if (!withUserRole) {
-            return { totalUserCount, userList, userRoleList: undefined, userTagList };
+            return {
+                totalUserCount,
+                userList,
+                userRoleList: undefined,
+                userTagList,
+            };
         }
 
         const {
@@ -251,8 +261,7 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                     ) || [];
             }
         );
-        // console.log({ totalUserCount, userList, userRoleList, userTagList })
-        return { totalUserCount, userList, userRoleList, userTagList};
+        return { totalUserCount, userList, userRoleList, userTagList };
     }
 
     private getSortOrderEnumValue(

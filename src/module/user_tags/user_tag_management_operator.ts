@@ -71,13 +71,11 @@ export class UserTagManagementOperatorImpl
         userTagList: UserTag[];
     }> {
         const sortOrderEnumValue = this.getSortOrderEnumValue(sortOrder);
-        const {
-            error: getUserTagListError,
-            response: getUserTagListResponse,
-        } = await promisifyGRPCCall(
-            this.userServiceDM.getUserTagList.bind(this.userServiceDM),
-            { limit, offset, sortOrder: sortOrderEnumValue }
-        );
+        const { error: getUserTagListError, response: getUserTagListResponse } =
+            await promisifyGRPCCall(
+                this.userServiceDM.getUserTagList.bind(this.userServiceDM),
+                { limit, offset, sortOrder: sortOrderEnumValue }
+            );
         if (getUserTagListError !== null) {
             this.logger.error("failed to call user_service.getUserTagList()", {
                 error: getUserTagListError,
@@ -126,9 +124,7 @@ export class UserTagManagementOperatorImpl
         const { error: updateUserTagError, response: updateUserTagResponse } =
             await promisifyGRPCCall(
                 this.userServiceDM.updateUserTag.bind(this.userServiceDM),
-                {
-                    userTag: { id, displayName, description },
-                }
+                { userTag: { id, displayName, description } }
             );
         if (updateUserTagError !== null) {
             this.logger.error("failed to call user_service.updateUserTag()", {

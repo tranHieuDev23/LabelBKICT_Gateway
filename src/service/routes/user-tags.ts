@@ -31,7 +31,7 @@ export function getUserTagsRouter(
         );
 
     router.post(
-        "/api/tags",
+        "/api/user-tags",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
@@ -45,13 +45,11 @@ export function getUserTagsRouter(
     );
 
     router.get(
-        "/api/tags",
+        "/api/user-tags",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
-            const limit = +(
-                req.query.limit || DEFAULT_GET_USER_TAG_LIST_LIMIT
-            );
+            const limit = +(req.query.limit || DEFAULT_GET_USER_TAG_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const { totalUserTagCount, userTagList } =
                 await userTagManagementOperator.getUserTagList(
@@ -67,7 +65,7 @@ export function getUserTagsRouter(
     );
 
     router.patch(
-        "/api/tags/:userTagId",
+        "/api/user-tags/:userTagId",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;
@@ -83,7 +81,7 @@ export function getUserTagsRouter(
     );
 
     router.delete(
-        "/api/tags/:userTagId",
+        "/api/user-tags/:userTagId",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;
