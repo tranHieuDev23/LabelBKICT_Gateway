@@ -270,18 +270,21 @@ export class ImageListManagementOperatorImpl
             );
         }
 
-        const { error: createDetectionTaskError } = await promisifyGRPCCall(
-            this.modelServiceDM.CreateDetectionTaskBatch.bind(this.modelServiceDM),
-            { imageIdList: imageIdList }
-        );
-        if (createDetectionTaskError !== null) {
+        const { error: createDetectionTaskBatchError } =
+            await promisifyGRPCCall(
+                this.modelServiceDM.CreateDetectionTaskBatch.bind(
+                    this.modelServiceDM
+                ),
+                { imageIdList: imageIdList }
+            );
+        if (createDetectionTaskBatchError !== null) {
             this.logger.error(
                 "failed to call model_service.createDetectionTask()",
-                { error: createDetectionTaskError }
+                { error: createDetectionTaskBatchError }
             );
             throw new ErrorWithHTTPCode(
                 "Failed to create detection task for image(s)",
-                getHttpCodeFromGRPCStatus(createDetectionTaskError.code)
+                getHttpCodeFromGRPCStatus(createDetectionTaskBatchError.code)
             );
         }
     }

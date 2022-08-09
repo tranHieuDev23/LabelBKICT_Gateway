@@ -551,7 +551,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
         const { error: createDetectionTaskError } = await promisifyGRPCCall(
             this.modelServiceDM.createDetectionTask.bind(this.modelServiceDM),
-            { imageId: imageId }
+            { imageId }
         );
         if (createDetectionTaskError !== null) {
             this.logger.error(

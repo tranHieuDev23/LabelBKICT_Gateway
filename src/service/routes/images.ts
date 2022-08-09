@@ -267,7 +267,7 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIdList = req.body.imageIdList as number[];
+            const imageIdList = req.body.image_id_list as number[];
             await imageListManagementOperator.createImageDetectionTaskList(
                 authenticatedUserInfo,
                 imageIdList
