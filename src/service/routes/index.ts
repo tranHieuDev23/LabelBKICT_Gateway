@@ -18,10 +18,7 @@ import {
     getPinnedPagesRouter,
     PINNED_PAGES_ROUTER_TOKEN,
 } from "./pinned-pages";
-import { 
-    getUserTagsRouter, 
-    USER_TAGS_ROUTER_TOKEN 
-} from "./tags";
+import { getUserTagsRouter, USER_TAGS_ROUTER_TOKEN } from "./user-tags";
 
 export const ROUTES_TOKEN = token<express.Router[]>("Routes");
 
@@ -42,7 +39,7 @@ export function bindToContainer(container: Container): void {
         .bind(USER_PERMISSIONS_ROUTER_TOKEN)
         .toInstance(getUserPermissionsRouter)
         .inSingletonScope();
-        container
+    container
         .bind(USER_TAGS_ROUTER_TOKEN)
         .toInstance(getUserTagsRouter)
         .inSingletonScope();

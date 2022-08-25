@@ -6,11 +6,11 @@ import { AuthenticatedUserInformation } from "../../../service/utils";
 import { UserListFilterOptions } from "../user_list_filter_options";
 
 export interface FilterOptionsToFilterOptionsProtoConverter {
-    convert(
+    convertImageFilterOptions(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto;
-    convertForUserFilter(
+    convertUserFilterOptions(
         filterOptions: UserListFilterOptions
     ): UserListFilterOptionsProto;
 }
@@ -18,7 +18,7 @@ export interface FilterOptionsToFilterOptionsProtoConverter {
 export class FilterOptionsToFilterOptionsProtoConverterImpl
     implements FilterOptionsToFilterOptionsProtoConverter
 {
-    public convert(
+    public convertImageFilterOptions(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto {
@@ -48,13 +48,13 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
         };
     }
 
-    public convertForUserFilter(
+    public convertUserFilterOptions(
         filterOptions: UserListFilterOptions
     ): UserListFilterOptionsProto {
         return {
             usernameQuery: filterOptions.username_query,
             userTagIdList: filterOptions.user_tag_id_list,
-            userRoleIdList: filterOptions.user_role_id_list
+            userRoleIdList: filterOptions.user_role_id_list,
         };
     }
 }

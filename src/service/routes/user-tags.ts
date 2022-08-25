@@ -67,9 +67,7 @@ export function getUserTagsRouter(
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
-            const limit = +(
-                req.query.limit || DEFAULT_GET_USER_TAG_LIST_LIMIT
-            );
+            const limit = +(req.query.limit || DEFAULT_GET_USER_TAG_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const { totalUserTagCount, userTagList } =
                 await userTagManagementOperator.getUserTagList(

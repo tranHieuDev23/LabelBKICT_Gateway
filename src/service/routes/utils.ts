@@ -1,5 +1,8 @@
 import { ParsedQs } from "qs";
-import { ImageListFilterOptions, UserListFilterOptions } from "../../module/schemas";
+import {
+    ImageListFilterOptions,
+    UserListFilterOptions,
+} from "../../module/schemas";
 import { getIdListFromQueryParam } from "../utils";
 
 export function getImageListFilterOptionsFromQueryParams(
@@ -92,18 +95,16 @@ export function getImageListFilterOptionsFromBody(
 
 export function getUserListFilterOptionsFromQueryParams(
     queryParams: ParsedQs
-): UserListFilterOptions{
+): UserListFilterOptions {
     const filterOptions = new UserListFilterOptions();
     filterOptions.user_role_id_list =
         queryParams.filter_user_roles === undefined
             ? []
             : (queryParams.filter_user_roles as string[]).map((item) => +item);
     filterOptions.user_tag_id_list =
-    queryParams.filter_user_tags === undefined
-        ? []
-        : (queryParams.filter_user_tags as string[]).map((item) => +item);
-    filterOptions.username_query = `${
-        queryParams.username_query || ""
-    }`;
+        queryParams.filter_user_tags === undefined
+            ? []
+            : (queryParams.filter_user_tags as string[]).map((item) => +item);
+    filterOptions.username_query = `${queryParams.username_query || ""}`;
     return filterOptions;
 }
