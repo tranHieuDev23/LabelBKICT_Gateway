@@ -8,7 +8,7 @@ import {
     LOGGER_TOKEN,
     promisifyGRPCCall,
 } from "../../utils";
-import { User, UserPermission, UserRole } from "../schemas";
+import { User, UserPermission, UserRole, UserTag } from "../schemas";
 
 export interface SessionManagementOperator {
     loginWithPassword(
@@ -25,6 +25,7 @@ export interface SessionManagementOperator {
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
+        userTagList: UserTag[];
         newToken: string | null;
     }>;
 }
@@ -97,6 +98,7 @@ export class SessionManagementOperatorImpl
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
+        userTagList: UserTag[];
         newToken: string | null;
     }> {
         const {
@@ -123,8 +125,11 @@ export class SessionManagementOperatorImpl
         const userPermissionList = await this.getUserPermissionListOfUser(
             user.id
         );
+        const userTagList = await this.getUserTagListOfUser(
+            user.id
+        );
 
-        return { user, userRoleList, userPermissionList, newToken };
+        return { user, userRoleList, userPermissionList, userTagList, newToken };
     }
 
     private async getUserRoleListOfUser(userId: number): Promise<UserRole[]> {
@@ -189,6 +194,37 @@ export class SessionManagementOperatorImpl
             getUserPermissionListOfUserResponse?.userPermissionList?.map(
                 (userPermissionProto) =>
                     UserPermission.fromProto(userPermissionProto)
+            ) || []
+        );
+    }
+
+    private async getUserTagListOfUser(
+        userId: number
+    ): Promise<UserTag[]> {
+        const {
+            error: getUserTagListOfUserError,
+            response: getUserTagListOfUserResponse,
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserTagListOfUser.bind(
+                this.userServiceDM
+            ),
+            { userId: userId }
+        );
+        if (getUserTagListOfUserError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserTagListOfUser()",
+                { error: getUserTagListOfUserError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to log in with password",
+                getHttpCodeFromGRPCStatus(getUserTagListOfUserError.code)
+            );
+        }
+
+        return (
+            getUserTagListOfUserResponse?.userTagList?.map(
+                (userTagProto) =>
+                    UserTag.fromProto(userTagProto)
             ) || []
         );
     }

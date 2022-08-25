@@ -17,11 +17,13 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
+    checkUserIsDisabled,
     getCommaSeparatedIdList,
 } from "../utils";
 import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
+const USER_DISABLED_TAG = "disabled";
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -35,6 +37,14 @@ export function getImagesRouter(
         () => true,
         true
     );
+    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserIsDisabled(
+                authUserInfo.userTagList,
+                USER_DISABLED_TAG
+            ),
+            true
+    );
     const imagesUploadAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserHasUserPermission(
@@ -46,6 +56,8 @@ export function getImagesRouter(
 
     router.post(
         "/api/images",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         imagesUploadAuthMiddleware,
         asyncHandler(async (req, res) => {
             const fileList = req.files as Express.Multer.File[];
@@ -79,6 +91,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -96,6 +109,7 @@ export function getImagesRouter(
     router.delete(
         "/api/images",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -111,6 +125,7 @@ export function getImagesRouter(
     router.get(
         "/api/images/:imageId",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -132,6 +147,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -149,6 +165,7 @@ export function getImagesRouter(
     router.delete(
         "/api/images/:imageId",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -164,6 +181,7 @@ export function getImagesRouter(
     router.get(
         "/api/images/:imageId/region-snapshots",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -184,6 +202,7 @@ export function getImagesRouter(
     router.get(
         "/api/images/:imageId/position",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -213,6 +232,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId/image-type",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -230,6 +250,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId/status",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -247,6 +268,7 @@ export function getImagesRouter(
     router.post(
         "/api/images/:imageId/tags",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -264,6 +286,7 @@ export function getImagesRouter(
     router.post(
         "/api/images/:imageId/detection-task",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -279,6 +302,7 @@ export function getImagesRouter(
     router.post(
         "/api/images/:imageId/bookmark",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -299,6 +323,7 @@ export function getImagesRouter(
     router.get(
         "/api/images/:imageId/bookmark",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -317,6 +342,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId/bookmark",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -337,6 +363,7 @@ export function getImagesRouter(
     router.delete(
         "/api/images/:imageId/bookmark",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -352,6 +379,7 @@ export function getImagesRouter(
     router.delete(
         "/api/images/:imageId/tags/:imageTagId",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -369,6 +397,7 @@ export function getImagesRouter(
     router.post(
         "/api/images/:imageId/regions",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -390,6 +419,7 @@ export function getImagesRouter(
     router.delete(
         "/api/images/:imageId/regions/:regionId",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -407,6 +437,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId/regions/:regionId/boundary",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -428,6 +459,7 @@ export function getImagesRouter(
     router.patch(
         "/api/images/:imageId/regions/:regionId/label",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -447,6 +479,7 @@ export function getImagesRouter(
     router.get(
         "/api/images/:imageId/regions/:regionId/operation-logs",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;

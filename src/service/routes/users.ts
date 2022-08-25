@@ -17,10 +17,12 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
+    checkUserIsDisabled,
 } from "../utils";
 import { getUserListFilterOptionsFromQueryParams } from "./utils";
 
 const USERS_MANAGE_PERMISSION = "users.manage";
+const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_USER_LIST_LIMIT = 10;
 const DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT = 10;
 const DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT = 10;
@@ -36,6 +38,14 @@ export function getUsersRouter(
     const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         () => true,
         true
+    );
+    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserIsDisabled(
+                authUserInfo.userTagList,
+                USER_DISABLED_TAG
+            ),
+            true
     );
     const usersManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
@@ -59,6 +69,8 @@ export function getUsersRouter(
 
     router.post(
         "/api/users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const username = req.body.username as string;
             const displayName = req.body.display_name as string;
@@ -74,6 +86,8 @@ export function getUsersRouter(
 
     router.get(
         "/api/users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
@@ -111,6 +125,7 @@ export function getUsersRouter(
     router.get(
         "/api/users/search",
         userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         asyncHandler(async (req, res) => {
             const query = `${req.query.query || ""}`;
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
@@ -126,6 +141,8 @@ export function getUsersRouter(
 
     router.patch(
         "/api/users/:userId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         sameUserOrUsersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -144,6 +161,8 @@ export function getUsersRouter(
 
     router.post(
         "/api/users/:userId/roles",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -158,6 +177,8 @@ export function getUsersRouter(
 
     router.delete(
         "/api/users/:userId/roles/:userRoleId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -172,6 +193,8 @@ export function getUsersRouter(
 
     router.post(
         "/api/users/:userId/tags",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -186,6 +209,8 @@ export function getUsersRouter(
 
     router.delete(
         "/api/users/:userId/tags/:userTagId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -200,6 +225,8 @@ export function getUsersRouter(
 
     router.post(
         "/api/users/:userId/manageable-image-users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -219,6 +246,8 @@ export function getUsersRouter(
 
     router.get(
         "/api/users/:userId/manageable-image-users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -242,6 +271,8 @@ export function getUsersRouter(
 
     router.patch(
         "/api/users/:userId/manageable-image-users/:imageOfUserId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -261,6 +292,8 @@ export function getUsersRouter(
 
     router.delete(
         "/api/users/:userId/manageable-image-users/:imageOfUserId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -275,6 +308,8 @@ export function getUsersRouter(
 
     router.post(
         "/api/users/:userId/verifiable-image-users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -292,6 +327,8 @@ export function getUsersRouter(
 
     router.get(
         "/api/users/:userId/verifiable-image-users",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -315,6 +352,8 @@ export function getUsersRouter(
 
     router.delete(
         "/api/users/:userId/verifiable-image-users/:imageOfUserId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
