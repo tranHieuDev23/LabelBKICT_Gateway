@@ -13,7 +13,6 @@ import {
 } from "../utils";
 
 const USER_TAGS_MANAGE_PERMISSION = "user_tags.manage";
-const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_USER_TAG_LIST_LIMIT = 10;
 
 export function getUserTagsRouter(
@@ -29,8 +28,7 @@ export function getUserTagsRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

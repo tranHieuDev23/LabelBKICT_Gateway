@@ -23,7 +23,6 @@ import {
 import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
-const USER_DISABLED_TAG = "disabled";
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -40,8 +39,7 @@ export function getImagesRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

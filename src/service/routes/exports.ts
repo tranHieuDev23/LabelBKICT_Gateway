@@ -17,7 +17,6 @@ import {
 import { getImageListFilterOptionsFromBody } from "./utils";
 
 const IMAGES_EXPORT_PERMISSION = "images.export";
-const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_EXPORT_LIST_LIMIT = 10;
 
 export function getExportsRouter(
@@ -33,8 +32,7 @@ export function getExportsRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

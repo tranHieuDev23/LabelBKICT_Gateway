@@ -8,6 +8,7 @@ import {
     LOGGER_TOKEN,
     promisifyGRPCCall,
 } from "../../utils";
+import { UserTagInfoProvider, USER_TAG_INFO_PROVIDER_TOKEN } from "../info_providers";
 import { User, UserPermission, UserRole, UserTag } from "../schemas";
 
 const USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS_USER = "Disabled";
@@ -37,6 +38,7 @@ export class SessionManagementOperatorImpl
 {
     constructor(
         private readonly userServiceDM: UserServiceClient,
+        private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly logger: Logger
     ) {}
 
@@ -73,30 +75,7 @@ export class SessionManagementOperatorImpl
         const user = User.fromProto(loginWithPasswordResponse?.user);
         const token = loginWithPasswordResponse?.token || "";
 
-        const {
-            error: getUserTagListOfUserError,
-            response: getUserTagListOfUserResponse
-        } = await promisifyGRPCCall(
-            this.userServiceDM.getUserTagListOfUser.bind(this.userServiceDM),
-            {
-                userId: user.id,
-            }
-        );
-        if (getUserTagListOfUserError !==null) {
-            this.logger.error(
-                "failed to call user_service.getUserTagListOfUSer()",
-                { error: getUserTagListOfUserError }
-            );
-            throw new ErrorWithHTTPCode(
-                "failed to get user tag list of user",
-                getHttpCodeFromGRPCStatus(getUserTagListOfUserError.code)
-            )
-        }
-
-        const userTagList: UserTag[] =
-            getUserTagListOfUserResponse?.userTagList?.map((userTagProto) =>
-                UserTag.fromProto(userTagProto)
-            ) || [];
+        const userTagList = await this.userTagInfoProvider.getUserTagListOfUser(user.id);
         for (const userTag of userTagList) {
             if (
                 userTag.display_name ===
@@ -165,7 +144,7 @@ export class SessionManagementOperatorImpl
         const userPermissionList = await this.getUserPermissionListOfUser(
             user.id
         );
-        const userTagList = await this.getUserTagListOfUser(
+        const userTagList = await this.userTagInfoProvider.getUserTagListOfUser(
             user.id
         );
 
@@ -237,40 +216,9 @@ export class SessionManagementOperatorImpl
             ) || []
         );
     }
-
-    private async getUserTagListOfUser(
-        userId: number
-    ): Promise<UserTag[]> {
-        const {
-            error: getUserTagListOfUserError,
-            response: getUserTagListOfUserResponse,
-        } = await promisifyGRPCCall(
-            this.userServiceDM.getUserTagListOfUser.bind(
-                this.userServiceDM
-            ),
-            { userId: userId }
-        );
-        if (getUserTagListOfUserError !== null) {
-            this.logger.error(
-                "failed to call user_service.getUserTagListOfUser()",
-                { error: getUserTagListOfUserError }
-            );
-            throw new ErrorWithHTTPCode(
-                "failed to log in with password",
-                getHttpCodeFromGRPCStatus(getUserTagListOfUserError.code)
-            );
-        }
-
-        return (
-            getUserTagListOfUserResponse?.userTagList?.map(
-                (userTagProto) =>
-                    UserTag.fromProto(userTagProto)
-            ) || []
-        );
-    }
 }
 
-injected(SessionManagementOperatorImpl, USER_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(SessionManagementOperatorImpl, USER_SERVICE_DM_TOKEN, USER_TAG_INFO_PROVIDER_TOKEN, LOGGER_TOKEN);
 
 export const SESSION_MANAGEMENT_OPERATOR_TOKEN =
     token<SessionManagementOperator>("SessionManagementOperator");

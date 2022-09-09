@@ -13,7 +13,6 @@ import {
 } from "../utils";
 
 const IMAGE_TAGS_MANAGE_PERMISSION = "image_tags.manage";
-const USER_DISABLED_TAG = "disabled";
 
 export function getImageTagGroupsRouter(
     imageTagManagementOperator: ImageTagManagementOperator,
@@ -28,8 +27,7 @@ export function getImageTagGroupsRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

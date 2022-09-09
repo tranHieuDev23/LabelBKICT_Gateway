@@ -662,6 +662,17 @@
                         }
                     },
                     {
+                        "name": "with_user_tag",
+                        "description": "If equal to 1, will return the list of user tags each user in the list has.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
                         "name": "username_query",
                         "description": "If provided, filter for user that have user name or display name containing this query string (case insensitive).",
                         "in": "query",
@@ -743,7 +754,7 @@
                                                     "$ref": "#/components/schemas/UserTag"
                                                 }
                                             },
-                                            "description": "The list of user tags each user in user_list has, in the same order."
+                                            "description": "If with_user_tag = 1, this field is the list of user tags each user in user_list has, in the same order. If with_user_tag = 0, this field is not returned."
                                         }
                                     }
                                 }

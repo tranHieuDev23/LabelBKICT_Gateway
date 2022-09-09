@@ -22,7 +22,6 @@ import {
 import { getUserListFilterOptionsFromQueryParams } from "./utils";
 
 const USERS_MANAGE_PERMISSION = "users.manage";
-const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_USER_LIST_LIMIT = 10;
 const DEFAULT_GET_USER_CAN_MANAGE_USER_IMAGE_LIST_LIMIT = 10;
 const DEFAULT_GET_USER_CAN_VERIFY_USER_IMAGE_LIST_LIMIT = 10;
@@ -42,8 +41,7 @@ export function getUsersRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );
@@ -94,6 +92,7 @@ export function getUsersRouter(
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const withUserRole = +(req.query.with_user_role || 0) === 1;
+            const withUserTag = +(req.query.with_user_role || 0) === 1;
             const filterOptions = getUserListFilterOptionsFromQueryParams(
                 req.query
             );
@@ -103,22 +102,20 @@ export function getUsersRouter(
                     limit,
                     sortOrder,
                     withUserRole,
+                    withUserTag,
                     filterOptions
                 );
-            if (withUserRole) {
-                res.json({
-                    total_user_count: totalUserCount,
-                    user_list: userList,
-                    user_role_list: userRoleList,
-                    user_tag_list: userTagList,
-                });
-            } else {
-                res.json({
-                    total_user_count: totalUserCount,
-                    user_list: userList,
-                    user_tag_list: userTagList,
-                });
+
+            const returnObject: Record<string, any> = {};
+            returnObject.total_user_count = totalUserCount;
+            returnObject.user_list = userList;
+            if (withUserRole) [
+                returnObject.user_role_list = userRoleList,
+            ]
+            if (withUserTag) {
+                returnObject.user_tag_list = userTagList;
             }
+            res.json(returnObject);
         })
     );
 

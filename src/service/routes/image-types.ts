@@ -17,7 +17,6 @@ import {
 } from "../utils";
 
 const IMAGE_TYPES_MANAGE_PERMISSION = "image_types.manage";
-const USER_DISABLED_TAG = "disabled";
 
 export function getImageTypesRouter(
     imageTypeManagementOperator: ImageTypeManagementOperator,
@@ -33,8 +32,7 @@ export function getImageTypesRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

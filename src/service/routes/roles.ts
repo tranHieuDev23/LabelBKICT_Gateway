@@ -17,7 +17,6 @@ import {
 } from "../utils";
 
 const USER_ROLES_MANAGE_PERMISSION = "user_roles.manage";
-const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_USER_ROLE_LIST_LIMIT = 10;
 
 export function getUserRolesRouter(
@@ -34,8 +33,7 @@ export function getUserRolesRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

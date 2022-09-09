@@ -13,7 +13,6 @@ import {
 } from "../utils";
 
 const USER_PERMISSIONS_MANAGE_PERMISSION = "user_permissions.manage";
-const USER_DISABLED_TAG = "disabled";
 
 export function getUserPermissionsRouter(
     userPermissionManagementOperator: UserPermissionManagementOperator,
@@ -28,8 +27,7 @@ export function getUserPermissionsRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );

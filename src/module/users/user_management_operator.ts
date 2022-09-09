@@ -41,12 +41,13 @@ export interface UserManagementOperator {
         limit: number,
         sortOrder: number,
         withUserRole: boolean,
+        withUserTag: boolean,
         filterOptions: UserListFilterOptions
     ): Promise<{
         totalUserCount: number;
         userList: User[];
         userRoleList: UserRole[][] | undefined;
-        userTagList: UserTag[][];
+        userTagList: UserTag[][] | undefined;
     }>;
     searchUserList(query: string, limit: number): Promise<User[]>;
     updateUser(
@@ -151,12 +152,13 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
         limit: number,
         sortOrder: number,
         withUserRole: boolean,
+        withUserTag: boolean,
         filterOptions: UserListFilterOptions
     ): Promise<{
         totalUserCount: number;
         userList: User[];
         userRoleList: UserRole[][] | undefined;
-        userTagList: UserTag[][];
+        userTagList: UserTag[][] | undefined;
     }> {
         const filterOptionsProto =
             this.filterOptionsToFilterOptionsProto.convertUserFilterOptions(
@@ -190,45 +192,6 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
             ) || [];
 
         const userIdList = userList.map((user) => user.id);
-        const {
-            error: getUserTagListOfUserListError,
-            response: getUserTagListOfUserListResponse,
-        } = await promisifyGRPCCall(
-            this.userServiceDM.getUserTagListOfUserList.bind(
-                this.userServiceDM
-            ),
-            { userIdList: userIdList }
-        );
-        if (getUserTagListOfUserListError !== null) {
-            this.logger.error(
-                "failed to call user_service.getUserTagListOfUserList()",
-                {
-                    error: getUserTagListOfUserListError,
-                }
-            );
-            throw new ErrorWithHTTPCode(
-                "failed to call user_service.getUserTagListOfUserList()",
-                getHttpCodeFromGRPCStatus(getUserTagListOfUserListError.code)
-            );
-        }
-        const userTagList: UserTag[][] = userList.map(() => []);
-        getUserTagListOfUserListResponse?.userTagListOfUserList?.forEach(
-            (userTagListOfUser, index) => {
-                userTagList[index] =
-                    userTagListOfUser.userTagList?.map((userTagProto) =>
-                        UserTag.fromProto(userTagProto)
-                    ) || [];
-            }
-        );
-
-        if (!withUserRole) {
-            return {
-                totalUserCount,
-                userList,
-                userRoleList: undefined,
-                userTagList,
-            };
-        }
 
         const {
             error: getUserRoleListOfUserListError,
@@ -261,7 +224,44 @@ export class UserManagementOperatorImpl implements UserManagementOperator {
                     ) || [];
             }
         );
-        return { totalUserCount, userList, userRoleList, userTagList };
+
+        const {
+            error: getUserTagListOfUserListError,
+            response: getUserTagListOfUserListResponse,
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserTagListOfUserList.bind(
+                this.userServiceDM
+            ),
+            { userIdList: userIdList }
+        );
+        if (getUserTagListOfUserListError !== null) {
+            this.logger.error(
+                "failed to call user_service.getUserTagListOfUserList()",
+                {
+                    error: getUserTagListOfUserListError,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to call user_service.getUserTagListOfUserList()",
+                getHttpCodeFromGRPCStatus(getUserTagListOfUserListError.code)
+            );
+        }
+        const userTagList: UserTag[][] = userList.map(() => []);
+        getUserTagListOfUserListResponse?.userTagListOfUserList?.forEach(
+            (userTagListOfUser, index) => {
+                userTagList[index] =
+                    userTagListOfUser.userTagList?.map((userTagProto) =>
+                        UserTag.fromProto(userTagProto)
+                    ) || [];
+            }
+        );
+
+        return { 
+            totalUserCount, 
+            userList, 
+            userRoleList: withUserRole? userRoleList:undefined,
+            userTagList: withUserTag? userTagList:undefined 
+        };
     }
 
     private getSortOrderEnumValue(

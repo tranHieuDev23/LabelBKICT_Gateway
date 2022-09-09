@@ -12,7 +12,6 @@ import {
     checkUserIsDisabled,
 } from "../utils";
 
-const USER_DISABLED_TAG = "disabled";
 const DEFAULT_GET_PINNED_PAGE_LIST_LIMIT = 10;
 
 export function getPinnedPagesRouter(
@@ -28,8 +27,7 @@ export function getPinnedPagesRouter(
     const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserIsDisabled(
-                authUserInfo.userTagList,
-                USER_DISABLED_TAG
+                authUserInfo.userTagList
             ),
             true
     );
