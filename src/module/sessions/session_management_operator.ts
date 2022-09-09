@@ -10,6 +10,8 @@ import {
 } from "../../utils";
 import { User, UserPermission, UserRole, UserTag } from "../schemas";
 
+const USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS_USER = "Disabled";
+
 export interface SessionManagementOperator {
     loginWithPassword(
         username: string,
@@ -70,6 +72,44 @@ export class SessionManagementOperatorImpl
 
         const user = User.fromProto(loginWithPasswordResponse?.user);
         const token = loginWithPasswordResponse?.token || "";
+
+        const {
+            error: getUserTagListOfUserError,
+            response: getUserTagListOfUserResponse
+        } = await promisifyGRPCCall(
+            this.userServiceDM.getUserTagListOfUser.bind(this.userServiceDM),
+            {
+                userId: user.id,
+            }
+        );
+        if (getUserTagListOfUserError !==null) {
+            this.logger.error(
+                "failed to call user_service.getUserTagListOfUSer()",
+                { error: getUserTagListOfUserError }
+            );
+            throw new ErrorWithHTTPCode(
+                "failed to get user tag list of user",
+                getHttpCodeFromGRPCStatus(getUserTagListOfUserError.code)
+            )
+        }
+
+        const userTagList: UserTag[] =
+            getUserTagListOfUserResponse?.userTagList?.map((userTagProto) =>
+                UserTag.fromProto(userTagProto)
+            ) || [];
+        for (const userTag of userTagList) {
+            if (
+                userTag.display_name ===
+                USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS_USER
+            ) {
+                this.logger.error("user is disabled", { username });
+                throw new ErrorWithHTTPCode(
+                    `user ${username} is disabled`,
+                    getHttpCodeFromGRPCStatus(0)
+                );
+            }
+        }
+
         const userRoleList = await this.getUserRoleListOfUser(user.id);
         const userPermissionList = await this.getUserPermissionListOfUser(
             user.id
