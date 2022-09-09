@@ -388,6 +388,21 @@ export function getImagesRouter(
     );
 
     router.delete(
+        "/api/images/:imageId/regions",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals
+                .authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            await regionManagementOperator.deleteRegionOfImage(
+                authenticatedUserInfo,
+                imageId
+            );
+            res.json({});
+        })
+    );
+
+    router.delete(
         "/api/images/:imageId/regions/:regionId",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {

@@ -43,6 +43,7 @@ service ImageService {
     rpc UpdateRegionBoundary(UpdateRegionBoundaryRequest) returns (UpdateRegionBoundaryResponse) {}
     rpc UpdateRegionRegionLabel(UpdateRegionRegionLabelRequest) returns (UpdateRegionRegionLabelResponse) {}
     rpc DeleteRegion(DeleteRegionRequest) returns (DeleteRegionResponse) {}
+    rpc DeleteRegionOfImage(DeleteRegionOfImageRequest) returns (DeleteRegionOfImageResponse) {}
 
     rpc GetRegionSnapshotListOfImage(GetRegionSnapshotListOfImageRequest) returns (GetRegionSnapshotListOfImageResponse) {}
 
@@ -204,6 +205,7 @@ message ImageListFilterOptions {
     bool must_match_all_region_labels = 16;
     repeated uint32 bookmarked_by_user_id_list = 17;
     bool must_have_description = 18;
+    repeated uint32 not_uploaded_by_user_id_list = 19;
 }
 
 message ImageBookmark {
@@ -542,6 +544,12 @@ message DeleteRegionRequest {
 }
 
 message DeleteRegionResponse {}
+
+message DeleteRegionOfImageRequest {
+    uint32 of_image_id = 1;
+}
+
+message DeleteRegionOfImageResponse {}
 
 message GetRegionSnapshotListOfImageRequest {
     uint32 of_image_id = 1;

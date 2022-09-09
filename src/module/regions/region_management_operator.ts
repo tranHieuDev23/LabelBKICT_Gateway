@@ -55,6 +55,10 @@ export interface RegionManagementOperator {
         imageId: number,
         regionId: number
     ): Promise<void>;
+    deleteRegionOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void>;
     getRegionOperationLogList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number,
@@ -282,6 +286,47 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
             throw new ErrorWithHTTPCode(
                 "Failed to delete region",
                 getHttpCodeFromGRPCStatus(deleteRegionError.code)
+            );
+        }
+    }
+
+    public async deleteRegionOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<void> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(
+            imageId,
+            true,
+            true
+        );
+        if (
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+                authenticatedUserInfo,
+                imageProto
+            )
+        ) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create region",
+                httpStatus.FORBIDDEN
+            );
+        }
+
+        const { error: deleteRegionOfImageError } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteRegionOfImage.bind(this.imageServiceDM),
+            { ofImageId: imageId }
+        );
+        if (deleteRegionOfImageError !== null) {
+            this.logger.error(
+                "failed to call image_service.deleteRegionOfImage()",
+                { error: deleteRegionOfImageError }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to delete region of image",
+                getHttpCodeFromGRPCStatus(deleteRegionOfImageError.code)
             );
         }
     }
