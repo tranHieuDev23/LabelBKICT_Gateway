@@ -19,8 +19,13 @@ import {
     UserInfoProviderImpl,
     USER_INFO_PROVIDER_TOKEN,
 } from "./user_info_provider";
+import {
+    UserTagInfoProviderImpl,
+    USER_TAG_INFO_PROVIDER_TOKEN,
+} from "./user_tag_info_provider";
 
 export * from "./user_info_provider";
+export * from "./user_tag_info_provider";
 export * from "./image_info_provider";
 export * from "./export_info_provider";
 export * from "./user_can_manage_user_image_info_provider";
@@ -47,4 +52,8 @@ export function bindToContainer(container: Container): void {
         .bind(USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN)
         .toInstance(UserCanVerifyUserImageInfoProviderImpl)
         .inSingletonScope();
+    container
+        .bind(USER_TAG_INFO_PROVIDER_TOKEN)
+        .toInstance(UserTagInfoProviderImpl)
+        .inSingletonScope
 }

@@ -91,7 +91,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );

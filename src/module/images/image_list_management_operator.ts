@@ -25,6 +25,7 @@ import {
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    UserTag,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -36,10 +37,14 @@ import {
     IMAGE_INFO_PROVIDER_TOKEN,
     UserCanManageUserImageInfoProvider,
     UserCanVerifyUserImageInfoProvider,
+    UserTagInfoProvider,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    USER_TAG_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import { UserServiceClient } from "../../proto/gen/UserService";
+
+const DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS = "Disabled";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -134,6 +139,7 @@ export class ImageListManagementOperatorImpl
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
+        private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
@@ -301,7 +307,7 @@ export class ImageListManagementOperatorImpl
         imageTagList: ImageTag[][];
     }> {
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );
@@ -419,10 +425,19 @@ export class ImageListManagementOperatorImpl
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );
+
+        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
+        });
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
 
         const { error: getImageListError, response: getImageListResponse } =
@@ -537,17 +552,29 @@ export class ImageListManagementOperatorImpl
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );
-        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-        filterOptionsProto.imageStatusList = filterOptionsProto.imageStatusList?.filter((imageStatus) => {
-            return (
-                imageStatus === ImageStatus.PUBLISHED ||
-                imageStatus === ImageStatus.VERIFIED
-            );
+        
+        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+
+        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
         });
+        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
+
+        filterOptionsProto.imageStatusList =
+            filterOptionsProto.imageStatusList?.filter((imageStatus) => {
+                return (
+                    imageStatus === ImageStatus.PUBLISHED ||
+                    imageStatus === ImageStatus.VERIFIED
+                );
+            });
         if (!filterOptionsProto.imageStatusList?.length) {
             filterOptionsProto.imageStatusList = [
                 ImageStatus.PUBLISHED,
@@ -666,10 +693,20 @@ export class ImageListManagementOperatorImpl
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );
+
+        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
+        
+        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
+        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
+
+        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
+        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
+            return !notUploadedByUserIdSet.has(userId);
+        });
         filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
 
         const { error: getImageListError, response: getImageListResponse } =
@@ -745,7 +782,7 @@ export class ImageListManagementOperatorImpl
         }
 
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
                 authenticatedUserInfo,
                 filterOptions
             );
@@ -786,6 +823,7 @@ injected(
     IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    USER_TAG_INFO_PROVIDER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,

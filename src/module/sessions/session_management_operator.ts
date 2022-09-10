@@ -8,7 +8,10 @@ import {
     LOGGER_TOKEN,
     promisifyGRPCCall,
 } from "../../utils";
-import { User, UserPermission, UserRole } from "../schemas";
+import { UserTagInfoProvider, USER_TAG_INFO_PROVIDER_TOKEN } from "../info_providers";
+import { User, UserPermission, UserRole, UserTag } from "../schemas";
+
+const USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS_USER = "Disabled";
 
 export interface SessionManagementOperator {
     loginWithPassword(
@@ -25,6 +28,7 @@ export interface SessionManagementOperator {
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
+        userTagList: UserTag[];
         newToken: string | null;
     }>;
 }
@@ -34,6 +38,7 @@ export class SessionManagementOperatorImpl
 {
     constructor(
         private readonly userServiceDM: UserServiceClient,
+        private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly logger: Logger
     ) {}
 
@@ -69,6 +74,21 @@ export class SessionManagementOperatorImpl
 
         const user = User.fromProto(loginWithPasswordResponse?.user);
         const token = loginWithPasswordResponse?.token || "";
+
+        const userTagList = await this.userTagInfoProvider.getUserTagListOfUser(user.id);
+        for (const userTag of userTagList) {
+            if (
+                userTag.display_name ===
+                USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS_USER
+            ) {
+                this.logger.error("user is disabled", { username });
+                throw new ErrorWithHTTPCode(
+                    `user ${username} is disabled`,
+                    getHttpCodeFromGRPCStatus(0)
+                );
+            }
+        }
+
         const userRoleList = await this.getUserRoleListOfUser(user.id);
         const userPermissionList = await this.getUserPermissionListOfUser(
             user.id
@@ -97,6 +117,7 @@ export class SessionManagementOperatorImpl
         user: User;
         userRoleList: UserRole[];
         userPermissionList: UserPermission[];
+        userTagList: UserTag[];
         newToken: string | null;
     }> {
         const {
@@ -123,8 +144,11 @@ export class SessionManagementOperatorImpl
         const userPermissionList = await this.getUserPermissionListOfUser(
             user.id
         );
+        const userTagList = await this.userTagInfoProvider.getUserTagListOfUser(
+            user.id
+        );
 
-        return { user, userRoleList, userPermissionList, newToken };
+        return { user, userRoleList, userPermissionList, userTagList, newToken };
     }
 
     private async getUserRoleListOfUser(userId: number): Promise<UserRole[]> {
@@ -194,7 +218,7 @@ export class SessionManagementOperatorImpl
     }
 }
 
-injected(SessionManagementOperatorImpl, USER_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(SessionManagementOperatorImpl, USER_SERVICE_DM_TOKEN, USER_TAG_INFO_PROVIDER_TOKEN, LOGGER_TOKEN);
 
 export const SESSION_MANAGEMENT_OPERATOR_TOKEN =
     token<SessionManagementOperator>("SessionManagementOperator");

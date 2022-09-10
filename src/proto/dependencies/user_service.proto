@@ -33,6 +33,17 @@ service UserService {
     rpc GetUserPermissionListOfUserRoleList(GetUserPermissionListOfUserRoleListRequest) returns (GetUserPermissionListOfUserRoleListResponse) {}
 
     rpc GetUserPermissionListOfUser(GetUserPermissionListOfUserRequest) returns (GetUserPermissionListOfUserResponse) {}
+
+    rpc CreateUserTag(CreateUserTagRequest) returns (CreateUserTagResponse) {}
+    rpc UpdateUserTag(UpdateUserTagRequest) returns (UpdateUserTagResponse) {}
+    rpc DeleteUserTag(DeleteUserTagRequest) returns (DeleteUserTagResponse) {}
+    rpc GetUserTagList(GetUserTagListRequest) returns (GetUserTagListResponse) {}
+
+    rpc AddUserTagToUser(AddUserTagToUserRequest) returns (AddUserTagToUserResponse) {}
+    rpc RemoveUserTagFromUser(RemoveUserTagFromUserRequest) returns (RemoveUserTagFromUserResponse) {}
+    rpc GetUserTagListOfUser(GetUserTagListOfUserRequest) returns (GetUserTagListOfUserResponse) {}
+    rpc GetUserTagListOfUserList(GetUserTagListOfUserListRequest) returns (GetUserTagListOfUserListResponse) {}
+    rpc GetUserListOfUserTagList(GetUserListOfUserTagListRequest) returns (GetUserListOfUserTagListResponse) {}
 }
 
 // Business objects
@@ -87,6 +98,31 @@ message UserPermissionList {
     repeated UserPermission user_permission_list = 1;
 }
 
+message UserTag {
+    uint32 id = 1;
+    string display_name = 2;
+    string description = 3;
+}
+
+message UserTagList {
+    repeated UserTag user_tag_list = 1;
+}
+
+message UserTagListSortOrder {
+    enum Values {
+        ID_ASCENDING = 0;
+        ID_DESCENDING = 1;
+        DISPLAY_NAME_ASCENDING = 2;
+        DISPLAY_NAME_DESCENDING = 3;
+    }
+}
+
+message UserListFilterOptions {
+    string username_query= 1;
+    repeated uint32 user_tag_id_list = 2;
+    repeated uint32 user_role_id_list = 3;
+}
+
 // Request and response bodies of API calls
 message CreateUserRequest {
     string username = 1;
@@ -109,6 +145,7 @@ message GetUserListRequest {
     uint32 offset = 1;
     uint32 limit = 2;
     UserListSortOrder.Values sort_order = 3;
+    UserListFilterOptions filter_options = 4;
 }
 
 message GetUserListResponse {
@@ -284,4 +321,77 @@ message GetUserPermissionListOfUserRequest {
 
 message GetUserPermissionListOfUserResponse {
     repeated UserPermission user_permission_list = 2;
+}
+
+message CreateUserTagRequest {
+    string display_name = 1;
+    string description = 2;
+}
+
+message CreateUserTagResponse {
+    UserTag user_tag = 1;
+}
+
+message UpdateUserTagRequest {
+    UserTag user_tag = 1;
+}
+
+message UpdateUserTagResponse {
+    UserTag user_tag = 1;
+}
+
+message DeleteUserTagRequest {
+    uint32 id = 1;
+}
+
+message DeleteUserTagResponse {}
+
+message GetUserTagListRequest {
+    uint32 offset = 1;
+    uint32 limit = 2;
+    UserTagListSortOrder.Values sort_order = 3;
+}
+
+message GetUserTagListResponse {
+    uint32 total_user_tag_count = 1;
+    repeated UserTag user_tag_list = 2;
+}
+
+message AddUserTagToUserRequest {
+    uint32 user_id = 1;
+    uint32 user_tag_id = 2;
+}
+
+message AddUserTagToUserResponse {}
+
+message RemoveUserTagFromUserRequest {
+    uint32 user_id = 1;
+    uint32 user_tag_id = 2;
+}
+
+message RemoveUserTagFromUserResponse {}
+
+message GetUserTagListOfUserListRequest {
+    repeated uint32 user_id_list = 1;
+}
+
+message GetUserTagListOfUserListResponse {
+    repeated UserTagList user_tag_list_of_user_list = 1;
+}
+
+message GetUserTagListOfUserRequest {
+    uint32 user_id = 1;
+}
+
+message GetUserTagListOfUserResponse {
+    repeated UserTag user_tag_list = 1;
+}
+
+message GetUserListOfUserTagListRequest {
+    repeated uint32 user_tag_id_list = 1;
+}
+
+message GetUserListOfUserTagListResponse {
+    uint32 total_user_count = 1;
+    repeated User user_list = 2;
 }

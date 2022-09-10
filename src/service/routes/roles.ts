@@ -13,6 +13,7 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
+    checkUserIsDisabled,
 } from "../utils";
 
 const USER_ROLES_MANAGE_PERMISSION = "user_roles.manage";
@@ -25,6 +26,17 @@ export function getUserRolesRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        () => true,
+        true
+    );
+    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) =>
+            checkUserIsDisabled(
+                authUserInfo.userTagList
+            ),
+            true
+    );
     const userRolesManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
@@ -37,6 +49,8 @@ export function getUserRolesRouter(
 
     router.post(
         "/api/roles",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
@@ -51,6 +65,8 @@ export function getUserRolesRouter(
 
     router.get(
         "/api/roles",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
@@ -84,6 +100,8 @@ export function getUserRolesRouter(
 
     router.patch(
         "/api/roles/:userRoleId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;
@@ -100,6 +118,8 @@ export function getUserRolesRouter(
 
     router.delete(
         "/api/roles/:userRoleId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;
@@ -110,6 +130,8 @@ export function getUserRolesRouter(
 
     router.post(
         "/api/roles/:userRoleId/permissions",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;
@@ -124,6 +146,8 @@ export function getUserRolesRouter(
 
     router.delete(
         "/api/roles/:userRoleId/permissions/:userPermissionId",
+        userLoggedInAuthMiddleware,
+        userDisabledAuthMiddleware,
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;

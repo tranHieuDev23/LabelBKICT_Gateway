@@ -2,7 +2,7 @@ import { injected, token } from "brandi";
 import { Request, RequestHandler } from "express";
 import asyncHandler from "express-async-handler";
 import httpStatus from "http-status";
-import { User, UserPermission, UserRole } from "../../module/schemas";
+import { User, UserPermission, UserRole, UserTag } from "../../module/schemas";
 import {
     SessionManagementOperator,
     SESSION_MANAGEMENT_OPERATOR_TOKEN,
@@ -15,6 +15,7 @@ export class AuthenticatedUserInformation {
         public readonly user: User,
         public readonly userRoleList: UserRole[],
         public readonly userPermissionList: UserPermission[],
+        public readonly userTagList: UserTag[],
         public readonly token: string
     ) {}
 }
@@ -56,6 +57,7 @@ export class AuthMiddlewareFactoryImpl implements AuthMiddlewareFactory {
             let user: User;
             let userRoleList: UserRole[];
             let userPermissionList: UserPermission[];
+            let userTagList: UserTag[];
             let newToken: string | null;
 
             try {
@@ -66,6 +68,7 @@ export class AuthMiddlewareFactoryImpl implements AuthMiddlewareFactory {
                 user = userFromSession.user;
                 userRoleList = userFromSession.userRoleList;
                 userPermissionList = userFromSession.userPermissionList;
+                userTagList = userFromSession.userTagList;
                 newToken = userFromSession.newToken;
             } catch (e) {
                 if (
@@ -82,6 +85,7 @@ export class AuthMiddlewareFactoryImpl implements AuthMiddlewareFactory {
                     user,
                     userRoleList,
                     userPermissionList,
+                    userTagList,
                     token
                 );
             const isUserAuthorized = authorizationFunc(
