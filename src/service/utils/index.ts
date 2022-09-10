@@ -7,6 +7,10 @@ import {
     ERROR_HANDLER_MIDDLEWARE_TOKEN,
     getErrorHandlerMiddleware,
 } from "./error_handler_middleware";
+import { 
+    CheckUserDisabledMiddlewareFactoryImpl,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
+} from "./user_disabled";
 
 export * from "./auth_middleware";
 export * from "./error_handler_middleware";
@@ -23,5 +27,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(ERROR_HANDLER_MIDDLEWARE_TOKEN)
         .toInstance(getErrorHandlerMiddleware)
+        .inSingletonScope();
+    container
+        .bind(CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN)
+        .toInstance(CheckUserDisabledMiddlewareFactoryImpl)
         .inSingletonScope();
 }

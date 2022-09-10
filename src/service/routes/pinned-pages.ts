@@ -9,14 +9,16 @@ import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
-    checkUserIsDisabled,
+    CheckUserDisabledMiddlewareFactory,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 } from "../utils";
 
 const DEFAULT_GET_PINNED_PAGE_LIST_LIMIT = 10;
 
 export function getPinnedPagesRouter(
     pinnedPageManagementOperator: PinnedPageManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory
+    authMiddlewareFactory: AuthMiddlewareFactory,
+    checkUserDisabledMiddlewareFactory: CheckUserDisabledMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
@@ -24,18 +26,12 @@ export function getPinnedPagesRouter(
         () => true,
         true
     );
-    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
-        (authUserInfo) =>
-            checkUserIsDisabled(
-                authUserInfo.userTagList
-            ),
-            true
-    );
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
 
     router.post(
         "/api/pinned-pages",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -57,7 +53,7 @@ export function getPinnedPagesRouter(
     router.get(
         "/api/pinned-pages",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -81,7 +77,7 @@ export function getPinnedPagesRouter(
     router.patch(
         "/api/pinned-pages/:pinnedPageId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -100,7 +96,7 @@ export function getPinnedPagesRouter(
     router.delete(
         "/api/pinned-pages/:pinnedPageId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -119,7 +115,8 @@ export function getPinnedPagesRouter(
 injected(
     getPinnedPagesRouter,
     PINNED_PAGE_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 );
 
 export const PINNED_PAGES_ROUTER_TOKEN =

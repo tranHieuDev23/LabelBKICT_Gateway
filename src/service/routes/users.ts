@@ -17,7 +17,8 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
-    checkUserIsDisabled,
+    CheckUserDisabledMiddlewareFactory,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 } from "../utils";
 import { getUserListFilterOptionsFromQueryParams } from "./utils";
 
@@ -30,7 +31,8 @@ export function getUsersRouter(
     userManagementOperator: UserManagementOperator,
     userRoleManagementOperator: UserRoleManagementOperator,
     userTagManagementOperator: UserTagManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory
+    authMiddlewareFactory: AuthMiddlewareFactory,
+    checkUserDisabledMiddlewareFactory: CheckUserDisabledMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
@@ -38,13 +40,7 @@ export function getUsersRouter(
         () => true,
         true
     );
-    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
-        (authUserInfo) =>
-            checkUserIsDisabled(
-                authUserInfo.userTagList
-            ),
-            true
-    );
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
     const usersManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserHasUserPermission(
@@ -68,7 +64,7 @@ export function getUsersRouter(
     router.post(
         "/api/users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const username = req.body.username as string;
             const displayName = req.body.display_name as string;
@@ -85,7 +81,7 @@ export function getUsersRouter(
     router.get(
         "/api/users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
@@ -122,7 +118,7 @@ export function getUsersRouter(
     router.get(
         "/api/users/search",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const query = `${req.query.query || ""}`;
             const limit = +(req.query.limit || DEFAULT_GET_USER_LIST_LIMIT);
@@ -139,7 +135,7 @@ export function getUsersRouter(
     router.patch(
         "/api/users/:userId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         sameUserOrUsersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -159,7 +155,7 @@ export function getUsersRouter(
     router.post(
         "/api/users/:userId/roles",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -175,7 +171,7 @@ export function getUsersRouter(
     router.delete(
         "/api/users/:userId/roles/:userRoleId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -191,7 +187,7 @@ export function getUsersRouter(
     router.post(
         "/api/users/:userId/tags",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -204,7 +200,7 @@ export function getUsersRouter(
     router.delete(
         "/api/users/:userId/tags/:userTagId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -220,7 +216,7 @@ export function getUsersRouter(
     router.post(
         "/api/users/:userId/manageable-image-users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -241,7 +237,7 @@ export function getUsersRouter(
     router.get(
         "/api/users/:userId/manageable-image-users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -266,7 +262,7 @@ export function getUsersRouter(
     router.patch(
         "/api/users/:userId/manageable-image-users/:imageOfUserId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -287,7 +283,7 @@ export function getUsersRouter(
     router.delete(
         "/api/users/:userId/manageable-image-users/:imageOfUserId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -303,7 +299,7 @@ export function getUsersRouter(
     router.post(
         "/api/users/:userId/verifiable-image-users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -322,7 +318,7 @@ export function getUsersRouter(
     router.get(
         "/api/users/:userId/verifiable-image-users",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -347,7 +343,7 @@ export function getUsersRouter(
     router.delete(
         "/api/users/:userId/verifiable-image-users/:imageOfUserId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         usersManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userId = +req.params.userId;
@@ -368,7 +364,8 @@ injected(
     USER_MANAGEMENT_OPERATOR_TOKEN,
     USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
     USER_TAG_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 );
 
 export const USERS_ROUTER_TOKEN = token<express.Router>("UsersRouter");

@@ -9,7 +9,8 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
-    checkUserIsDisabled,
+    CheckUserDisabledMiddlewareFactory,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 } from "../utils";
 
 const USER_TAGS_MANAGE_PERMISSION = "user_tags.manage";
@@ -17,7 +18,8 @@ const DEFAULT_GET_USER_TAG_LIST_LIMIT = 10;
 
 export function getUserTagsRouter(
     userTagManagementOperator: UserTagManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory
+    authMiddlewareFactory: AuthMiddlewareFactory,
+    checkUserDisabledMiddlewareFactory: CheckUserDisabledMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
@@ -25,13 +27,7 @@ export function getUserTagsRouter(
         () => true,
         true
     );
-    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
-        (authUserInfo) =>
-            checkUserIsDisabled(
-                authUserInfo.userTagList
-            ),
-            true
-    );
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
     const userTagsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
@@ -45,7 +41,7 @@ export function getUserTagsRouter(
     router.post(
         "/api/tags",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
@@ -61,7 +57,7 @@ export function getUserTagsRouter(
     router.get(
         "/api/tags",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
@@ -83,7 +79,7 @@ export function getUserTagsRouter(
     router.patch(
         "/api/tags/:userTagId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;
@@ -101,7 +97,7 @@ export function getUserTagsRouter(
     router.delete(
         "/api/tags/:userTagId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;
@@ -116,7 +112,8 @@ export function getUserTagsRouter(
 injected(
     getUserTagsRouter,
     USER_TAG_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 );
 
 export const USER_TAGS_ROUTER_TOKEN = token<express.Router>("UserTagsRouter");

@@ -12,7 +12,8 @@ import {
     AuthMiddlewareFactory,
     AUTH_MIDDLEWARE_FACTORY_TOKEN,
     checkUserHasUserPermission,
-    checkUserIsDisabled,
+    CheckUserDisabledMiddlewareFactory,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 } from "../utils";
 import { getImageListFilterOptionsFromBody } from "./utils";
 
@@ -21,7 +22,8 @@ const DEFAULT_GET_EXPORT_LIST_LIMIT = 10;
 
 export function getExportsRouter(
     exportManagementOperator: ExportManagementOperator,
-    authMiddlewareFactory: AuthMiddlewareFactory
+    authMiddlewareFactory: AuthMiddlewareFactory,
+    checkUserDisabledMiddlewareFactory: CheckUserDisabledMiddlewareFactory
 ): express.Router {
     const router = express.Router();
 
@@ -29,13 +31,7 @@ export function getExportsRouter(
         () => true,
         true
     );
-    const userDisabledAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
-        (authUserInfo) =>
-            checkUserIsDisabled(
-                authUserInfo.userTagList
-            ),
-            true
-    );
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
     const imagesExportAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserHasUserPermission(
@@ -48,7 +44,7 @@ export function getExportsRouter(
     router.post(
         "/api/exports",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
@@ -71,7 +67,7 @@ export function getExportsRouter(
     router.get(
         "/api/exports",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
@@ -94,7 +90,7 @@ export function getExportsRouter(
     router.get(
         "/api/exports/:exportId/exported-file",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
@@ -125,7 +121,7 @@ export function getExportsRouter(
     router.delete(
         "/api/exports/:exportId",
         userLoggedInAuthMiddleware,
-        userDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals
@@ -145,7 +141,8 @@ export function getExportsRouter(
 injected(
     getExportsRouter,
     EXPORT_MANAGEMENT_OPERATOR_TOKEN,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN
+    AUTH_MIDDLEWARE_FACTORY_TOKEN,
+    CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
 );
 
 export const EXPORTS_ROUTER_TOKEN = token<express.Router>("ExportsRouter");
