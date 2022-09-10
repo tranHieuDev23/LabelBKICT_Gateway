@@ -55,5 +55,5 @@ export function bindToContainer(container: Container): void {
     container
         .bind(USER_TAG_INFO_PROVIDER_TOKEN)
         .toInstance(UserTagInfoProviderImpl)
-        .inSingletonScope
+        .inSingletonScope();
 }
