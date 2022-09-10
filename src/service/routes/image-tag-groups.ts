@@ -26,7 +26,7 @@ export function getImageTagGroupsRouter(
         () => true,
         true
     );
-    const checkUserDisabledAuthMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
     const imageTagsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
@@ -40,7 +40,7 @@ export function getImageTagGroupsRouter(
     router.post(
         "/api/image-tag-groups",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name;
@@ -57,7 +57,7 @@ export function getImageTagGroupsRouter(
     router.get(
         "/api/image-tag-groups",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         asyncHandler(async (req, res) => {
             const withImageTag = +(req.query.with_image_tag || 0) === 1;
             const withImageType = +(req.query.with_image_type || 0) === 1;
@@ -82,7 +82,7 @@ export function getImageTagGroupsRouter(
     router.patch(
         "/api/image-tag-groups/:imageTagGroupId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -101,7 +101,7 @@ export function getImageTagGroupsRouter(
     router.delete(
         "/api/image-tag-groups/:imageTagGroupId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -115,7 +115,7 @@ export function getImageTagGroupsRouter(
     router.post(
         "/api/image-tag-groups/:imageTagGroupId/tags",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -132,7 +132,7 @@ export function getImageTagGroupsRouter(
     router.patch(
         "/api/image-tag-groups/:imageTagGroupId/tags/:imageTagId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -151,7 +151,7 @@ export function getImageTagGroupsRouter(
     router.delete(
         "/api/image-tag-groups/:imageTagGroupId/tags/:imageTagId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -167,7 +167,7 @@ export function getImageTagGroupsRouter(
     router.post(
         "/api/image-tag-groups/:imageTagGroupId/image-types",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;
@@ -184,7 +184,7 @@ export function getImageTagGroupsRouter(
     router.delete(
         "/api/image-tag-groups/:imageTagGroupId/image-types/:imageTypeId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTagGroupId = +req.params.imageTagGroupId;

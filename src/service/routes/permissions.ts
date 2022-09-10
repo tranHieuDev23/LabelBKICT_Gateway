@@ -26,7 +26,7 @@ export function getUserPermissionsRouter(
         () => true,
         true
     );
-    const checkUserDisabledAuthMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
+    const checkUserDisabledMiddleware = checkUserDisabledMiddlewareFactory.checkUserIsDisabled();
     const userPermissionsManageAuthMiddleware =
         authMiddlewareFactory.getAuthMiddleware(
             (authUserInfo) =>
@@ -40,7 +40,7 @@ export function getUserPermissionsRouter(
     router.post(
         "/api/permissions",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const permissionName = req.body.permission_name as string;
@@ -57,7 +57,7 @@ export function getUserPermissionsRouter(
     router.get(
         "/api/permissions",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (_, res) => {
             const userPermissionList =
@@ -69,7 +69,7 @@ export function getUserPermissionsRouter(
     router.patch(
         "/api/permissions/:userPermissionId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userPermissionId = +req.params.userPermissionId;
@@ -88,7 +88,7 @@ export function getUserPermissionsRouter(
     router.delete(
         "/api/permissions/:userPermissionId",
         userLoggedInAuthMiddleware,
-        checkUserDisabledAuthMiddleware,
+        checkUserDisabledMiddleware,
         userPermissionsManageAuthMiddleware,
         async (req, res) => {
             const userPermissionId = +req.params.userPermissionId;

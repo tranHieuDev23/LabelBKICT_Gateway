@@ -10,14 +10,14 @@ import {
 import { 
     CheckUserDisabledMiddlewareFactoryImpl,
     CHECK_USER_DISABLED_MIDDLEWARE_FACTORY_TOKEN
-} from "./user_disabled";
+} from "./check_user_disabled_middleware";
 
 export * from "./auth_middleware";
 export * from "./error_handler_middleware";
 export * from "./permission";
 export * from "./id_list";
 export * from "./cookie";
-export * from "./user_disabled";
+export * from "./check_user_disabled_middleware";
 
 export function bindToContainer(container: Container): void {
     container
