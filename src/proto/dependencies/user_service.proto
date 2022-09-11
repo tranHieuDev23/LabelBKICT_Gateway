@@ -118,7 +118,7 @@ message UserTagListSortOrder {
 }
 
 message UserListFilterOptions {
-    string username_query= 1;
+    string username_query = 1;
     repeated uint32 user_tag_id_list = 2;
     repeated uint32 user_role_id_list = 3;
 }
@@ -371,14 +371,6 @@ message RemoveUserTagFromUserRequest {
 
 message RemoveUserTagFromUserResponse {}
 
-message GetUserTagListOfUserListRequest {
-    repeated uint32 user_id_list = 1;
-}
-
-message GetUserTagListOfUserListResponse {
-    repeated UserTagList user_tag_list_of_user_list = 1;
-}
-
 message GetUserTagListOfUserRequest {
     uint32 user_id = 1;
 }
@@ -387,11 +379,18 @@ message GetUserTagListOfUserResponse {
     repeated UserTag user_tag_list = 1;
 }
 
+message GetUserTagListOfUserListRequest {
+    repeated uint32 user_id_list = 1;
+}
+
+message GetUserTagListOfUserListResponse {
+    repeated UserTagList user_tag_list_of_user_list = 1;
+}
+
 message GetUserListOfUserTagListRequest {
     repeated uint32 user_tag_id_list = 1;
 }
 
 message GetUserListOfUserTagListResponse {
-    uint32 total_user_count = 1;
-    repeated User user_list = 2;
+    repeated User user_list = 1;
 }
