@@ -1,14 +1,8 @@
 import { Image as ImageProto } from "../../proto/gen/Image";
-import {
-    AuthenticatedUserInformation,
-    checkUserHasUserPermission,
-} from "../../service/utils";
+import { AuthenticatedUserInformation, checkUserHasUserPermission } from "../../service/utils";
 import { UserCanManageUserImageInfoProvider } from "../info_providers";
 import { UserPermission } from "../schemas";
-import {
-    ImagePermissionCheckerDecorator,
-    ImagePermissionChecker,
-} from "./image_permission_checker";
+import { ImagePermissionCheckerDecorator, ImagePermissionChecker } from "./image_permission_checker";
 
 const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
 
@@ -36,26 +30,17 @@ export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
 
         const userId = authUserInfo.user.id;
         const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
-            );
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(userId);
         if (userCanManageUserImageList.length === 0) {
             return true;
         }
 
         const userCanManageUserImageUserIdSet = this.canEdit
             ? new Set([
-                  ...userCanManageUserImageList
-                      .filter((item) => item.canEdit)
-                      .map((item) => item.imageOfUserId || 0),
+                  ...userCanManageUserImageList.filter((item) => item.canEdit).map((item) => item.imageOfUserId || 0),
                   userId,
               ])
-            : new Set([
-                  ...userCanManageUserImageList.map(
-                      (item) => item.imageOfUserId || 0
-                  ),
-                  userId,
-              ]);
+            : new Set([...userCanManageUserImageList.map((item) => item.imageOfUserId || 0), userId]);
         return userCanManageUserImageUserIdSet.has(image.uploadedByUserId || 0);
     }
 
@@ -63,12 +48,7 @@ export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
         authUserInfo: AuthenticatedUserInformation,
         imageList: ImageProto[]
     ): Promise<boolean> {
-        if (
-            await super.checkUserHasPermissionForImageList(
-                authUserInfo,
-                imageList
-            )
-        ) {
+        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageList)) {
             return true;
         }
 
@@ -79,39 +59,23 @@ export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
 
         const userId = authUserInfo.user.id;
         const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
-            );
+            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(userId);
         if (userCanManageUserImageList.length === 0) {
             return true;
         }
 
         const userCanManageUserImageUserIdSet = this.canEdit
             ? new Set([
-                  ...userCanManageUserImageList
-                      .filter((item) => item.canEdit)
-                      .map((item) => item.imageOfUserId || 0),
+                  ...userCanManageUserImageList.filter((item) => item.canEdit).map((item) => item.imageOfUserId || 0),
                   userId,
               ])
-            : new Set([
-                  ...userCanManageUserImageList.map(
-                      (item) => item.imageOfUserId || 0
-                  ),
-                  userId,
-              ]);
+            : new Set([...userCanManageUserImageList.map((item) => item.imageOfUserId || 0), userId]);
         return imageList.every((image) => {
-            return userCanManageUserImageUserIdSet.has(
-                image.uploadedByUserId || 0
-            );
+            return userCanManageUserImageUserIdSet.has(image.uploadedByUserId || 0);
         });
     }
 
-    private userHasImagesManageAllPermission(
-        userPermissionList: UserPermission[]
-    ): boolean {
-        return checkUserHasUserPermission(
-            userPermissionList,
-            IMAGES_MANAGE_ALL_PERMISSION
-        );
+    private userHasImagesManageAllPermission(userPermissionList: UserPermission[]): boolean {
+        return checkUserHasUserPermission(userPermissionList, IMAGES_MANAGE_ALL_PERMISSION);
     }
 }

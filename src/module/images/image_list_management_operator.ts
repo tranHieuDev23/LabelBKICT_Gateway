@@ -1,31 +1,20 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import {
-    IMAGE_SERVICE_DM_TOKEN,
-    MODEL_SERVICE_DM_TOKEN,
-    USER_SERVICE_DM_TOKEN,
-} from "../../dataaccess/grpc";
+import { IMAGE_SERVICE_DM_TOKEN, MODEL_SERVICE_DM_TOKEN, USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { ModelServiceClient } from "../../proto/gen/ModelService";
 import { AuthenticatedUserInformation } from "../../service/utils";
-import {
-    ErrorWithHTTPCode,
-    getHttpCodeFromGRPCStatus,
-    LOGGER_TOKEN,
-    promisifyGRPCCall,
-} from "../../utils";
+import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
 import {
     Image,
     ImageListFilterOptions,
     ImageProtoToImageConverter,
-    ImageStatus,
     ImageTag,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
-    UserTag,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -37,14 +26,18 @@ import {
     IMAGE_INFO_PROVIDER_TOKEN,
     UserCanManageUserImageInfoProvider,
     UserCanVerifyUserImageInfoProvider,
-    UserTagInfoProvider,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_TAG_INFO_PROVIDER_TOKEN,
 } from "../info_providers";
 import { UserServiceClient } from "../../proto/gen/UserService";
-
-const DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS = "Disabled";
+import {
+    UserManageableImageFilterOptionsProvider,
+    USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
+} from "./user_manageable_image_filter_options_provider";
+import {
+    UserVerifiableImageFilterOptionsProvider,
+    USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
+} from "./user_verifiable_image_filter_options_provider";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -52,10 +45,7 @@ export interface ImageListManagementOperator {
         imageIdList: number[],
         imageTypeId: number
     ): Promise<void>;
-    deleteImageList(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageIdList: number[]
-    ): Promise<void>;
+    deleteImageList(authenticatedUserInfo: AuthenticatedUserInformation, imageIdList: number[]): Promise<void>;
     createImageDetectionTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
@@ -132,18 +122,17 @@ export interface ImageListManagementOperator {
     }>;
 }
 
-export class ImageListManagementOperatorImpl
-    implements ImageListManagementOperator
-{
+export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
-        private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
+        private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
+        private readonly userVerifiableImageFilterOptionsProvider: UserVerifiableImageFilterOptionsProvider,
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly modelServiceDM: ModelServiceClient,
@@ -157,42 +146,30 @@ export class ImageListManagementOperatorImpl
     ): Promise<void> {
         const imageList = await Promise.all(
             imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(
-                    imageId,
-                    false,
-                    false
-                );
+                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
                 return image;
             })
         );
 
-        const canUserAccessImageList =
-            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
-                authenticatedUserInfo,
-                imageList
-            );
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
                 userId: authenticatedUserInfo.user.id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to update image list",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
         }
 
-        const { error: updateImageListImageTypeError } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.updateImageListImageType.bind(
-                    this.imageServiceDM
-                ),
-                { imageIdList: imageIdList, imageTypeId: imageTypeId }
-            );
+        const { error: updateImageListImageTypeError } = await promisifyGRPCCall(
+            this.imageServiceDM.updateImageListImageType.bind(this.imageServiceDM),
+            { imageIdList: imageIdList, imageTypeId: imageTypeId }
+        );
         if (updateImageListImageTypeError !== null) {
-            this.logger.error(
-                "failed to call image_service.updateImageListImageType()",
-                { error: updateImageListImageTypeError }
-            );
+            this.logger.error("failed to call image_service.updateImageListImageType()", {
+                error: updateImageListImageTypeError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to update image list",
                 getHttpCodeFromGRPCStatus(updateImageListImageTypeError.code)
@@ -206,28 +183,20 @@ export class ImageListManagementOperatorImpl
     ): Promise<void> {
         const imageList = await Promise.all(
             imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(
-                    imageId,
-                    false,
-                    false
-                );
+                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
                 return image;
             })
         );
 
-        const canUserAccessImageList =
-            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
-                authenticatedUserInfo,
-                imageList
-            );
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
                 userId: authenticatedUserInfo.user.id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image list",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to delete image list", httpStatus.FORBIDDEN);
         }
 
         const { error: deleteImageListError } = await promisifyGRPCCall(
@@ -235,10 +204,7 @@ export class ImageListManagementOperatorImpl
             { idList: imageIdList }
         );
         if (deleteImageListError !== null) {
-            this.logger.error(
-                "failed to call image_service.deleteImageList()",
-                { error: deleteImageListError }
-            );
+            this.logger.error("failed to call image_service.deleteImageList()", { error: deleteImageListError });
             throw new ErrorWithHTTPCode(
                 "Failed to delete image list",
                 getHttpCodeFromGRPCStatus(deleteImageListError.code)
@@ -252,44 +218,32 @@ export class ImageListManagementOperatorImpl
     ): Promise<void> {
         const imageList = await Promise.all(
             imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(
-                    imageId,
-                    false,
-                    false
-                );
+                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
                 return image;
             })
         );
 
-        const canUserAccessImageList =
-            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
-                authenticatedUserInfo,
-                imageList
-            );
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
                 userId: authenticatedUserInfo.user.id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image list",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to create detection task for image list", httpStatus.FORBIDDEN);
         }
 
-        const { error: createDetectionTaskBatchError } =
-            await promisifyGRPCCall(
-                this.modelServiceDM.CreateDetectionTaskBatch.bind(
-                    this.modelServiceDM
-                ),
-                { imageIdList: imageIdList }
-            );
+        const { error: createDetectionTaskBatchError } = await promisifyGRPCCall(
+            this.modelServiceDM.CreateDetectionTaskBatch.bind(this.modelServiceDM),
+            { imageIdList: imageIdList }
+        );
         if (createDetectionTaskBatchError !== null) {
-            this.logger.error(
-                "failed to call model_service.createDetectionTask()",
-                { error: createDetectionTaskBatchError }
-            );
+            this.logger.error("failed to call model_service.createDetectionTask()", {
+                error: createDetectionTaskBatchError,
+            });
             throw new ErrorWithHTTPCode(
-                "Failed to create detection task for image(s)",
+                "Failed to create detection task for image list",
                 getHttpCodeFromGRPCStatus(createDetectionTaskBatchError.code)
             );
         }
@@ -306,25 +260,21 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
-                authenticatedUserInfo,
-                filterOptions
-            );
-        filterOptionsProto.uploadedByUserIdList = [
-            authenticatedUserInfo.user.id,
-        ];
-        const { error: getImageListError, response: getImageListResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                {
-                    offset,
-                    limit,
-                    sortOrder,
-                    filterOptions: filterOptionsProto,
-                    withImageTag: true,
-                }
-            );
+        const filterOptionsProto = this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
+            authenticatedUserInfo,
+            filterOptions
+        );
+        filterOptionsProto.uploadedByUserIdList = [authenticatedUserInfo.user.id];
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+                withImageTag: true,
+            }
+        );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
             throw new ErrorWithHTTPCode(
@@ -335,16 +285,11 @@ export class ImageListManagementOperatorImpl
 
         const totalImageCount = getImageListResponse?.totalImageCount || 0;
         const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList =
-            getImageListResponse?.imageTagListOfImageList || [];
-        const imageTagProtoList = imageTagListOfImageList.map(
-            (imageTagList) => imageTagList.imageTagList || []
-        );
+        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
-            imageProtoList.map((imageProto) =>
-                this.imageProtoToImageConverter.convert(imageProto)
-            )
+            imageProtoList.map((imageProto) => this.imageProtoToImageConverter.convert(imageProto))
         );
         const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
             imageTagProtoSublist.map(ImageTag.fromProto)
@@ -358,28 +303,18 @@ export class ImageListManagementOperatorImpl
         query: string,
         limit: number
     ): Promise<User[]> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
+        const manageableImageUserIdList =
+            await this.userCanManageUserImageInfoProvider.getManageableUserImageUserIdListOfUserId(
+                authenticatedUserInfo.user.id
             );
-        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
-            (item) => item.imageOfUserId || 0
+        const { error: searchUserError, response: searchUserResponse } = await promisifyGRPCCall(
+            this.userServiceDM.searchUser.bind(this.userServiceDM),
+            {
+                query,
+                limit,
+                includedUserIdList: manageableImageUserIdList,
+            }
         );
-
-        if (userCanManageUserImageUserIdList.length > 0) {
-            userCanManageUserImageUserIdList.push(userId);
-        }
-
-        const { error: searchUserError, response: searchUserResponse } =
-            await promisifyGRPCCall(
-                this.userServiceDM.searchUser.bind(this.userServiceDM),
-                {
-                    query,
-                    limit,
-                    includedUserIdList: userCanManageUserImageUserIdList,
-                }
-            );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
                 error: searchUserError,
@@ -404,53 +339,21 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
-            );
-        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
-            (item) => item.imageOfUserId || 0
-        );
-
-        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
-        if (userCanManageUserImageUserIdList.length > 0) {
-            uploadedByUserIdList = Array.from(
-                new Set([
-                    ...uploadedByUserIdList,
-                    ...userCanManageUserImageUserIdList,
-                    userId,
-                ])
-            );
-        }
-
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
-
-        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
-        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
-        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
-
-        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
-        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
-            return !notUploadedByUserIdSet.has(userId);
-        });
-        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-
-        const { error: getImageListError, response: getImageListResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                {
-                    offset,
-                    limit,
-                    sortOrder,
-                    filterOptions: filterOptionsProto,
-                    withImageTag: true,
-                }
-            );
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+                withImageTag: true,
+            }
+        );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
             throw new ErrorWithHTTPCode(
@@ -461,16 +364,11 @@ export class ImageListManagementOperatorImpl
 
         const totalImageCount = getImageListResponse?.totalImageCount || 0;
         const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList =
-            getImageListResponse?.imageTagListOfImageList || [];
-        const imageTagProtoList = imageTagListOfImageList.map(
-            (imageTagList) => imageTagList.imageTagList || []
-        );
+        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
-            imageProtoList.map((imageProto) =>
-                this.imageProtoToImageConverter.convert(imageProto)
-            )
+            imageProtoList.map((imageProto) => this.imageProtoToImageConverter.convert(imageProto))
         );
         const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
             imageTagProtoSublist.map(ImageTag.fromProto)
@@ -484,28 +382,18 @@ export class ImageListManagementOperatorImpl
         query: string,
         limit: number
     ): Promise<User[]> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
-                userId
+        const verifiableImageUserIdList =
+            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(
+                authenticatedUserInfo.user.id
             );
-        const userCanVerifyUserImageUserIdList = userCanVerifyUserImageList.map(
-            (item) => item.imageOfUserId || 0
+        const { error: searchUserError, response: searchUserResponse } = await promisifyGRPCCall(
+            this.userServiceDM.searchUser.bind(this.userServiceDM),
+            {
+                query,
+                limit,
+                includedUserIdList: verifiableImageUserIdList,
+            }
         );
-
-        if (userCanVerifyUserImageUserIdList.length > 0) {
-            userCanVerifyUserImageUserIdList.push(userId);
-        }
-
-        const { error: searchUserError, response: searchUserResponse } =
-            await promisifyGRPCCall(
-                this.userServiceDM.searchUser.bind(this.userServiceDM),
-                {
-                    query,
-                    limit,
-                    includedUserIdList: userCanVerifyUserImageUserIdList,
-                }
-            );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
                 error: searchUserError,
@@ -531,68 +419,22 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
-                userId
-            );
-        const userCanVerifyUserImageUserIdList = userCanVerifyUserImageList.map(
-            (item) => item.imageOfUserId || 0
-        );
-
-        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
-        if (userCanVerifyUserImageUserIdList.length > 0) {
-            uploadedByUserIdList = Array.from(
-                new Set([
-                    ...uploadedByUserIdList,
-                    ...userCanVerifyUserImageUserIdList,
-                    userId,
-                ])
-            );
-        }
-
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
+            await this.userVerifiableImageFilterOptionsProvider.getUserVerifiableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
-        
-        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
 
-        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
-        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
-
-        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
-        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
-            return !notUploadedByUserIdSet.has(userId);
-        });
-        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-
-        filterOptionsProto.imageStatusList =
-            filterOptionsProto.imageStatusList?.filter((imageStatus) => {
-                return (
-                    imageStatus === ImageStatus.PUBLISHED ||
-                    imageStatus === ImageStatus.VERIFIED
-                );
-            });
-        if (!filterOptionsProto.imageStatusList?.length) {
-            filterOptionsProto.imageStatusList = [
-                ImageStatus.PUBLISHED,
-                ImageStatus.VERIFIED,
-            ];
-        }
-
-        const { error: getImageListError, response: getImageListResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                {
-                    offset,
-                    limit,
-                    sortOrder,
-                    filterOptions: filterOptionsProto,
-                    withImageTag: true,
-                }
-            );
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+                withImageTag: true,
+            }
+        );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
             throw new ErrorWithHTTPCode(
@@ -603,16 +445,11 @@ export class ImageListManagementOperatorImpl
 
         const totalImageCount = getImageListResponse?.totalImageCount || 0;
         const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList =
-            getImageListResponse?.imageTagListOfImageList || [];
-        const imageTagProtoList = imageTagListOfImageList.map(
-            (imageTagList) => imageTagList.imageTagList || []
-        );
+        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
-            imageProtoList.map((imageProto) =>
-                this.imageProtoToImageConverter.convert(imageProto)
-            )
+            imageProtoList.map((imageProto) => this.imageProtoToImageConverter.convert(imageProto))
         );
         const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
             imageTagProtoSublist.map(ImageTag.fromProto)
@@ -626,28 +463,18 @@ export class ImageListManagementOperatorImpl
         query: string,
         limit: number
     ): Promise<User[]> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
+        const manageableImageUserIdList =
+            await this.userCanManageUserImageInfoProvider.getManageableUserImageUserIdListOfUserId(
+                authenticatedUserInfo.user.id
             );
-        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
-            (item) => item.imageOfUserId || 0
+        const { error: searchUserError, response: searchUserResponse } = await promisifyGRPCCall(
+            this.userServiceDM.searchUser.bind(this.userServiceDM),
+            {
+                query,
+                limit,
+                includedUserIdList: manageableImageUserIdList,
+            }
         );
-
-        if (userCanManageUserImageUserIdList.length > 0) {
-            userCanManageUserImageUserIdList.push(userId);
-        }
-
-        const { error: searchUserError, response: searchUserResponse } =
-            await promisifyGRPCCall(
-                this.userServiceDM.searchUser.bind(this.userServiceDM),
-                {
-                    query,
-                    limit,
-                    includedUserIdList: userCanManageUserImageUserIdList,
-                }
-            );
         if (searchUserError !== null) {
             this.logger.error("failed to call user_service.searchUser()", {
                 error: searchUserError,
@@ -672,54 +499,22 @@ export class ImageListManagementOperatorImpl
         imageList: Image[];
         imageTagList: ImageTag[][];
     }> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
-            );
-        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
-            (item) => item.imageOfUserId || 0
-        );
-
-        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
-        if (userCanManageUserImageUserIdList.length > 0) {
-            uploadedByUserIdList = Array.from(
-                new Set([
-                    ...uploadedByUserIdList,
-                    ...userCanManageUserImageUserIdList,
-                    userId,
-                ])
-            );
-        }
-
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
 
-        const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagDisplayName(DEFAULT_USER_TAG_DISPLAY_NAME_OF_DISABLED_STATUS);
-        
-        let notUploadedByUserIdList: number[] = disabledUserList.map((user) => user.id);
-        filterOptionsProto.notUploadedByUserIdList = notUploadedByUserIdList;
-
-        const notUploadedByUserIdSet = new Set(notUploadedByUserIdList);
-        uploadedByUserIdList = uploadedByUserIdList.filter((userId) => {
-            return !notUploadedByUserIdSet.has(userId);
-        });
-        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-
-        const { error: getImageListError, response: getImageListResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-                {
-                    offset,
-                    limit,
-                    sortOrder,
-                    filterOptions: filterOptionsProto,
-                    withImageTag: true,
-                }
-            );
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+                withImageTag: true,
+            }
+        );
         if (getImageListError !== null) {
             this.logger.error("failed to call image_service.getImageList()");
             throw new ErrorWithHTTPCode(
@@ -730,16 +525,11 @@ export class ImageListManagementOperatorImpl
 
         const totalImageCount = getImageListResponse?.totalImageCount || 0;
         const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList =
-            getImageListResponse?.imageTagListOfImageList || [];
-        const imageTagProtoList = imageTagListOfImageList.map(
-            (imageTagList) => imageTagList.imageTagList || []
-        );
+        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
-            imageProtoList.map((imageProto) =>
-                this.imageProtoToImageConverter.convert(imageProto)
-            )
+            imageProtoList.map((imageProto) => this.imageProtoToImageConverter.convert(imageProto))
         );
         const imageTagList = imageTagProtoList.map((imageTagProtoSublist) =>
             imageTagProtoSublist.map(ImageTag.fromProto)
@@ -759,50 +549,32 @@ export class ImageListManagementOperatorImpl
         prevImageId: number | undefined;
         nextImageId: number | undefined;
     }> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
-        );
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
 
-        const canUSerAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
-        if (!canUSerAccessImage) {
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
+        if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
         }
 
-        const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
-                authenticatedUserInfo,
-                filterOptions
-            );
-        const {
-            error: getImagePositionInListError,
-            response: getImagePositionInListResponse,
-        } = await promisifyGRPCCall(
-            this.imageServiceDM.getImagePositionInList.bind(
-                this.imageServiceDM
-            ),
-            {
+        const filterOptionsProto = this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
+            authenticatedUserInfo,
+            filterOptions
+        );
+        const { error: getImagePositionInListError, response: getImagePositionInListResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getImagePositionInList.bind(this.imageServiceDM), {
                 id: imageId,
                 sortOrder: sortOrder,
                 filterOptions: filterOptionsProto,
-            }
-        );
+            });
         if (getImagePositionInListError !== null) {
-            this.logger.error(
-                "failed to call image_service.getImagePositionInList()"
-            );
+            this.logger.error("failed to call image_service.getImagePositionInList()");
             throw new ErrorWithHTTPCode(
                 "Failed to get image position in list",
                 getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
@@ -810,8 +582,7 @@ export class ImageListManagementOperatorImpl
         }
 
         const position = getImagePositionInListResponse?.position || 0;
-        const totalImageCount =
-            getImagePositionInListResponse?.totalImageCount || 0;
+        const totalImageCount = getImagePositionInListResponse?.totalImageCount || 0;
         const prevImageId = getImagePositionInListResponse?.prevImageId;
         const nextImageId = getImagePositionInListResponse?.nextImageId;
         return { position, totalImageCount, prevImageId, nextImageId };
@@ -823,16 +594,16 @@ injected(
     IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_TAG_INFO_PROVIDER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
+    USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     MODEL_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
 
-export const IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN =
-    token<ImageListManagementOperator>("ImageListManagementOperator");
+export const IMAGE_LIST_MANAGEMENT_OPERATOR_TOKEN = token<ImageListManagementOperator>("ImageListManagementOperator");
