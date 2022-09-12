@@ -14,7 +14,6 @@ export function getImageTypesRouter(
 ): express.Router {
     const router = express.Router();
 
-    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imageTagsManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGE_TYPES_MANAGE_PERMISSION),
         true
@@ -22,7 +21,6 @@ export function getImageTypesRouter(
 
     router.post(
         "/api/image-types",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name;
@@ -34,7 +32,6 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types",
-        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const withRegionLabel = +(req.query.with_region_label || 0) === 1;
             const { imageTypeList, regionLabelList } = await imageTypeManagementOperator.getImageTypeList(
@@ -49,7 +46,6 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types/:imageTypeId",
-        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
             const { imageType, regionLabelList } = await imageTypeManagementOperator.getImageType(imageTypeId);
@@ -62,7 +58,6 @@ export function getImageTypesRouter(
 
     router.patch(
         "/api/image-types/:imageTypeId",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
@@ -79,7 +74,6 @@ export function getImageTypesRouter(
 
     router.delete(
         "/api/image-types/:imageTypeId",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
@@ -90,7 +84,6 @@ export function getImageTypesRouter(
 
     router.post(
         "/api/image-types/:imageTypeId/labels",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
@@ -107,7 +100,6 @@ export function getImageTypesRouter(
 
     router.patch(
         "/api/image-types/:imageTypeId/labels/:regionLabelId",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
@@ -126,7 +118,6 @@ export function getImageTypesRouter(
 
     router.delete(
         "/api/image-types/:imageTypeId/labels/:regionLabelId",
-        userLoggedInAuthMiddleware,
         imageTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
@@ -138,7 +129,6 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types/:imageTypeId/image-tag-groups",
-        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
             const { imageTagGroupList, imageTagList } =

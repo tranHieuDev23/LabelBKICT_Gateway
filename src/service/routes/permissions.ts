@@ -15,7 +15,6 @@ export function getUserPermissionsRouter(
 ): express.Router {
     const router = express.Router();
 
-    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const userPermissionsManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) =>
             checkUserHasUserPermission(authUserInfo.userPermissionList, USER_PERMISSIONS_MANAGE_PERMISSION),
@@ -24,7 +23,6 @@ export function getUserPermissionsRouter(
 
     router.post(
         "/api/permissions",
-        userLoggedInAuthMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const permissionName = req.body.permission_name as string;
@@ -39,7 +37,6 @@ export function getUserPermissionsRouter(
 
     router.get(
         "/api/permissions",
-        userLoggedInAuthMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (_, res) => {
             const userPermissionList = await userPermissionManagementOperator.getUserPermissionList();
@@ -49,7 +46,6 @@ export function getUserPermissionsRouter(
 
     router.patch(
         "/api/permissions/:userPermissionId",
-        userLoggedInAuthMiddleware,
         userPermissionsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userPermissionId = +req.params.userPermissionId;
@@ -64,16 +60,11 @@ export function getUserPermissionsRouter(
         })
     );
 
-    router.delete(
-        "/api/permissions/:userPermissionId",
-        userLoggedInAuthMiddleware,
-        userPermissionsManageAuthMiddleware,
-        async (req, res) => {
-            const userPermissionId = +req.params.userPermissionId;
-            await userPermissionManagementOperator.deleteUserPermission(userPermissionId);
-            res.json({});
-        }
-    );
+    router.delete("/api/permissions/:userPermissionId", userPermissionsManageAuthMiddleware, async (req, res) => {
+        const userPermissionId = +req.params.userPermissionId;
+        await userPermissionManagementOperator.deleteUserPermission(userPermissionId);
+        res.json({});
+    });
 
     return router;
 }

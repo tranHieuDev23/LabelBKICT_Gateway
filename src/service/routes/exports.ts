@@ -21,7 +21,6 @@ export function getExportsRouter(
 ): express.Router {
     const router = express.Router();
 
-    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imagesExportAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_EXPORT_PERMISSION),
         true
@@ -29,7 +28,6 @@ export function getExportsRouter(
 
     router.post(
         "/api/exports",
-        userLoggedInAuthMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
@@ -48,7 +46,6 @@ export function getExportsRouter(
 
     router.get(
         "/api/exports",
-        userLoggedInAuthMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
@@ -68,7 +65,6 @@ export function getExportsRouter(
 
     router.get(
         "/api/exports/:exportId/exported-file",
-        userLoggedInAuthMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
@@ -90,7 +86,6 @@ export function getExportsRouter(
 
     router.delete(
         "/api/exports/:exportId",
-        userLoggedInAuthMiddleware,
         imagesExportAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
