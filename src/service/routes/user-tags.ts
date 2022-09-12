@@ -19,7 +19,7 @@ export function getUserTagsRouter(
     );
 
     router.post(
-        "/api/tags",
+        "/api/user-tags",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
@@ -30,7 +30,7 @@ export function getUserTagsRouter(
     );
 
     router.get(
-        "/api/tags",
+        "/api/user-tags",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
@@ -49,7 +49,7 @@ export function getUserTagsRouter(
     );
 
     router.patch(
-        "/api/tags/:userTagId",
+        "/api/user-tags/:userTagId",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;
@@ -61,7 +61,7 @@ export function getUserTagsRouter(
     );
 
     router.delete(
-        "/api/tags/:userTagId",
+        "/api/user-tags/:userTagId",
         userTagsManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const userTagId = +req.params.userTagId;

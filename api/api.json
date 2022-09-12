@@ -2398,7 +2398,7 @@
                 }
             }
         },
-        "/api/tags": {
+        "/api/user-tags": {
             "post": {
                 "description": "Create a new user tag. User needs to have `user_tags.manage` permission in order to call this API successfully.",
                 "tags": [
@@ -2545,7 +2545,7 @@
                 }
             }
         },
-        "/api/tags/{user_tag_id}": {
+        "/api/user-tags/{user_tag_id}": {
             "patch": {
                 "description": "Update user tag. User needs to have `user_tags.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
                 "tags": [
