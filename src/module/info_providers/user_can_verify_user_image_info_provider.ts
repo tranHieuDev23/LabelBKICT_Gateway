@@ -37,6 +37,9 @@ export class UserCanVerifyUserImageInfoProviderImpl implements UserCanVerifyUser
 
     public async getVerifiableUserImageUserIdListOfUserId(userId: number): Promise<number[]> {
         const userCanVerifyUserImageList = await this.getUserCanVerifyUserImageListOfUserId(userId);
+        if (userCanVerifyUserImageList.length === 0) {
+            return [];
+        }
         const userIdList = [
             ...userCanVerifyUserImageList.map((userCanVerifyUserImage) => userCanVerifyUserImage.imageOfUserId || 0),
             userId,

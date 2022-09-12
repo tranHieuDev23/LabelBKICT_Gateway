@@ -37,6 +37,9 @@ export class UserCanManageUserImageInfoProviderImpl implements UserCanManageUser
 
     public async getManageableUserImageUserIdListOfUserId(userId: number): Promise<number[]> {
         const userCanManageUserImageList = await this.getUserCanManageUserImageListOfUserId(userId);
+        if (userCanManageUserImageList.length === 0) {
+            return [];
+        }
         const userIdList = [
             ...userCanManageUserImageList.map((userCanManageUserImage) => userCanManageUserImage.imageOfUserId || 0),
             userId,

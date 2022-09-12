@@ -52,7 +52,7 @@ export class UserManageableImageFilterOptionsProviderImpl implements UserManagea
             filterOptionsProto.uploadedByUserIdList.length === 0
         ) {
             filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
-        } else {
+        } else if (manageableImageUserIdList.length > 0) {
             const manageableImageUserIdSet = new Set(manageableImageUserIdList);
             filterOptionsProto.uploadedByUserIdList = filterOptionsProto.uploadedByUserIdList?.filter((userId) =>
                 manageableImageUserIdSet.has(userId)

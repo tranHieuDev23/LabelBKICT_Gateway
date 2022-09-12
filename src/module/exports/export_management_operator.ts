@@ -8,16 +8,9 @@ import { _ExportType_Values } from "../../proto/gen/ExportType";
 import { GetExportFileResponse } from "../../proto/gen/GetExportFileResponse";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
-import {
-    ExportInfoProvider,
-    EXPORT_INFO_PROVIDER_TOKEN,
-    UserCanManageUserImageInfoProvider,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
+import { ExportInfoProvider, EXPORT_INFO_PROVIDER_TOKEN } from "../info_providers";
 import {
     Export,
-    FilterOptionsToFilterOptionsProtoConverter,
-    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     ExportProtoToExportConverter,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
     ImageListFilterOptions,
@@ -51,9 +44,7 @@ export interface ExportManagementOperator {
 export class ExportManagementOperatorImpl implements ExportManagementOperator {
     constructor(
         private readonly exportServiceDM: ExportServiceClient,
-        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly exportInfoProvider: ExportInfoProvider,
-        private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly exportProtoToExportConverter: ExportProtoToExportConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
         private readonly logger: Logger
@@ -198,9 +189,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
 injected(
     ExportManagementOperatorImpl,
     EXPORT_SERVICE_DM_TOKEN,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     EXPORT_INFO_PROVIDER_TOKEN,
-    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     LOGGER_TOKEN

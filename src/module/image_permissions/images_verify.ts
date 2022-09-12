@@ -33,16 +33,13 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
         }
 
         const userId = authUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(userId);
-        if (userCanVerifyUserImageList.length === 0) {
+        const verifiableUserImageUserIdList =
+            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
+        if (verifiableUserImageUserIdList.length === 0) {
             return true;
         }
 
-        const userCanVerifyUserImageUserIdSet = new Set([
-            ...userCanVerifyUserImageList.map((item) => item.imageOfUserId || 0),
-            userId,
-        ]);
+        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
         return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
     }
 
@@ -65,16 +62,13 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
         }
 
         const userId = authUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(userId);
-        if (userCanVerifyUserImageList.length === 0) {
+        const verifiableUserImageUserIdList =
+            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
+        if (verifiableUserImageUserIdList.length === 0) {
             return true;
         }
 
-        const userCanVerifyUserImageUserIdSet = new Set([
-            ...userCanVerifyUserImageList.map((item) => item.imageOfUserId || 0),
-            userId,
-        ]);
+        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
         return imageList.every((image) => {
             return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
         });

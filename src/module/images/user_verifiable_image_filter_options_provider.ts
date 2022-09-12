@@ -52,7 +52,7 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
             filterOptionsProto.uploadedByUserIdList.length === 0
         ) {
             filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
-        } else {
+        } else if (verifiableImageUserIdList.length > 0) {
             const manageableImageUserIdSet = new Set(verifiableImageUserIdList);
             filterOptionsProto.uploadedByUserIdList = filterOptionsProto.uploadedByUserIdList?.filter((userId) =>
                 manageableImageUserIdSet.has(userId)
