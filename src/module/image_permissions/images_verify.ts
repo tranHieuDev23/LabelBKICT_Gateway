@@ -1,15 +1,9 @@
 import { Image as ImageProto } from "../../proto/gen/Image";
 import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
-import {
-    AuthenticatedUserInformation,
-    checkUserHasUserPermission,
-} from "../../service/utils";
+import { AuthenticatedUserInformation, checkUserHasUserPermission } from "../../service/utils";
 import { UserCanVerifyUserImageInfoProvider } from "../info_providers";
 import { UserPermission } from "../schemas";
-import {
-    ImagePermissionCheckerDecorator,
-    ImagePermissionChecker,
-} from "./image_permission_checker";
+import { ImagePermissionCheckerDecorator, ImagePermissionChecker } from "./image_permission_checker";
 
 const IMAGES_VERIFY_PERMISSION = "images.verify";
 
@@ -39,20 +33,13 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
         }
 
         const userId = authUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
-                userId
-            );
-        if (userCanVerifyUserImageList.length === 0) {
+        const verifiableUserImageUserIdList =
+            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
+        if (verifiableUserImageUserIdList.length === 0) {
             return true;
         }
 
-        const userCanVerifyUserImageUserIdSet = new Set([
-            ...userCanVerifyUserImageList.map(
-                (item) => item.imageOfUserId || 0
-            ),
-            userId,
-        ]);
+        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
         return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
     }
 
@@ -60,18 +47,11 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
         authUserInfo: AuthenticatedUserInformation,
         imageList: ImageProto[]
     ): Promise<boolean> {
-        if (
-            await super.checkUserHasPermissionForImageList(
-                authUserInfo,
-                imageList
-            )
-        ) {
+        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageList)) {
             return true;
         }
 
-        const isAllImagePublished = imageList.every((image) =>
-            this.isImagePublished(image.status)
-        );
+        const isAllImagePublished = imageList.every((image) => this.isImagePublished(image.status));
         if (!isAllImagePublished) {
             return false;
         }
@@ -82,42 +62,23 @@ export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
         }
 
         const userId = authUserInfo.user.id;
-        const userCanVerifyUserImageList =
-            await this.userCanVerifyUserImageInfoProvider.getUserCanVerifyUserImageListOfUserId(
-                userId
-            );
-        if (userCanVerifyUserImageList.length === 0) {
+        const verifiableUserImageUserIdList =
+            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
+        if (verifiableUserImageUserIdList.length === 0) {
             return true;
         }
 
-        const userCanVerifyUserImageUserIdSet = new Set([
-            ...userCanVerifyUserImageList.map(
-                (item) => item.imageOfUserId || 0
-            ),
-            userId,
-        ]);
+        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
         return imageList.every((image) => {
-            return userCanVerifyUserImageUserIdSet.has(
-                image.uploadedByUserId || 0
-            );
+            return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
         });
     }
 
-    private userHasImagesVerifyPermission(
-        userPermissionList: UserPermission[]
-    ): boolean {
-        return checkUserHasUserPermission(
-            userPermissionList,
-            IMAGES_VERIFY_PERMISSION
-        );
+    private userHasImagesVerifyPermission(userPermissionList: UserPermission[]): boolean {
+        return checkUserHasUserPermission(userPermissionList, IMAGES_VERIFY_PERMISSION);
     }
 
-    private isImagePublished(
-        status:
-            | _ImageStatus_Values
-            | keyof typeof _ImageStatus_Values
-            | undefined
-    ): boolean {
+    private isImagePublished(status: _ImageStatus_Values | keyof typeof _ImageStatus_Values | undefined): boolean {
         return (
             status === _ImageStatus_Values.PUBLISHED ||
             status === "PUBLISHED" ||

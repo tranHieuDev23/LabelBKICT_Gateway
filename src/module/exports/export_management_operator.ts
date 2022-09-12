@@ -7,26 +7,15 @@ import { ExportServiceClient } from "../../proto/gen/ExportService";
 import { _ExportType_Values } from "../../proto/gen/ExportType";
 import { GetExportFileResponse } from "../../proto/gen/GetExportFileResponse";
 import { AuthenticatedUserInformation } from "../../service/utils";
-import {
-    ErrorWithHTTPCode,
-    getHttpCodeFromGRPCStatus,
-    LOGGER_TOKEN,
-    promisifyGRPCCall,
-} from "../../utils";
-import {
-    ExportInfoProvider,
-    EXPORT_INFO_PROVIDER_TOKEN,
-    UserCanManageUserImageInfoProvider,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
+import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
+import { ExportInfoProvider, EXPORT_INFO_PROVIDER_TOKEN } from "../info_providers";
 import {
     Export,
-    FilterOptionsToFilterOptionsProtoConverter,
-    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     ExportProtoToExportConverter,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
     ImageListFilterOptions,
 } from "../schemas";
+import { UserManageableImageFilterOptionsProvider, USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER } from "../images";
 
 export interface ExportManagementOperator {
     createExport(
@@ -49,19 +38,15 @@ export interface ExportManagementOperator {
         export: Export;
         exportFileStream: Readable;
     }>;
-    deleteExport(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        id: number
-    ): Promise<void>;
+    deleteExport(authenticatedUserInfo: AuthenticatedUserInformation, id: number): Promise<void>;
 }
 
 export class ExportManagementOperatorImpl implements ExportManagementOperator {
     constructor(
         private readonly exportServiceDM: ExportServiceClient,
-        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly exportInfoProvider: ExportInfoProvider,
-        private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly exportProtoToExportConverter: ExportProtoToExportConverter,
+        private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
         private readonly logger: Logger
     ) {}
 
@@ -70,42 +55,19 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         type: _ExportType_Values,
         filterOptions: ImageListFilterOptions
     ): Promise<Export> {
-        const userId = authenticatedUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(
-                userId
-            );
-        const userCanManageUserImageUserIdList = userCanManageUserImageList.map(
-            (item) => item.imageOfUserId || 0
-        );
-
-        let uploadedByUserIdList = filterOptions.uploaded_by_user_id_list;
-        if (userCanManageUserImageUserIdList.length > 0) {
-            uploadedByUserIdList = Array.from(
-                new Set([
-                    ...uploadedByUserIdList,
-                    ...userCanManageUserImageUserIdList,
-                    userId,
-                ])
-            );
-        }
-
         const filterOptionsProto =
-            this.filterOptionsToFilterOptionsProto.convert(
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
-        filterOptionsProto.uploadedByUserIdList = uploadedByUserIdList;
-
-        const { error: createExportError, response: createExportResponse } =
-            await promisifyGRPCCall(
-                this.exportServiceDM.createExport.bind(this.exportServiceDM),
-                {
-                    requestedByUserId: authenticatedUserInfo.user.id,
-                    type,
-                    filterOptions: filterOptionsProto,
-                }
-            );
+        const { error: createExportError, response: createExportResponse } = await promisifyGRPCCall(
+            this.exportServiceDM.createExport.bind(this.exportServiceDM),
+            {
+                requestedByUserId: authenticatedUserInfo.user.id,
+                type,
+                filterOptions: filterOptionsProto,
+            }
+        );
         if (createExportError !== null) {
             this.logger.error("failed to call export_service.createExport()", {
                 error: createExportError,
@@ -115,9 +77,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
                 getHttpCodeFromGRPCStatus(createExportError.code)
             );
         }
-        return await this.exportProtoToExportConverter.convert(
-            createExportResponse?.export
-        );
+        return await this.exportProtoToExportConverter.convert(createExportResponse?.export);
     }
 
     public async getExportList(
@@ -125,15 +85,14 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         offset: number,
         limit: number
     ): Promise<{ totalExportCount: number; exportList: Export[] }> {
-        const { error: getExportListError, response: getExportListResponse } =
-            await promisifyGRPCCall(
-                this.exportServiceDM.getExportList.bind(this.exportServiceDM),
-                {
-                    requestedByUserId: authenticatedUserInfo.user.id,
-                    offset,
-                    limit,
-                }
-            );
+        const { error: getExportListError, response: getExportListResponse } = await promisifyGRPCCall(
+            this.exportServiceDM.getExportList.bind(this.exportServiceDM),
+            {
+                requestedByUserId: authenticatedUserInfo.user.id,
+                offset,
+                limit,
+            }
+        );
         if (getExportListError !== null) {
             this.logger.error("failed to call export_service.getExportList()", {
                 error: getExportListError,
@@ -147,9 +106,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         const totalExportCount = getExportListResponse?.totalExportCount || 0;
         const exportProtoList = getExportListResponse?.exportList || [];
         const exportList = await Promise.all(
-            exportProtoList.map((exportProto) =>
-                this.exportProtoToExportConverter.convert(exportProto)
-            )
+            exportProtoList.map((exportProto) => this.exportProtoToExportConverter.convert(exportProto))
         );
 
         return { totalExportCount, exportList };
@@ -167,10 +124,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
             this.logger.error("no export with export_id found", {
                 exportId: id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get export file",
-                httpStatus.NOT_FOUND
-            );
+            throw new ErrorWithHTTPCode("Failed to get export file", httpStatus.NOT_FOUND);
         }
 
         if (exportProto.requestedByUserId !== authenticatedUserInfo.user.id) {
@@ -178,15 +132,10 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
                 userId: authenticatedUserInfo.user.id,
                 exportId: id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get export file",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to get export file", httpStatus.FORBIDDEN);
         }
 
-        const exportRequest = await this.exportProtoToExportConverter.convert(
-            exportProto
-        );
+        const exportRequest = await this.exportProtoToExportConverter.convert(exportProto);
 
         const getExportFileResponseStream = this.exportServiceDM.getExportFile({
             id,
@@ -204,19 +153,13 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
         return { export: exportRequest, exportFileStream };
     }
 
-    public async deleteExport(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        id: number
-    ): Promise<void> {
+    public async deleteExport(authenticatedUserInfo: AuthenticatedUserInformation, id: number): Promise<void> {
         const exportRequest = await this.exportInfoProvider.getExport(id);
         if (exportRequest === null) {
             this.logger.error("no export with export_id found", {
                 exportId: id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete export",
-                httpStatus.NOT_FOUND
-            );
+            throw new ErrorWithHTTPCode("Failed to delete export", httpStatus.NOT_FOUND);
         }
 
         if (exportRequest.requestedByUserId !== authenticatedUserInfo.user.id) {
@@ -224,10 +167,7 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
                 userId: authenticatedUserInfo.user.id,
                 exportId: id,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete export",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to delete export", httpStatus.FORBIDDEN);
         }
 
         const { error: deleteExportError } = await promisifyGRPCCall(
@@ -249,13 +189,10 @@ export class ExportManagementOperatorImpl implements ExportManagementOperator {
 injected(
     ExportManagementOperatorImpl,
     EXPORT_SERVICE_DM_TOKEN,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     EXPORT_INFO_PROVIDER_TOKEN,
-    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
+    USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     LOGGER_TOKEN
 );
 
-export const EXPORT_MANAGEMENT_OPERATOR_TOKEN = token<ExportManagementOperator>(
-    "ExportManagementOperator"
-);
+export const EXPORT_MANAGEMENT_OPERATOR_TOKEN = token<ExportManagementOperator>("ExportManagementOperator");

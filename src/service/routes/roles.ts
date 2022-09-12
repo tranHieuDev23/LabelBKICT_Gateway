@@ -5,15 +5,8 @@ import {
     UserPermissionManagementOperator,
     USER_PERMISSION_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/user_permissions";
-import {
-    UserRoleManagementOperator,
-    USER_ROLE_MANAGEMENT_OPERATOR_TOKEN,
-} from "../../module/user_roles";
-import {
-    AuthMiddlewareFactory,
-    AUTH_MIDDLEWARE_FACTORY_TOKEN,
-    checkUserHasUserPermission,
-} from "../utils";
+import { UserRoleManagementOperator, USER_ROLE_MANAGEMENT_OPERATOR_TOKEN } from "../../module/user_roles";
+import { AuthMiddlewareFactory, AUTH_MIDDLEWARE_FACTORY_TOKEN, checkUserHasUserPermission } from "../utils";
 
 const USER_ROLES_MANAGE_PERMISSION = "user_roles.manage";
 const DEFAULT_GET_USER_ROLE_LIST_LIMIT = 10;
@@ -25,15 +18,10 @@ export function getUserRolesRouter(
 ): express.Router {
     const router = express.Router();
 
-    const userRolesManageAuthMiddleware =
-        authMiddlewareFactory.getAuthMiddleware(
-            (authUserInfo) =>
-                checkUserHasUserPermission(
-                    authUserInfo.userPermissionList,
-                    USER_ROLES_MANAGE_PERMISSION
-                ),
-            true
-        );
+    const userRolesManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, USER_ROLES_MANAGE_PERMISSION),
+        true
+    );
 
     router.post(
         "/api/roles",
@@ -41,10 +29,7 @@ export function getUserRolesRouter(
         asyncHandler(async (req, res) => {
             const displayName = req.body.display_name as string;
             const description = req.body.description as string;
-            const userRole = await userRoleManagementOperator.createUserRole(
-                displayName,
-                description
-            );
+            const userRole = await userRoleManagementOperator.createUserRole(displayName, description);
             res.json(userRole);
         })
     );
@@ -54,19 +39,11 @@ export function getUserRolesRouter(
         userRolesManageAuthMiddleware,
         asyncHandler(async (req, res) => {
             const offset = +(req.query.offset || 0);
-            const limit = +(
-                req.query.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT
-            );
+            const limit = +(req.query.limit || DEFAULT_GET_USER_ROLE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
-            const withUserPermission =
-                +(req.query.with_user_permission || 0) === 1;
+            const withUserPermission = +(req.query.with_user_permission || 0) === 1;
             const { totalUserRoleCount, userRoleList, userPermissionList } =
-                await userRoleManagementOperator.getUserRoleList(
-                    offset,
-                    limit,
-                    sortOrder,
-                    withUserPermission
-                );
+                await userRoleManagementOperator.getUserRoleList(offset, limit, sortOrder, withUserPermission);
             if (withUserPermission) {
                 res.json({
                     total_user_role_count: totalUserRoleCount,
@@ -89,11 +66,7 @@ export function getUserRolesRouter(
             const userRoleId = +req.params.userRoleId;
             const displayName = req.body.display_name as string | undefined;
             const description = req.body.description as string | undefined;
-            const userRole = await userRoleManagementOperator.updateUserRole(
-                userRoleId,
-                displayName,
-                description
-            );
+            const userRole = await userRoleManagementOperator.updateUserRole(userRoleId, displayName, description);
             res.json(userRole);
         })
     );
@@ -114,10 +87,7 @@ export function getUserRolesRouter(
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;
             const userPermissionId = +req.body.user_permission_id;
-            await userPermissionManagementOperator.addUserPermissionToUserRole(
-                userRoleId,
-                userPermissionId
-            );
+            await userPermissionManagementOperator.addUserPermissionToUserRole(userRoleId, userPermissionId);
             res.json({});
         })
     );
@@ -128,10 +98,7 @@ export function getUserRolesRouter(
         asyncHandler(async (req, res) => {
             const userRoleId = +req.params.userRoleId;
             const userPermissionId = +req.params.userPermissionId;
-            await userPermissionManagementOperator.removeUserPermissionFromUserRole(
-                userRoleId,
-                userPermissionId
-            );
+            await userPermissionManagementOperator.removeUserPermissionFromUserRole(userRoleId, userPermissionId);
             res.json({});
         })
     );

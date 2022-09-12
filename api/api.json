@@ -81,6 +81,27 @@
                     }
                 }
             },
+            "UserTag": {
+                "type": "object",
+                "description": "A tag value, that can be assigned to a user for classification purpose.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "User tag ID, should be unique across all user tag."
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "The user tag's name, to be displayed on the UI.",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A short description about the user tag.",
+                        "maxLength": 256
+                    }
+                }
+            },
             "ImageType": {
                 "type": "object",
                 "description": "An image type for images on the system. The type of an image determines which tags the image can be assigned with and which labels the regions on that image can take.",
@@ -639,6 +660,53 @@
                             "maximum": 1,
                             "default": 0
                         }
+                    },
+                    {
+                        "name": "with_user_tag",
+                        "description": "If equal to 1, will return the list of user tags each user in the list has.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "username_query",
+                        "description": "If provided, filter for user that have user name or display name containing this query string (case insensitive).",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "default": ""
+                        },
+                        "allowEmptyValue": true,
+                        "allowReserved": true
+                    },
+                    {
+                        "name": "filter_user_tags",
+                        "description": "A list of user tag IDs. If provided, filter for users that belong to one of these user tags.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
+                    },
+                    {
+                        "name": "filter_user_roles",
+                        "description": "A list of user role IDs. If provided, filter for users that have one of these user roles.",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "maxItems": 10
+                        }
                     }
                 ],
                 "responses": {
@@ -677,6 +745,16 @@
                                                 }
                                             },
                                             "description": "If with_user_role = 1, this field is the list of user roles each user in user_list has, in the same order. If with_user_role = 0, this field is not returned."
+                                        },
+                                        "user_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/UserTag"
+                                                }
+                                            },
+                                            "description": "If with_user_tag = 1, this field is the list of user tags each user in user_list has, in the same order. If with_user_tag = 0, this field is not returned."
                                         }
                                     }
                                 }
@@ -2316,6 +2394,393 @@
                     },
                     "409": {
                         "description": "Failed to remove user permission from user role because user role with user_role_id does not have user permission with user_permission_id."
+                    }
+                }
+            }
+        },
+        "/api/user-tags": {
+            "post": {
+                "description": "Create a new user tag. User needs to have `user_tags.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/UserTag/properties/display_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserTag/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User tag created successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserTag"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to create user tag because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to create user tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to create user tag because the user does not have the necessary permission."
+                    }
+                }
+            },
+            "get": {
+                "description": "Get user tag list. User needs to have `user_tags.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "description": "The index of the first item to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "The maximum number of items to be returned.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "description": "The order to return items in. Can be either 0 (sorted by ascending id), 1 (sorted by descending id), 2 (sorted by ascending display name) or 3 (sorted by descending display name).",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5,
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User tag list retrieved successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "total_user_tag_count": {
+                                            "type": "integer",
+                                            "description": "The total number of user tags."
+                                        },
+                                        "user_tag_list": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserTag"
+                                            },
+                                            "description": "The list of user tags."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to retrieve user tag list because the arguments provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to retrieve user tag list because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to retrieve user tag list because the user does not have the necessary permission."
+                    }
+                }
+            }
+        },
+        "/api/user-tags/{user_tag_id}": {
+            "patch": {
+                "description": "Update user tag. User needs to have `user_tags.manage` permission in order to call this API successfully. Any field that is not provided in the request will not be updated.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_tag_id",
+                        "in": "path",
+                        "description": "The ID of the user tag to be updated.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "display_name": {
+                                        "$ref": "#/components/schemas/UserTag/properties/display_name"
+                                    },
+                                    "description": {
+                                        "$ref": "#/components/schemas/UserTag/properties/description"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User tag updated successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserTag"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to update user tag because the information provided does not satisfy the constraints."
+                    },
+                    "401": {
+                        "description": "Failed to update user tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to update user tag because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to update user tag because no user tag with the provided user_tag_id is found."
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete user tag. User needs to have `user_tags.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_tag_id",
+                        "in": "path",
+                        "description": "The ID of the user tag to be deleted.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User tag deleted successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to delete user tag because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to delete user tag because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to delete user tag because no user tag with the provided user_tag_id is found."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/tags": {
+            "post": {
+                "description": "Add a user tag to a user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user to be added user tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_tag_id": {
+                                        "$ref": "#/components/schemas/UserTag/properties/id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User tag added to user successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to add user tag to user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to add user tag to user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to add user tag to user because user with user_id or user tag with user_tag_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to add user tag to user because user with user_id already has user tag with user_tag_id."
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}/tags/{user_tag_id}": {
+            "delete": {
+                "description": "Remove a user tag from a user. User needs to have `users.manage` permission in order to call this API successfully.",
+                "tags": [
+                    "User Tag Management"
+                ],
+                "security": [
+                    {
+                        "AuthenticationToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "The user to be remove user tag for.",
+                        "schema": {
+                            "$ref": "#/components/schemas/User/properties/id"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "user_tag_id",
+                        "in": "path",
+                        "description": "The user tag to be removed from the user.",
+                        "schema": {
+                            "$ref": "#/components/schemas/UserTag/properties/id"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User tag removed to user successfully.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Renewed authentication token, if the user old token is about to expire.",
+                                "schema": {
+                                    "$ref": "#/components/schemas/Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Failed to remove user tag from user because the user is not logged in."
+                    },
+                    "403": {
+                        "description": "Failed to remove user tag from user because the user does not have the necessary permission."
+                    },
+                    "404": {
+                        "description": "Failed to remove user tag from user because user with user_id or user tag with user_tag_id does not exist."
+                    },
+                    "409": {
+                        "description": "Failed to remove user tag from user because user with user_id does not have user tag with user_tag_id."
                     }
                 }
             }

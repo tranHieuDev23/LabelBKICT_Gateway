@@ -1,19 +1,24 @@
 import { ImageListFilterOptions } from "../image_list_filter_options";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../../proto/gen/ImageListFilterOptions";
+import { UserListFilterOptions as UserListFilterOptionsProto } from "../../../proto/gen/UserListFilterOptions";
 import { injected, token } from "brandi";
 import { AuthenticatedUserInformation } from "../../../service/utils";
+import { UserListFilterOptions } from "../user_list_filter_options";
 
 export interface FilterOptionsToFilterOptionsProtoConverter {
-    convert(
+    convertImageFilterOptions(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto;
+    convertUserFilterOptions(
+        filterOptions: UserListFilterOptions
+    ): UserListFilterOptionsProto;
 }
 
 export class FilterOptionsToFilterOptionsProtoConverterImpl
     implements FilterOptionsToFilterOptionsProtoConverter
 {
-    public convert(
+    public convertImageFilterOptions(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto {
@@ -22,6 +27,7 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
             imageTagIdList: filterOptions.image_tag_id_list,
             regionLabelIdList: filterOptions.region_label_id_list,
             uploadedByUserIdList: filterOptions.uploaded_by_user_id_list,
+            notUploadedByUserIdList: filterOptions.not_uploaded_by_user_id_list,
             publishedByUserIdList: filterOptions.published_by_user_id_list,
             verifiedByUserIdList: filterOptions.verified_by_user_id_list,
             uploadTimeStart: filterOptions.upload_time_start,
@@ -39,6 +45,16 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
                 ? [authUserInfo.user.id]
                 : [],
             mustHaveDescription: filterOptions.must_have_description,
+        };
+    }
+
+    public convertUserFilterOptions(
+        filterOptions: UserListFilterOptions
+    ): UserListFilterOptionsProto {
+        return {
+            usernameQuery: filterOptions.username_query,
+            userTagIdList: filterOptions.user_tag_id_list,
+            userRoleIdList: filterOptions.user_role_id_list,
         };
     }
 }
