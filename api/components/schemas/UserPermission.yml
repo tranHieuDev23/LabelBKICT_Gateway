@@ -1,0 +1,21 @@
+type: object
+description: A permission in the system, allowing the user to operate certain
+  features on the system.
+properties:
+  id:
+    type: integer
+    description: User permission ID, should be unique across all user role.
+  permission_name:
+    type: string
+    description:
+      The permission name. Should only contain letter, number, underscore
+      (_) and dot (.). Dots should be used to separate the namespace of the
+      permission, allowing easy organization of the permission, such as user.manage,
+      image.view, etc...
+    minLength: 1
+    maxLength: 256
+    pattern: "^[a-zA-Z0-9_.]+$"
+  description:
+    type: string
+    description: A short description about the user permission.
+    maxLength: 256

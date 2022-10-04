@@ -1,0 +1,42 @@
+User:
+  $ref: "./schemas/User.yml"
+UserPassword:
+  $ref: "./schemas/UserPassword.yml"
+Token:
+  $ref: "./schemas/Token.yml"
+UserRole:
+  $ref: "./schemas/UserRole.yml"
+UserPermission:
+  $ref: "./schemas/UserPermission.yml"
+UserTag:
+  $ref: "./schemas/UserTag.yml"
+ImageType:
+  $ref: "./schemas/ImageType.yml"
+RegionLabel:
+  $ref: "./schemas/RegionLabel.yml"
+ImageTagGroup:
+  $ref: "./schemas/ImageTagGroup.yml"
+ImageTag:
+  $ref: "./schemas/ImageTag.yml"
+Image:
+  $ref: "./schemas/Image.yml"
+ImageListFilterOptions:
+  $ref: "./schemas/ImageListFilterOptions.yml"
+ImageBookmark:
+  $ref: "./schemas/ImageBookmark.yml"
+Point:
+  $ref: "./schemas/Point.yml"
+Polygon:
+  $ref: "./schemas/Polygon.yml"
+Region:
+  $ref: "./schemas/Region.yml"
+RegionOperationLog:
+  $ref: "./schemas/RegionOperationLog.yml"
+RegionOperationLogDrawMetadata:
+  $ref: "./schemas/RegionOperationLogDrawMetadata.yml"
+RegionOperationLogLabelMetadata:
+  $ref: "./schemas/RegionOperationLogLabelMetadata.yml"
+Export:
+  $ref: "./schemas/Export.yml"
+PinnedPage:
+  $ref: "./schemas/PinnedPage.yml"

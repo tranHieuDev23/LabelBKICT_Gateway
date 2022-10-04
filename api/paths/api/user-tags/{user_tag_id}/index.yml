@@ -1,0 +1,83 @@
+patch:
+  description: Update user tag. User needs to have `user_tags.manage` permission
+    in order to call this API successfully. Any field that is not provided in
+    the request will not be updated.
+  tags:
+    - User Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_tag_id
+      in: path
+      description: The ID of the user tag to be updated.
+      schema:
+        $ref: "../../../../components/schemas/UserTag.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../../components/schemas/UserTag.yml#/properties/display_name"
+            description:
+              $ref: "../../../../components/schemas/UserTag.yml#/properties/description"
+  responses:
+    "200":
+      description: User tag updated successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/UserTag.yml"
+    "400":
+      description: Failed to update user tag because the information provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to update user tag because the user is not logged in.
+    "403":
+      description: Failed to update user tag because the user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to update user tag because no user tag with the provided
+        user_tag_id is found.
+delete:
+  description: Delete user tag. User needs to have `user_tags.manage` permission
+    in order to call this API successfully.
+  tags:
+    - User Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_tag_id
+      in: path
+      description: The ID of the user tag to be deleted.
+      schema:
+        $ref: "../../../../components/schemas/UserTag.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: User tag deleted successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to delete user tag because the user is not logged in.
+    "403":
+      description: Failed to delete user tag because the user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to delete user tag because no user tag with the provided
+        user_tag_id is found.

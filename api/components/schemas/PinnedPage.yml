@@ -1,0 +1,20 @@
+type: object
+description: A pinned page. User can pin pages on the system in order to be
+  able to return to the page more quickly.
+properties:
+  id:
+    type: integer
+    description: Pinned Page ID, should be unique across all pinned page.
+  pin_time:
+    type: integer
+    description: The time of pinning the page.
+  url:
+    type: string
+    description: The URL to be pinned.
+  description:
+    type: string
+    description: User-inputted description for the pinned page.
+  screenshot_url:
+    type: string
+    description: An URL to the screenshot of the pinned page at the time of
+      pinning.

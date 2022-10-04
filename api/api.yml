@@ -1,0 +1,130 @@
+openapi: 3.0.2
+info:
+  title: label.bkict.org Gateway API
+  version: "1.0"
+components:
+  schemas:
+    $ref: "./components/schemas.yml"
+  securitySchemes:
+    $ref: "./components/securitySchemes.yml"
+paths:
+  "/api/users":
+    $ref: "./paths/api/users/index.yml"
+  "/api/users/search":
+    $ref: "./paths/api/users/search/index.yml"
+  "/api/users/{user_id}":
+    $ref: "./paths/api/users/{user_id}/index.yml"
+  "/api/users/{user_id}/manageable-image-users":
+    $ref: "./paths/api/users/{user_id}/manageable-image-users/index.yml"
+  "/api/users/{user_id}/manageable-image-users/{image_of_user_id}":
+    $ref: "./paths/api/users/{user_id}/manageable-image-users/{image_of_user_id}/index.yml"
+  "/api/users/{user_id}/verifiable-image-users":
+    $ref: "./paths/api/users/{user_id}/verifiable-image-users/index.yml"
+  "/api/users/{user_id}/verifiable-image-users/{image_of_user_id}":
+    $ref: "./paths/api/users/{user_id}/verifiable-image-users/{image_of_user_id}/index.yml"
+  "/api/sessions/password":
+    $ref: "./paths/api/sessions/password/index.yml"
+  "/api/sessions/user":
+    $ref: "./paths/api/sessions/user/index.yml"
+  "/api/sessions":
+    $ref: "./paths/api/sessions/index.yml"
+  "/api/roles":
+    $ref: "./paths/api/roles/index.yml"
+  "/api/roles/{user_role_id}":
+    $ref: "./paths/api/roles/{user_role_id}/index.yml"
+  "/api/users/{user_id}/roles":
+    $ref: "./paths/api/users/{user_id}/roles/index.yml"
+  "/api/users/{user_id}/roles/{user_role_id}":
+    $ref: "./paths/api/users/{user_id}/roles/{user_role_id}/index.yml"
+  "/api/permissions":
+    $ref: "./paths/api/permissions/index.yml"
+  "/api/permissions/{user_permission_id}":
+    $ref: "./paths/api/permissions/{user_permission_id}/index.yml"
+  "/api/roles/{user_role_id}/permissions":
+    $ref: "./paths/api/roles/{user_role_id}/permissions/index.yml"
+  "/api/roles/{user_role_id}/permissions/{user_permission_id}":
+    $ref: "./paths/api/roles/{user_role_id}/permissions/{user_permission_id}/index.yml"
+  "/api/user-tags":
+    $ref: "./paths/api/user-tags/index.yml"
+  "/api/user-tags/{user_tag_id}":
+    $ref: "./paths/api/user-tags/{user_tag_id}/index.yml"
+  "/api/users/{user_id}/tags":
+    $ref: "./paths/api/users/{user_id}/tags/index.yml"
+  "/api/users/{user_id}/tags/{user_tag_id}":
+    $ref: "./paths/api/users/{user_id}/tags/{user_tag_id}/index.yml"
+  "/api/image-types":
+    $ref: "./paths/api/image-types/index.yml"
+  "/api/image-types/{image_type_id}":
+    $ref: "./paths/api/image-types/{image_type_id}/index.yml"
+  "/api/image-types/{image_type_id}/labels":
+    $ref: "./paths/api/image-types/{image_type_id}/labels/index.yml"
+  "/api/image-types/{image_type_id}/labels/{region_label_id}":
+    $ref: "./paths/api/image-types/{image_type_id}/labels/{region_label_id}/index.yml"
+  "/api/image-tag-groups":
+    $ref: "./paths/api/image-tag-groups/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/tags":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/tags/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/tags/{image_tag_id}":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/tags/{image_tag_id}/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/image-types":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/image-types/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/image-types/{image_type_id}":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/image-types/{image_type_id}/index.yml"
+  "/api/image-types/{image_type_id}/image-tag-groups":
+    $ref: "./paths/api/image-types/{image_type_id}/image-tag-groups/index.yml"
+  "/api/images":
+    $ref: "./paths/api/images/index.yml"
+  "/api/images/detection-task":
+    $ref: "./paths/api/images/detection-task/index.yml"
+  "/api/sessions/user/images":
+    $ref: "./paths/api/sessions/user/images/index.yml"
+  "/api/sessions/user/manageable-image-users":
+    $ref: "./paths/api/sessions/user/manageable-image-users/index.yml"
+  "/api/sessions/user/manageable-images":
+    $ref: "./paths/api/sessions/user/manageable-images/index.yml"
+  "/api/sessions/user/verifiable-image-users":
+    $ref: "./paths/api/sessions/user/verifiable-image-users/index.yml"
+  "/api/sessions/user/verifiable-images":
+    $ref: "./paths/api/sessions/user/verifiable-images/index.yml"
+  "/api/sessions/user/exportable-image-users":
+    $ref: "./paths/api/sessions/user/exportable-image-users/index.yml"
+  "/api/sessions/user/exportable-images":
+    $ref: "./paths/api/sessions/user/exportable-images/index.yml"
+  "/api/images/{image_id}":
+    $ref: "./paths/api/images/{image_id}/index.yml"
+  "/api/images/{image_id}/region-snapshots":
+    $ref: "./paths/api/images/{image_id}/region-snapshots/index.yml"
+  "/api/images/{image_id}/position":
+    $ref: "./paths/api/images/{image_id}/position/index.yml"
+  "/api/images/{image_id}/image-type":
+    $ref: "./paths/api/images/{image_id}/image-type/index.yml"
+  "/api/images/{image_id}/status":
+    $ref: "./paths/api/images/{image_id}/status/index.yml"
+  "/api/images/{image_id}/tags":
+    $ref: "./paths/api/images/{image_id}/tags/index.yml"
+  "/api/images/{image_id}/tags/{image_tag_id}":
+    $ref: "./paths/api/images/{image_id}/tags/{image_tag_id}/index.yml"
+  "/api/images/{image_id}/bookmark":
+    $ref: "./paths/api/images/{image_id}/bookmark/index.yml"
+  "/api/images/{image_id}/regions":
+    $ref: "./paths/api/images/{image_id}/regions/index.yml"
+  "/api/images/{image_id}/regions/{region_id}":
+    $ref: "./paths/api/images/{image_id}/regions/{region_id}/index.yml"
+  "/api/images/{image_id}/regions/{region_id}/boundary":
+    $ref: "./paths/api/images/{image_id}/regions/{region_id}/boundary/index.yml"
+  "/api/images/{image_id}/regions/{region_id}/label":
+    $ref: "./paths/api/images/{image_id}/regions/{region_id}/label/index.yml"
+  "/api/images/{image_id}/regions/{region_id}/operation-logs":
+    $ref: "./paths/api/images/{image_id}/regions/{region_id}/operation-logs/index.yml"
+  "/api/exports":
+    $ref: "./paths/api/exports/index.yml"
+  "/api/exports/{export_id}/exported-file":
+    $ref: "./paths/api/exports/{export_id}/exported-file/index.yml"
+  "/api/exports/{export_id}":
+    $ref: "./paths/api/exports/{export_id}/index.yml"
+  "/api/pinned-pages":
+    $ref: "./paths/api/pinned-page/index.yml"
+  "/api/pinned-pages/{pinned_page_id}":
+    $ref: "./paths/api/pinned-page/{pinned_page_id}/index.yml"

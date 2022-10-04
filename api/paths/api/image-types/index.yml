@@ -1,0 +1,97 @@
+post:
+  description: Create a new image type. User needs to have `image_types.manage`
+    permission in order to call this API successfully.
+  tags:
+    - Image Type Management
+  security:
+    - AuthenticationToken: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../components/schemas/ImageType.yml#/properties/display_name"
+            has_predictive_model:
+              $ref: "../../../components/schemas/ImageType.yml#/properties/has_predictive_model"
+  responses:
+    "200":
+      description: Image type created successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/ImageType.yml"
+    "400":
+      description: Failed to create image type because the information provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to create image type because the user is not logged
+        in.
+    "403":
+      description: Failed to create image type because the user does not have
+        the necessary permission.
+get:
+  description: Get image type list. User needs to already be logged in to the
+    system in order to call this API successfully.
+  tags:
+    - Image Type Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: with_region_label
+      in: query
+      description:
+        If equal to 1, will return the list of region labels each image
+        type in the list has.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+  responses:
+    "200":
+      description: Image type list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image_type_list:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/ImageType.yml"
+                description: The list of image types.
+              region_label_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/RegionLabel.yml"
+                description: If with_region_label = 1, this field is the list
+                  of region labels each image type in image_type_list has, in
+                  the same order. If with_region_label = 0, this field is not
+                  returned.
+    "400":
+      description:
+        Failed to retrieve image type list because the arguments provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to retrieve image type list because the user is not
+        logged in.
+    "403":
+      description: Failed to retrieve image type list because the user does not
+        have the necessary permission.

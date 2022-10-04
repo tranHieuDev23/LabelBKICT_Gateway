@@ -1,0 +1,18 @@
+type: object
+description: A group of tag values. If an Image Tag Group is associated with
+  an Image Type, images of that Image Type can be assigned with Tag values of
+  that Image Tag Group.
+properties:
+  id:
+    type: integer
+    description: Image tag group ID, should be unique across all tag group.
+  display_name:
+    type: string
+    description: The image tag group's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256
+  is_single_value:
+    type: boolean
+    description: If true, each image can only be assigned with one tag of this
+      tag group. Otherwise, multiple tags of this group can be assigned to the
+      same image.

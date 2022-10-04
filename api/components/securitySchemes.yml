@@ -1,0 +1,4 @@
+AuthenticationToken:
+  type: apiKey
+  in: cookie
+  name: LABEL_BKICT_AUTH

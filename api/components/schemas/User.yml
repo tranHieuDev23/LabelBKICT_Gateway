@@ -1,0 +1,18 @@
+type: object
+description: A user in the system.
+properties:
+  id:
+    type: integer
+    description: User ID, should be unique across all user.
+  username:
+    type: string
+    description: Username, used to log into the system. Should be unique across
+      all user.
+    minLength: 6
+    maxLength: 64
+    pattern: "^[a-zA-Z0-9]+$"
+  display_name:
+    type: string
+    description: The user's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256

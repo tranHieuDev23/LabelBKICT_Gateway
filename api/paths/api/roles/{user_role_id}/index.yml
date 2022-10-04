@@ -1,0 +1,85 @@
+patch:
+  description:
+    Update user role. User needs to have `user_roles.manage` permission
+    in order to call this API successfully. Any field that is not provided in
+    the request will not be updated.
+  tags:
+    - User Role Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_role_id
+      in: path
+      description: The ID of the user role to be updated.
+      schema:
+        $ref: "../../../../components/schemas/UserRole.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../../components/schemas/UserRole.yml#/properties/display_name"
+            description:
+              $ref: "../../../../components/schemas/UserRole.yml#/properties/description"
+  responses:
+    "200":
+      description: User role updated successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../components/schemas/UserRole.yml"
+    "400":
+      description: Failed to update user role because the information provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to update user role because the user is not logged in.
+    "403":
+      description: Failed to update user role because the user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to update user role because no user role with the provided
+        user_role_id is found.
+delete:
+  description:
+    Delete user role. User needs to have `user_roles.manage` permission
+    in order to call this API successfully.
+  tags:
+    - User Role Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_role_id
+      in: path
+      description: The ID of the user role to be deleted.
+      schema:
+        $ref: "../../../../components/schemas/UserRole.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: User role deleted successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to delete user role because the user is not logged in.
+    "403":
+      description: Failed to delete user role because the user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to delete user role because no user role with the provided
+        user_role_id is found.

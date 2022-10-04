@@ -1,0 +1,16 @@
+type: object
+description: A role in the system, which may contain some UserPermission that
+  allows the user to operate on the system.
+properties:
+  id:
+    type: integer
+    description: User role ID, should be unique across all user role.
+  display_name:
+    type: string
+    description: The user role's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256
+  description:
+    type: string
+    description: A short description about the user role.
+    maxLength: 256

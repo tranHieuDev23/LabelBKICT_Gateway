@@ -1,0 +1,36 @@
+type: object
+description: Export result from the system. Can be either a dataset export -
+  the entire dataset compressed into a zip file, along with metadata files -
+  or an Excel report of the dataset information. An export is valid for 7 days
+  before being deleted from the system.
+properties:
+  id:
+    type: integer
+    description: Export ID, should be unique across all export.
+  requested_by_user:
+    $ref: "./User.yml"
+  type:
+    type: integer
+    description: The type of the export. Can take a value of 0 (DATASET) - for
+      full dataset export or 1 (EXCEL) - for dataset information Excel worksheet
+      export.
+    minimum: 0
+    maximum: 1
+  request_time:
+    type: integer
+    description: The time when this export was requested.
+  status:
+    type: integer
+    description: The status of the export on the system. Can take a value of
+      0 (REQUESTED) - for exports that have just been requested, 1 (PROCESSING)
+      - for exports that are currently being processed and 2 (DONE) - for exports
+      that have been successfully processed.
+    minimum: 0
+    maximum: 2
+  expire_time:
+    type: integer
+    description: The time when this export will stop being available on the
+      system.
+  exported_file_url:
+    type: string
+    description: The URL to download the exported file.

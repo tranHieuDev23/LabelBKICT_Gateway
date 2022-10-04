@@ -1,0 +1,32 @@
+delete:
+  description:
+    Delete an export request. User needs to have `images.export` permission
+    and needs to be deleting an export they created in order to call this API
+    successfully.
+  tags:
+    - Export Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: export_id
+      in: path
+      description: The export to be deleted.
+      schema:
+        $ref: "../../../../components/schemas/Export.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Deleted export successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to delete export because the user is not logged in.
+    "403":
+      description: Failed to delete export because the user does not have the
+        necessary permission.
+    "404":
+      description: Failed to delete export because the export cannot be found.

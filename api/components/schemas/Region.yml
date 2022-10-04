@@ -1,0 +1,22 @@
+type: object
+description: A region on an image on the system.
+properties:
+  id:
+    type: integer
+    description: Region ID, should be unique across all region.
+  drawn_by_user:
+    $ref: "./User.yml"
+  labeled_by_user:
+    $ref: "./User.yml"
+  border:
+    $ref: "./Polygon.yml"
+  holes:
+    type: array
+    items:
+      $ref: "./Polygon.yml"
+    description:
+      The holes inside the border of the region. Holes cannot intersect
+      with each other, and cannot intersect with the border of the region.
+    maxItems: 10
+  label:
+    $ref: "./RegionLabel.yml"

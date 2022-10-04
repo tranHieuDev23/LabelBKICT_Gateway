@@ -1,0 +1,99 @@
+post:
+  description:
+    Request for a new export. User needs to have `images.export` permission
+    in order to call this API successfully.
+  tags:
+    - Export Management
+  security:
+    - AuthenticationToken: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            type:
+              $ref: "../../../components/schemas/Export.yml#/properties/type"
+            filter_options:
+              $ref: "../../../components/schemas/ImageListFilterOptions.yml"
+  responses:
+    "200":
+      description: Export requested successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              export:
+                $ref: "../../../components/schemas/Export.yml"
+    "400":
+      description: Failed to request for export because the filter options are
+        invalid.
+    "401":
+      description: Failed to request for export because the user is not logged
+        in.
+    "403":
+      description: Failed to request for export because the user does not have
+        the necessary permission.
+get:
+  description: Get the list of exports requested by the current session user.
+    User needs to have `images.export` permission in order to call this API successfully.
+  tags:
+    - Export Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: offset
+      description: The index of the first item to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  responses:
+    "200":
+      description: Retrieved exports list successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              total_export_count:
+                type: integer
+                description: The total number of exports the session user has
+                  requested.
+              export_list:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/Export.yml"
+                description: The list of exports.
+    "400":
+      description: Failed to retrieve export list because the arguments provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to retrieve export list because the user is not logged
+        in.
+    "403":
+      description: Failed to retrieve export list because the user does not have
+        the necessary permission.

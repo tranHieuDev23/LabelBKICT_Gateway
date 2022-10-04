@@ -1,0 +1,12 @@
+type: object
+description: A tag value, that can be assigned to an image for classification
+  purpose.
+properties:
+  id:
+    type: integer
+    description: Image tag ID, should be unique across all tag.
+  display_name:
+    type: string
+    description: The image tag's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256

@@ -1,0 +1,33 @@
+get:
+  description: Get the current session's user information. User needs to already
+    be logged in to the system in order to call this API successfully.
+  tags:
+    - Session Management
+  security:
+    - AuthenticationToken: []
+  responses:
+    "200":
+      description: Retrieved session's user information successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: "../../../../components/schemas/User.yml"
+              user_role_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/UserRole.yml"
+              user_permission_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/UserPermission.yml"
+    "401":
+      description: Invalid session information, no user is associated with it.

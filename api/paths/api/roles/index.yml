@@ -1,0 +1,126 @@
+post:
+  description: Create a new user role. User needs to have `user_roles.manage`
+    permission in order to call this API successfully.
+  tags:
+    - User Role Management
+  security:
+    - AuthenticationToken: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../components/schemas/UserRole.yml#/properties/display_name"
+            description:
+              $ref: "../../../components/schemas/UserRole.yml#/properties/description"
+  responses:
+    "200":
+      description: User role created successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/UserRole.yml"
+    "400":
+      description: Failed to create user role because the information provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to create user role because the user is not logged in.
+    "403":
+      description: Failed to create user role because the user does not have the
+        necessary permission.
+get:
+  description:
+    Get user role list. User needs to have `user_roles.manage` permission
+    in order to call this API successfully.
+  tags:
+    - User Role Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: offset
+      description: The index of the first item to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    - name: sort_order
+      description:
+        The order to return items in. Can be either 0 (sorted by ascending
+        id), 1 (sorted by descending id), 2 (sorted by ascending display name) or
+        3 (sorted by descending display name).
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 5
+        default: 0
+    - name: with_user_permission
+      description: If equal to 1, will return the list of user permissions each
+        user role in the list has.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+  responses:
+    "200":
+      description: User role list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              total_user_role_count:
+                type: integer
+                description: The total number of user roles.
+              user_role_list:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/UserRole.yml"
+                description: The list of user roles.
+              user_permission_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/UserPermission.yml"
+                description: If with_user_permission = 1, this field is the list
+                  of user permissions each user role in user_role_list has, in
+                  the same order. If with_user_permission = 0, this field is not
+                  returned.
+    "400":
+      description:
+        Failed to retrieve user role list because the arguments provided
+        does not satisfy the constraints.
+    "401":
+      description:
+        Failed to retrieve user role list because the user is not logged
+        in.
+    "403":
+      description: Failed to retrieve user role list because the user does not
+        have the necessary permission.

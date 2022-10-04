@@ -1,0 +1,45 @@
+type: object
+description: An image on the system.
+properties:
+  id:
+    type: integer
+    description: Image ID, should be unique across all image.
+  upload_by_user:
+    $ref: "./User.yml"
+  upload_time:
+    type: integer
+    description: The time when this image was uploaded to the system.
+  publish_by_user:
+    $ref: "./User.yml"
+  publish_time:
+    type: integer
+    description: The time when this image was published for other users to verify.
+  verify_by_user:
+    $ref: "./User.yml"
+  verify_time:
+    type: integer
+    description: The time when this image was marked as verified.
+  original_file_name:
+    type: string
+    description: The original file name of the image, when uploaded by the user.
+  image_url:
+    type: string
+    description: The URL to the full-size image on the system.
+  thumbnail_url:
+    type: string
+    description: The URL to the compressed small-size thumbnail of the image,
+      for display purpose.
+  description:
+    type: string
+    description: The description for the image.
+  image_type:
+    $ref: "./ImageType.yml"
+  status:
+    type: integer
+    description: The status of the image on the system. Can take a value of
+      0 (UPLOADED - for images that are just uploaded to the system), 1 (PUBLISHED
+      - for images that are published for other users to verify), 2 (VERIFIED
+      - for images that are verified by other users) or 3 (EXCLUDED - for images
+      that are excluded from publication and are intended for presentation only).
+    minimum: 0
+    maximum: 3

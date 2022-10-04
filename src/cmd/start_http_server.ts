@@ -19,5 +19,5 @@ export function startHTTPServer(dotenvPath: string) {
     service.bindToContainer(container);
 
     const server = container.get(service.GATEWAY_HTTP_SERVER_TOKEN);
-    server.loadAPIDefinitionAndStart("./api/api.json");
+    server.loadAPIDefinitionAndStart("./api/api.yml");
 }

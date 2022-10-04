@@ -1,0 +1,100 @@
+patch:
+  description:
+    Update a region label of an image type. User needs to have `image_types.manage`
+    permission in order to call this API successfully. Any field that is not provided
+    in the request will not be updated.
+  tags:
+    - Image Type Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_type_id
+      in: path
+      description: The image type to updated region label for.
+      schema:
+        $ref: "../../../../../../components/schemas/ImageType.yml#/properties/id"
+      required: true
+    - name: region_label_id
+      in: path
+      description: The region label to be updated.
+      schema:
+        $ref: "../../../../../../components/schemas/RegionLabel.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../../../../components/schemas/RegionLabel.yml#/properties/display_name"
+            color:
+              $ref: "../../../../../../components/schemas/RegionLabel.yml#/properties/color"
+  responses:
+    "200":
+      description: Region label updated successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../../../../components/schemas/RegionLabel.yml"
+    "400":
+      description:
+        Failed to updated region label because the information provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to updated region label because the user is not logged
+        in.
+    "403":
+      description: Failed to updated region label because user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to updated region label because image type with image_type_id
+        or region label with region_label_id does not exist.
+delete:
+  description:
+    Delete a region label of an image type. User needs to have `image_types.manage`
+    permission in order to call this API successfully.
+  tags:
+    - Image Type Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_type_id
+      in: path
+      description: The image type to deleted region label for.
+      schema:
+        $ref: "../../../../../../components/schemas/ImageType.yml#/properties/id"
+      required: true
+    - name: region_label_id
+      in: path
+      description: The region label to be deleted.
+      schema:
+        $ref: "../../../../../../components/schemas/RegionLabel.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Region label deleted successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to deleted region label because the user is not logged
+        in.
+    "403":
+      description: Failed to deleted region label because user does not have the
+        necessary permission.
+    "404":
+      description:
+        Failed to deleted region label because image type with image_type_id
+        or region label with region_label_id does not exist.

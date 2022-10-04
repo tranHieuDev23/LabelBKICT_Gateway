@@ -1,0 +1,69 @@
+patch:
+  description: Update the boundary a region of an image. User needs to either
+    (1) have `images.manage.self` permission and is updating an image of their
+    own, (2) have `images.verify` permission and is updating an image with PUBLISHED
+    status that they are allowed to verify, or (3) have `images.manage.all` permission
+    and is updating an image that they are allowed to edit in order to call this
+    API successfully.
+  tags:
+    - Region Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be updated.
+      schema:
+        $ref: "../../../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+    - name: region_id
+      in: path
+      description: The region to be updated.
+      schema:
+        $ref: "../../../../../../../components/schemas/Region.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            border:
+              $ref: "../../../../../../../components/schemas/Region.yml#/properties/border"
+            holes:
+              type: array
+              items:
+                $ref: "../../../../../../../components/schemas/Polygon.yml"
+              description:
+                The holes inside the border of the region. Holes cannot
+                intersect with each other, and cannot intersect with the border
+                of the region.
+              maxItems: 10
+  responses:
+    "200":
+      description: Region updated successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              region:
+                $ref: "../../../../../../../components/schemas/Region.yml"
+    "400":
+      description: Failed to update image because the provided information does
+        not satisfy the constraints.
+    "401":
+      description: Failed to update region because the user is not logged in.
+    "403":
+      description: Failed to update region because the user does not have the
+        necessary permission.
+    "404":
+      description: Failed to update region because the image with image_id or
+        the region with region_id does not exist.

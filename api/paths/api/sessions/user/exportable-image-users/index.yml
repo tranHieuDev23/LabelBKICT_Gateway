@@ -1,0 +1,54 @@
+get:
+  description:
+    Search the list of users, whose images can be exported by the session's
+    user, using username and display name. User needs to have `images.manage.all`
+    permission in order to call this API successfully.
+  tags:
+    - Image List Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: query
+      description: The query string.
+      in: query
+      schema:
+        type: string
+        maxLength: 256
+      allowEmptyValue: true
+      allowReserved: true
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 10
+        default: 10
+  responses:
+    "200":
+      description: User list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user_list:
+                type: array
+                items:
+                  $ref: "../../../../../components/schemas/User.yml"
+                description: The list of users.
+    "400":
+      description: Failed to retrieve user list because the arguments provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to retrieve user list because the user is not logged
+        in.
+    "403":
+      description: Failed to retrieve user list because the user does not have
+        the necessary permission.

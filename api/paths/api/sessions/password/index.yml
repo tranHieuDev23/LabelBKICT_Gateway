@@ -1,0 +1,51 @@
+post:
+  description: Login with password. If the user is successfully logged in, an
+    authorization token is included in the response as a cookie, allowing the
+    user to operate on the system.
+  tags:
+    - Session Management
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description:
+                Username, used to log into the system. Should be unique
+                across all user.
+            password:
+              type: string
+              description: The password of an user in the system.
+  responses:
+    "200":
+      description: User is logged in successfully.
+      headers:
+        Authorization:
+          description: Authentication token for the newly created user.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+          required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: "../../../../components/schemas/User.yml"
+              user_role_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/UserRole.yml"
+              user_permission_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/UserPermission.yml"
+    "401":
+      description: Failed to log user in because of incorrect password.
+    "404":
+      description:
+        Failed to log user in because there is no user with the provided
+        username.

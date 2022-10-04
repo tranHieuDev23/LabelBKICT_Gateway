@@ -1,0 +1,110 @@
+type: object
+description: An object representing the filter options available to filter for
+  images on the system.
+properties:
+  image_type_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of image type IDs. If provided, filter for images that
+      belong to one of these image types.
+    maxItems: 10
+  image_tag_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of image tag IDs. If provided, filter for images that
+      has one of these image tags (or all of these image tags, if must_match_all_image_tags
+      = true).
+  region_label_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of region label IDs. If provided, filter for images
+      that has one of these region labels (or all of these region labels, if
+      must_match_all_region_labels = true).
+    maxItems: 10
+  uploaded_by_user_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of user IDs. If provided, filter for images that are
+      uploaded by one of these users.
+    maxItems: 10
+  published_by_user_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of user IDs. If provided, filter for images that are
+      published by one of these users.
+    maxItems: 10
+  verified_by_user_id_list:
+    type: array
+    items:
+      type: integer
+    description: A list of user IDs. If provided, filter for images that are
+      verified by one of these users.
+    maxItems: 10
+  upload_time_start:
+    type: integer
+    description: If non-zero, filter for images that are uploaded from or after
+      this timestamp.
+    default: 0
+  upload_time_end:
+    type: integer
+    description: If non-zero, filter for images that are uploaded before or
+      on this timestamp.
+    default: 0
+  publish_time_start:
+    type: integer
+    description: If non-zero, filter for images that are published from or after
+      this timestamp.
+    default: 0
+  publish_time_end:
+    type: integer
+    description: If non-zero, filter for images that are published before or
+      on this timestamp.
+    default: 0
+  verify_time_start:
+    type: integer
+    description: If non-zero, filter for images that are verified from or after
+      this timestamp.
+    default: 0
+  verify_time_end:
+    type: integer
+    description: If non-zero, filter for images that are verified before or
+      on this timestamp.
+    default: 0
+  original_filename_query:
+    type: string
+    description:
+      If provided, filter for images that have original name containing
+      this query string (case insensitive).
+    maxLength: 256
+    default: ""
+  filter_image_status_list:
+    type: array
+    items:
+      type: integer
+      minimum: 0
+      maximum: 3
+    description: A list of image statuses. If provided, filter for images that
+      have one of these statuses.
+    maxItems: 10
+  must_match_all_image_tags:
+    type: boolean
+    description:
+      If true, images in the results must have all image tags provided
+      in the filter.
+  must_match_all_region_labels:
+    type: boolean
+    description: If true, images in the results must have all region labels
+      provided in the filter.
+  must_be_bookmarked:
+    type: boolean
+    description:
+      If true, images in the results must be bookmarked by the session
+      user.
+  must_have_description:
+    type: boolean
+    description: If true, images in the results must have non-empty description.
