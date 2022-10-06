@@ -7,6 +7,7 @@ import { ApplicationConfig } from "./application";
 import { ExportServiceConfig } from "./export_service";
 import { ModelServiceConfig } from "./model_service";
 import { PinPageServiceConfig } from "./pin_page_service";
+import { ElasticsearchConfig } from "./elasticsearch";
 
 export class GatewayConfig {
     public gatewayServerConfig = new GatewayServerConfig();
@@ -16,6 +17,7 @@ export class GatewayConfig {
     public modelServiceConfig = new ModelServiceConfig();
     public pinPageServiceConfig = new PinPageServiceConfig();
     public logConfig = new LogConfig();
+    public elasticsearchConfig = new ElasticsearchConfig();
     public applicationConfig = new ApplicationConfig();
 
     public static fromEnv(): GatewayConfig {
@@ -27,6 +29,7 @@ export class GatewayConfig {
         config.modelServiceConfig = ModelServiceConfig.fromEnv();
         config.pinPageServiceConfig = PinPageServiceConfig.fromEnv();
         config.logConfig = LogConfig.fromEnv();
+        config.elasticsearchConfig = ElasticsearchConfig.fromEnv();
         config.applicationConfig = ApplicationConfig.fromEnv();
         return config;
     }
