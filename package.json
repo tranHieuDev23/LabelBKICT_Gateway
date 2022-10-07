@@ -18,6 +18,7 @@
   "author": "tranhieu23.code@outlook.com",
   "license": "ISC",
   "dependencies": {
+    "@elastic/elasticsearch": "^8.4.0",
     "@grpc/grpc-js": "^1.5.5",
     "@grpc/proto-loader": "^0.6.9",
     "@zapier/secret-scrubber": "^1.0.5",

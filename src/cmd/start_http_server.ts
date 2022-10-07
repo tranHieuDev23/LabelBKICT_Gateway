@@ -2,6 +2,7 @@ import { Container } from "brandi";
 import dotenv from "dotenv";
 import * as utils from "../utils";
 import * as config from "../config";
+import * as elasticsearch from "../dataaccess/elasticsearch";
 import * as grpc from "../dataaccess/grpc";
 import * as modules from "../module";
 import * as service from "../service";
@@ -14,6 +15,7 @@ export function startHTTPServer(dotenvPath: string) {
     const container = new Container();
     utils.bindToContainer(container);
     config.bindToContainer(container);
+    elasticsearch.bindToContainer(container);
     grpc.bindToContainer(container);
     modules.bindToContainer(container);
     service.bindToContainer(container);
