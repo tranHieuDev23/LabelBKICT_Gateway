@@ -1,9 +1,10 @@
 patch:
   description:
     Update image status. User needs to either (1) have `images.manage.self`
-    permission and is updating an image of their own, or (2) have `images.manage.all`
-    permission and is updating an image that they are allowed to edit in order
-    to call this API successfully.
+    permission and is updating an image of their own, (2) have `images.manage.all`
+    permission and is updating an image that they are allowed to edit or (3) have
+    `images.verify` permission and is updating an image that they are allowed to
+    verify in order to call this API successfully.
   tags:
     - Image Management
   security:
