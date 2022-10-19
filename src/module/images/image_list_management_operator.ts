@@ -20,6 +20,7 @@ import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -120,6 +121,11 @@ export interface ImageListManagementOperator {
         prevImageId: number | undefined;
         nextImageId: number | undefined;
     }>;
+    addImageTagListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        imageTagIdList: number[]
+    ): Promise<void>;
 }
 
 export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
@@ -129,6 +135,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
@@ -587,6 +594,55 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         const nextImageId = getImagePositionInListResponse?.nextImageId;
         return { position, totalImageCount, prevImageId, nextImageId };
     }
+
+    public async addImageTagListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        imageTagIdList: number[]
+    ): Promise<void> {
+        for (const imageId of imageIdList) {
+            const { image: imageProto } = await this.imageInfoProvider.getImage(
+                imageId,
+                false,
+                false
+            );
+            const canUserAccessImage =
+                await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+                    authenticatedUserInfo,
+                    imageProto
+                );
+            if (!canUserAccessImage) {
+                this.logger.error("user is not allowed to access image", {
+                    userId: authenticatedUserInfo.user.id,
+                    imageId,
+                });
+                throw new ErrorWithHTTPCode(
+                    "Failed to add image tag to image",
+                    httpStatus.FORBIDDEN
+                );
+            }
+        }
+
+        const { error: addImageTagListToImageListError } = await promisifyGRPCCall(
+            this.imageServiceDM.addImageTagListToImageList.bind(this.imageServiceDM),
+            {
+                imageIdList: imageIdList,
+                imageTagIdList: imageTagIdList
+            });
+        if (addImageTagListToImageListError !== null) {
+            this.logger.error(
+                "failed to call image_service.addImageTagListToImageList()",
+                {
+                    userId: authenticatedUserInfo.user.id,
+                    imageIdList,
+                }
+            );
+            throw new ErrorWithHTTPCode(
+                "Failed to add image tag list to image list",
+                getHttpCodeFromGRPCStatus(addImageTagListToImageListError.code)
+            );
+        }
+    }
 }
 
 injected(
@@ -596,6 +652,7 @@ injected(
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,

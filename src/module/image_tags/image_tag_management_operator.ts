@@ -2,6 +2,7 @@ import { injected, token } from "brandi";
 import { Logger } from "winston";
 import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
+import { ImageTagGroupAndTagList } from "../../proto/gen/ImageTagGroupAndTagList";
 import {
     ErrorWithHTTPCode,
     getHttpCodeFromGRPCStatus,
@@ -54,15 +55,16 @@ export interface ImageTagManagementOperator {
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][];
     }>;
+    getImageTagGroupListOfImageTypeList(imageTypeIdList: number[]): Promise<
+        ImageTagGroupAndTagList[]
+    >;
 }
 
-export class ImageTagManagementOperatorImpl
-    implements ImageTagManagementOperator
-{
+export class ImageTagManagementOperatorImpl implements ImageTagManagementOperator {
     constructor(
         private readonly imageServiceDM: ImageServiceClient,
         private readonly logger: Logger
-    ) {}
+    ) { }
 
     public async createImageTagGroup(
         displayName: string,
@@ -121,16 +123,16 @@ export class ImageTagManagementOperatorImpl
             ) || [];
         const imageTagList = withImageTag
             ? getImageTagGroupListResponse?.imageTagListOfImageTagGroupList?.map(
-                  (imageTagList) =>
-                      imageTagList.imageTagList?.map(ImageTag.fromProto) || []
-              ) || []
+                (imageTagList) =>
+                    imageTagList.imageTagList?.map(ImageTag.fromProto) || []
+            ) || []
             : undefined;
         const imageTypeList = withImageType
             ? getImageTagGroupListResponse?.imageTypeListOfImageTagGroupList?.map(
-                  (imageTypeList) =>
-                      imageTypeList.imageTypeList?.map(ImageType.fromProto) ||
-                      []
-              ) || []
+                (imageTypeList) =>
+                    imageTypeList.imageTypeList?.map(ImageType.fromProto) ||
+                    []
+            ) || []
             : undefined;
 
         return { imageTagGroupList, imageTagList, imageTypeList };
@@ -337,6 +339,53 @@ export class ImageTagManagementOperatorImpl
             ) || [];
 
         return { imageTagGroupList, imageTagList };
+    }
+
+    public async getImageTagGroupListOfImageTypeList(imageTagIdList: number[]): Promise<
+        ImageTagGroupAndTagList[]
+    > {
+        const {
+            error: getImageTagGroupListOfImageTypeListError,
+            response: getImageTagGroupListOfImageTypeListResponse
+        } = await promisifyGRPCCall(this.imageServiceDM.getImageTagGroupListOfImageTypeList.bind(
+            this.imageServiceDM
+        ),
+            { imageTypeIdList: imageTagIdList }
+        );
+
+        if (getImageTagGroupListOfImageTypeListError !== null) {
+            this.logger.error(
+                "fail to call imagae_service.getImageTagGroupListOfImageTypeList()",
+                { error: getImageTagGroupListOfImageTypeListError }
+            );
+            throw new ErrorWithHTTPCode(
+                "fail to get image tag group list of image type list",
+                getHttpCodeFromGRPCStatus(
+                    getImageTagGroupListOfImageTypeListError.code
+                )
+            );
+        }
+
+        if (getImageTagGroupListOfImageTypeListResponse?.imageTagGroupAndTagList !== undefined) {
+            for (const imageTagGroupAndTagList of getImageTagGroupListOfImageTypeListResponse.imageTagGroupAndTagList) {
+                imageTagGroupAndTagList.imageTagGroupList
+                    = imageTagGroupAndTagList.imageTagGroupList?.map(
+                        ImageTagGroup.fromProto
+                    ) || [];
+
+                imageTagGroupAndTagList.imageTagListOfImageTagGroupList
+                    = imageTagGroupAndTagList.imageTagListOfImageTagGroupList?.map(
+                        (ImageTagSubList: any) => {
+                            if (Object.keys(ImageTagSubList).length === 0) return [];
+                            return ImageTagSubList.imageTagList.map(
+                                ImageTag.fromProto
+                            ) || [];
+                        }
+                    ) || [];
+            }
+            return getImageTagGroupListOfImageTypeListResponse.imageTagGroupAndTagList;
+        }
+        return [];
     }
 }
 
