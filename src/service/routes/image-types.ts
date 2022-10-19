@@ -140,6 +140,20 @@ export function getImageTypesRouter(
         })
     );
 
+    router.post(
+        "/api/image-types/image-tag-groups",
+        asyncHandler(async (req, res) => {
+            const imageTypeIdList = req.body.image_type_id_list;
+            const imageTagGroupAndTagList =
+                await imageTagManagementOperator.getImageTagGroupListOfImageTypeList(
+                    imageTypeIdList
+                );
+            res.json({
+                image_tag_group_and_tag_list: imageTagGroupAndTagList
+            });
+        })
+    );
+
     return router;
 }
 
