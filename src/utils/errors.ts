@@ -22,11 +22,9 @@ const GRPC_STATUS_TO_HTTP_CODE = new Map<status, number>([
     [status.OK, httpStatus.OK],
     [status.PERMISSION_DENIED, httpStatus.FORBIDDEN],
     [status.UNAUTHENTICATED, httpStatus.UNAUTHORIZED],
+    [status.FAILED_PRECONDITION, httpStatus.CONFLICT],
 ]);
 
 export function getHttpCodeFromGRPCStatus(grpcStatus: status): number {
-    return (
-        GRPC_STATUS_TO_HTTP_CODE.get(grpcStatus) ||
-        httpStatus.INTERNAL_SERVER_ERROR
-    );
+    return GRPC_STATUS_TO_HTTP_CODE.get(grpcStatus) || httpStatus.INTERNAL_SERVER_ERROR;
 }
