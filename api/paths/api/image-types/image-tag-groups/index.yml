@@ -1,7 +1,7 @@
 get:
-  description: Get the list of tag groups and tag values of an image type list. 
+  description: Get the list of tag groups and tag values of an image type list.
     User needs to already be logged in to the system in order to call this API successfully.
-  tags: 
+  tags:
     - Image Tag Management
   security:
     - AuthenticationToken: []
@@ -31,24 +31,24 @@ get:
                 type: array
                 items:
                   type: object
-                    properties:
-                      image_tag_group_list:
-                        type: array
-                        items:
-                          $ref: "../../../../components/schemas/ImageTagGroup.yml"
-                        description: The list of eligible image tag groups for the requested image type.
-                      image_tag_list:
-                        type: array
-                        items:
-                          $ref: "../../../../components/schemas/ImageTag.yml"
-                        description: The list of eligible image tag for the requested image type.
+                  properties:
+                    image_tag_group_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTagGroup.yml"
+                      description: The list of eligible image tag groups for the requested image type.
+                    image_tag_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTag.yml"
+                      description: The list of eligible image tag for the requested image type.
                 description: The list of image tag groups and related image tag.
     "401":
-      description: Failed to get the list of tag groups and tag values of 
+      description: Failed to get the list of tag groups and tag values of
         an image type list because the user is not logged in.
     "403":
-      description: Failed to get the list of tag groups and tag values of 
+      description: Failed to get the list of tag groups and tag values of
         an image type list because the user does not have the necessary permission.
     "404":
-      description: Failed to get the list of tag groups and tag values of 
+      description: Failed to get the list of tag groups and tag values of
         an image type list because the image type with image_type_id does not exist.
