@@ -600,27 +600,22 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         imageIdList: number[],
         imageTagIdList: number[]
     ): Promise<void> {
-        for (const imageId of imageIdList) {
-            const { image: imageProto } = await this.imageInfoProvider.getImage(
-                imageId,
-                false,
-                false
-            );
-            const canUserAccessImage =
-                await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                    authenticatedUserInfo,
-                    imageProto
-                );
-            if (!canUserAccessImage) {
-                this.logger.error("user is not allowed to access image", {
-                    userId: authenticatedUserInfo.user.id,
-                    imageId,
-                });
-                throw new ErrorWithHTTPCode(
-                    "Failed to add image tag to image",
-                    httpStatus.FORBIDDEN
-                );
-            }
+        const imageList = await Promise.all(
+            imageIdList.map(async (imageId) => {
+                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+                return image;
+            })
+        );
+
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
         }
 
         const { error: addImageTagListToImageListError } = await promisifyGRPCCall(

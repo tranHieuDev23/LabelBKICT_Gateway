@@ -56,7 +56,10 @@ export interface ImageTagManagementOperator {
         imageTagList: ImageTag[][];
     }>;
     getImageTagGroupListOfImageTypeList(imageTypeIdList: number[]): Promise<
-        ImageTagGroupAndTagList[]
+        Array<{
+            imageTagGroupList: ImageTagGroup[];
+            imageTagList: ImageTag[][];
+        }>
     >;
 }
 
@@ -342,7 +345,10 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
     }
 
     public async getImageTagGroupListOfImageTypeList(imageTagIdList: number[]): Promise<
-        ImageTagGroupAndTagList[]
+        Array<{
+            imageTagGroupList: ImageTagGroup[];
+            imageTagList: ImageTag[][];
+        }>
     > {
         const {
             error: getImageTagGroupListOfImageTypeListError,
@@ -355,7 +361,7 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
 
         if (getImageTagGroupListOfImageTypeListError !== null) {
             this.logger.error(
-                "fail to call imagae_service.getImageTagGroupListOfImageTypeList()",
+                "fail to call image_service.getImageTagGroupListOfImageTypeList()",
                 { error: getImageTagGroupListOfImageTypeListError }
             );
             throw new ErrorWithHTTPCode(
@@ -366,15 +372,20 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
             );
         }
 
+        const imageTagGroupAndTagList: Array<{
+            imageTagGroupList: ImageTagGroup[];
+            imageTagList: ImageTag[][];
+        }> = [];
+
         if (getImageTagGroupListOfImageTypeListResponse?.imageTagGroupAndTagList !== undefined) {
-            for (const imageTagGroupAndTagList of getImageTagGroupListOfImageTypeListResponse.imageTagGroupAndTagList) {
-                imageTagGroupAndTagList.imageTagGroupList
-                    = imageTagGroupAndTagList.imageTagGroupList?.map(
+            for (const imageTagGroupAndTag of getImageTagGroupListOfImageTypeListResponse.imageTagGroupAndTagList) {
+                const imageTagGroupList
+                    = imageTagGroupAndTag.imageTagGroupList?.map(
                         ImageTagGroup.fromProto
                     ) || [];
 
-                imageTagGroupAndTagList.imageTagListOfImageTagGroupList
-                    = imageTagGroupAndTagList.imageTagListOfImageTagGroupList?.map(
+                const imageTagListOfImageTagGroupList
+                    = imageTagGroupAndTag.imageTagListOfImageTagGroupList?.map(
                         (ImageTagSubList: any) => {
                             if (Object.keys(ImageTagSubList).length === 0) return [];
                             return ImageTagSubList.imageTagList.map(
@@ -382,8 +393,13 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
                             ) || [];
                         }
                     ) || [];
+
+                imageTagGroupAndTagList.push({
+                    imageTagGroupList: imageTagGroupList,
+                    imageTagList: imageTagListOfImageTagGroupList
+                });
             }
-            return getImageTagGroupListOfImageTypeListResponse.imageTagGroupAndTagList;
+            return imageTagGroupAndTagList;
         }
         return [];
     }
