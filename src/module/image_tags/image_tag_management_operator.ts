@@ -344,7 +344,7 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
         return { imageTagGroupList, imageTagList };
     }
 
-    public async getImageTagGroupListOfImageTypeList(imageTagIdList: number[]): Promise<
+    public async getImageTagGroupListOfImageTypeList(imageTypeIdList: number[]): Promise<
         Array<{
             imageTagGroupList: ImageTagGroup[];
             imageTagList: ImageTag[][];
@@ -356,7 +356,7 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
         } = await promisifyGRPCCall(this.imageServiceDM.getImageTagGroupListOfImageTypeList.bind(
             this.imageServiceDM
         ),
-            { imageTypeIdList: imageTagIdList }
+            { imageTypeIdList: imageTypeIdList }
         );
 
         if (getImageTagGroupListOfImageTypeListError !== null) {

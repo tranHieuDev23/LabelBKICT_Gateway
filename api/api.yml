@@ -106,8 +106,8 @@ paths:
     $ref: "./paths/api/images/{image_id}/status/index.yml"
   "/api/images/{image_id}/tags":
     $ref: "./paths/api/images/{image_id}/tags/index.yml"
-  # "/api/images/tags":
-  #   $ref: "./paths/api/images/tags/index.yml"
+  "/api/images/tags":
+    $ref: "./paths/api/images/tags/index.yml"
   "/api/images/{image_id}/tags/{image_tag_id}":
     $ref: "./paths/api/images/{image_id}/tags/{image_tag_id}/index.yml"
   "/api/images/{image_id}/bookmark":
