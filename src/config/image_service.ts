@@ -4,8 +4,6 @@ export class ImageServiceConfig {
     public protoPath = "./src/proto/dependencies/image_service.proto";
     public host = "127.0.0.1";
     public port = 20001;
-    public originalImageDir = "originals";
-    public thumbnailImageDir = "thumbnails";
 
     public static fromEnv(): ImageServiceConfig {
         const config = new ImageServiceConfig();
@@ -18,17 +16,8 @@ export class ImageServiceConfig {
         if (process.env.IMAGE_SERVICE_PORT !== undefined) {
             config.port = +process.env.IMAGE_SERVICE_PORT;
         }
-        if (process.env.IMAGE_SERVICE_ORIGINAL_IMAGE_DIR !== undefined) {
-            config.originalImageDir =
-                process.env.IMAGE_SERVICE_ORIGINAL_IMAGE_DIR;
-        }
-        if (process.env.IMAGE_SERVICE_THUMBNAIL_IMAGE_DIR !== undefined) {
-            config.thumbnailImageDir =
-                process.env.IMAGE_SERVICE_THUMBNAIL_IMAGE_DIR;
-        }
         return config;
     }
 }
 
-export const IMAGE_SERVICE_CONFIG_TOKEN =
-    token<ImageServiceConfig>("ImageServiceConfig");
+export const IMAGE_SERVICE_CONFIG_TOKEN = token<ImageServiceConfig>("ImageServiceConfig");

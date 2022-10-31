@@ -8,6 +8,7 @@ import { ExportServiceConfig } from "./export_service";
 import { ModelServiceConfig } from "./model_service";
 import { PinPageServiceConfig } from "./pin_page_service";
 import { ElasticsearchConfig } from "./elasticsearch";
+import { S3Config } from "./s3";
 
 export class GatewayConfig {
     public gatewayServerConfig = new GatewayServerConfig();
@@ -18,6 +19,7 @@ export class GatewayConfig {
     public pinPageServiceConfig = new PinPageServiceConfig();
     public logConfig = new LogConfig();
     public elasticsearchConfig = new ElasticsearchConfig();
+    public s3Config = new S3Config();
     public applicationConfig = new ApplicationConfig();
 
     public static fromEnv(): GatewayConfig {
@@ -30,6 +32,7 @@ export class GatewayConfig {
         config.pinPageServiceConfig = PinPageServiceConfig.fromEnv();
         config.logConfig = LogConfig.fromEnv();
         config.elasticsearchConfig = ElasticsearchConfig.fromEnv();
+        config.s3Config = S3Config.fromEnv();
         config.applicationConfig = ApplicationConfig.fromEnv();
         return config;
     }

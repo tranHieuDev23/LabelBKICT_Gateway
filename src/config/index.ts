@@ -9,6 +9,7 @@ import { EXPORT_SERVICE_CONFIG_TOKEN } from "./export_service";
 import { MODEL_SERVICE_CONFIG_TOKEN } from "./model_service";
 import { PIN_PAGE_SERVICE_CONFIG_TOKEN } from "./pin_page_service";
 import { ELASTICSEARCH_CONFIG_TOKEN } from "./elasticsearch";
+import { S3_CONFIG_TOKEN } from "./s3";
 
 export * from "./config";
 export * from "./gateway_server";
@@ -19,6 +20,7 @@ export * from "./model_service";
 export * from "./pin_page_service";
 export * from "./log";
 export * from "./elasticsearch";
+export * from "./s3";
 export * from "./application";
 
 export function bindToContainer(container: Container): void {
@@ -58,5 +60,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(ELASTICSEARCH_CONFIG_TOKEN)
         .toInstance(() => container.get(GATEWAY_CONFIG_TOKEN).elasticsearchConfig)
+        .inSingletonScope();
+    container
+        .bind(S3_CONFIG_TOKEN)
+        .toInstance(() => container.get(GATEWAY_CONFIG_TOKEN).s3Config)
         .inSingletonScope();
 }

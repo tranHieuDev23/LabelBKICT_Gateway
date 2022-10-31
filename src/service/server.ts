@@ -10,31 +10,27 @@ import {
     APPLICATION_CONFIG_TOKEN,
     GatewayServerConfig,
     GATEWAY_SERVER_CONFIG_TOKEN,
-    ImageServiceConfig,
-    IMAGE_SERVICE_CONFIG_TOKEN,
-    PinPageServiceConfig,
-    PIN_PAGE_SERVICE_CONFIG_TOKEN,
+    S3Config,
+    S3_CONFIG_TOKEN,
 } from "../config";
-import { LOGGER_TOKEN } from "../utils";
-import { ERROR_HANDLER_MIDDLEWARE_TOKEN } from "./utils";
+import { isProductionEnvironment, LOGGER_TOKEN } from "../utils";
+import { ERROR_HANDLER_MIDDLEWARE_TOKEN, S3MiddlewareFactory, MINIO_MIDDLEWARE_FACTORY_TOKEN } from "./utils";
 
 export class GatewayHTTPServer {
     constructor(
         private readonly routes: express.Router[],
         private readonly errorHandler: express.ErrorRequestHandler,
+        private readonly minioMiddlewareFactory: S3MiddlewareFactory,
         private readonly gatewayServerConfig: GatewayServerConfig,
         private readonly applicationConfig: ApplicationConfig,
-        private readonly imageServiceConfig: ImageServiceConfig,
-        private readonly pinPageServiceConfig: PinPageServiceConfig,
+        private readonly s3Config: S3Config,
         private readonly logger: Logger
     ) {}
 
     public loadAPIDefinitionAndStart(apiSpecPath: string): void {
         const server = this.getGatewayHTTPServer(apiSpecPath);
         server.listen(this.gatewayServerConfig.port, () => {
-            console.log(
-                `started http server, listening to port ${this.gatewayServerConfig.port}`
-            );
+            console.log(`started http server, listening to port ${this.gatewayServerConfig.port}`);
             this.logger.info("started http server", {
                 port: this.gatewayServerConfig.port,
             });
@@ -49,18 +45,21 @@ export class GatewayHTTPServer {
         server.use(cookieParser());
         server.use(compression());
 
-        server.use(
-            `/${this.applicationConfig.originalImageURLPrefix}`,
-            express.static(this.imageServiceConfig.originalImageDir)
-        );
-        server.use(
-            `/${this.applicationConfig.thumbnailImageURLPrefix}`,
-            express.static(this.imageServiceConfig.thumbnailImageDir)
-        );
-        server.use(
-            `/${this.applicationConfig.screenshotImageURLPrefix}`,
-            express.static(this.pinPageServiceConfig.screenshotDir)
-        );
+        if (!isProductionEnvironment()) {
+            this.logger.info("running in development environment, will use s3 middleware to serve static files");
+            server.use(
+                `/${this.applicationConfig.originalImageURLPrefix}`,
+                this.minioMiddlewareFactory.getS3Middleware(this.s3Config.originalImageBucket)
+            );
+            server.use(
+                `/${this.applicationConfig.thumbnailImageURLPrefix}`,
+                this.minioMiddlewareFactory.getS3Middleware(this.s3Config.thumbnailImageBucket)
+            );
+            server.use(
+                `/${this.applicationConfig.screenshotImageURLPrefix}`,
+                this.minioMiddlewareFactory.getS3Middleware(this.s3Config.screenshotBucket)
+            );
+        }
 
         server.use(
             middleware({
@@ -79,12 +78,11 @@ injected(
     GatewayHTTPServer,
     ROUTES_TOKEN,
     ERROR_HANDLER_MIDDLEWARE_TOKEN,
+    MINIO_MIDDLEWARE_FACTORY_TOKEN,
     GATEWAY_SERVER_CONFIG_TOKEN,
     APPLICATION_CONFIG_TOKEN,
-    IMAGE_SERVICE_CONFIG_TOKEN,
-    PIN_PAGE_SERVICE_CONFIG_TOKEN,
+    S3_CONFIG_TOKEN,
     LOGGER_TOKEN
 );
 
-export const GATEWAY_HTTP_SERVER_TOKEN =
-    token<GatewayHTTPServer>("GatewayHTTPServer");
+export const GATEWAY_HTTP_SERVER_TOKEN = token<GatewayHTTPServer>("GatewayHTTPServer");
