@@ -31,17 +31,17 @@ get:
                 type: array
                 items:
                   type: object
-                    properties:
-                      image_tag_group_list:
-                        type: array
-                        items:
-                          $ref: "../../../../components/schemas/ImageTagGroup.yml"
-                        description: The list of eligible image tag groups for the requested image type.
-                      image_tag_list:
-                        type: array
-                        items:
-                          $ref: "../../../../components/schemas/ImageTag.yml"
-                        description: The list of eligible image tag for the requested image type.
+                  properties:
+                    image_tag_group_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTagGroup.yml"
+                      description: The list of eligible image tag groups for the requested image type.
+                    image_tag_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTag.yml"
+                      description: The list of eligible image tag for the requested image type.
                 description: The list of image tag groups and related image tag.
     "401":
       description: Failed to get the list of tag groups and tag values of 
