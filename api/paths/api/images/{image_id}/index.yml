@@ -1,0 +1,144 @@
+get:
+  description: Get an image. User needs to either (1) have `images.manage.self`
+    permission and is getting an image of their own, (2) have `images.verify`
+    permission and is getting an image with PUBLISHED status that they are allowed
+    to verify, or (3) have `images.manage.all` permission and is updating an image
+    that they are allowed to manage in order to call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be retrieved.
+      schema:
+        $ref: "../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Image retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image:
+                $ref: "../../../../components/schemas/Image.yml"
+              image_tag_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/ImageTag.yml"
+                description: The list of tags this image is assigned with.
+              region_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/Region.yml"
+                description: The list of regions in this image.
+              can_edit:
+                type: boolean
+                description: If true, the user can edit the image. If false, the
+                  user can only view the image.
+    "401":
+      description: Failed to retrieve image because the user is not logged in.
+    "403":
+      description: Failed to retrieve image because the user does not have the
+        necessary permission.
+    "404":
+      description: Failed to retrieve image because the image with image_id does
+        not exist.
+patch:
+  description:
+    Update image metadata. User needs to either (1) have `images.manage.self`
+    permission and is updating an image of their own, (2) have `images.verify`
+    permission and is updating an image with PUBLISHED status that they are allowed
+    to verify, or (3) have `images.manage.all` permission and is updating an image
+    that they are allowed to edit in order to call this API successfully. Any
+    field that is not provided in the request will not be updated.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be updated.
+      schema:
+        $ref: "../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            description:
+              $ref: "../../../../components/schemas/Image.yml#/properties/description"
+  responses:
+    "200":
+      description: Image updated successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image:
+                $ref: "../../../../components/schemas/Image.yml"
+    "400":
+      description: Failed to update image because the provided information does
+        not satisfy the constraints.
+    "401":
+      description: Failed to update image because the user is not logged in.
+    "403":
+      description:
+        Failed to update image because the user does not have the necessary
+        permission.
+    "404":
+      description: Failed to update image because the image with image_id does
+        not exist.
+delete:
+  description: Delete image. User needs to either (1) have `images.manage.self`
+    permission and is updating an image of their own, or (2) have `images.manage.all`
+    permission in order to call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be updated.
+      schema:
+        $ref: "../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Image deleted successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to delete image because the user is not logged in.
+    "403":
+      description:
+        Failed to delete image because the user does not have the necessary
+        permission.
+    "404":
+      description: Failed to delete image because the image with image_id does
+        not exist.

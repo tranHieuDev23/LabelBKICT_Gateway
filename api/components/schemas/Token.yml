@@ -1,0 +1,2 @@
+type: string
+description: A token that allow the user to be authenticated to the system.

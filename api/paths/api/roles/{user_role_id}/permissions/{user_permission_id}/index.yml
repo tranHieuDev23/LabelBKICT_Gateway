@@ -1,0 +1,43 @@
+delete:
+  description:
+    Remove a user permission from a user role. User needs to have `user_roles.manage`
+    permission in order to call this API successfully.
+  tags:
+    - User Permission Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_role_id
+      in: path
+      description: The user role to be remove user permission for.
+      schema:
+        $ref: "../../../../../../components/schemas/UserRole.yml#/properties/id"
+      required: true
+    - name: user_permission_id
+      in: path
+      description: The user permission to be removed from the user role.
+      schema:
+        $ref: "../../../../../../components/schemas/UserPermission.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: User permission removed from user role successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to remove user permission from user role because the
+        user is not logged in.
+    "403":
+      description: Failed to remove user permission from user role because the
+        user does not have the necessary permission.
+    "404":
+      description: Failed to remove user permission from user role because user
+        role with user_role_id or user permission with user_permission_id does
+        not exist.
+    "409":
+      description: Failed to remove user permission from user role because user
+        role with user_role_id does not have user permission with user_permission_id.

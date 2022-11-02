@@ -1,0 +1,54 @@
+get:
+  description: Get the list of tag groups and tag values that can be assigned
+    to an image type. User needs to already be logged in to the system in order
+    to call this API successfully.
+  tags:
+    - Image Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_type_id
+      in: path
+      description: The image type to be retrieve tag group list for.
+      schema:
+        $ref: "../../../../../components/schemas/ImageType.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Image tag group list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image_tag_group_list:
+                type: array
+                items:
+                  $ref: "../../../../../components/schemas/ImageTagGroup.yml"
+                description:
+                  The list of eligible image tag groups for the requested
+                  image type.
+              image_tag_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../../../components/schemas/ImageTag.yml"
+                description: The list of eligible image tag for the requested
+                  image type.
+    "401":
+      description: Failed to update image because the user is not logged in.
+    "403":
+      description:
+        Failed to update image because the user does not have the necessary
+        permission.
+    "404":
+      description:
+        Failed to update image because the image type with image_type_id
+        does not exist.

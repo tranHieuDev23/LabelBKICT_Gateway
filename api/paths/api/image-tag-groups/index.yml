@@ -1,0 +1,118 @@
+post:
+  description:
+    Create a new image tag group. User needs to have `image_tags.manage`
+    permission in order to call this API successfully.
+  tags:
+    - Image Tag Management
+  security:
+    - AuthenticationToken: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            display_name:
+              $ref: "../../../components/schemas/ImageTagGroup.yml#/properties/display_name"
+            is_single_value:
+              $ref: "../../../components/schemas/ImageTagGroup.yml#/properties/is_single_value"
+  responses:
+    "200":
+      description: Image tag group created successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/ImageTagGroup.yml"
+    "400":
+      description:
+        Failed to create image tag group because the information provided
+        does not satisfy the constraints.
+    "401":
+      description:
+        Failed to create image tag group because the user is not logged
+        in.
+    "403":
+      description: Failed to create image tag group because the user does not
+        have the necessary permission.
+get:
+  description: Get image tag group list. User needs to already be logged in to
+    the system in order to call this API successfully.
+  tags:
+    - Image Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: with_image_tag
+      in: query
+      description:
+        If equal to 1, will return the list of tags each image tag group
+        in the list has.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: with_image_type
+      in: query
+      description: If equal to 1, will return the list of allow image types that
+        each image tag group in the list has.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+  responses:
+    "200":
+      description: Image tag group list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image_tag_group_list:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/ImageTagGroup.yml"
+                description: The list of image tag groups.
+              image_tag_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/ImageTag.yml"
+                description:
+                  If with_tag = 1, this field is the list of tags each
+                  tag group in image_tag_group_list has, in the same order. If
+                  with_tag = 0, this field is not returned.
+              image_type_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/ImageType.yml"
+                description: If with_allowed_image_type = 1, this field is the
+                  list of allowed image type each tag group in image_tag_group_list
+                  has, in the same order. If with_allowed_image_type = 0, this
+                  field is not returned.
+    "400":
+      description: Failed to retrieve image tag group list because the arguments
+        provided does not satisfy the constraints.
+    "401":
+      description: Failed to retrieve image tag group list because the user is
+        not logged in.
+    "403":
+      description: Failed to retrieve image tag group list because the user does
+        not have the necessary permission.

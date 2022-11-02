@@ -1,0 +1,46 @@
+post:
+  description:
+    Add a user permission to a user role. User needs to have `user_roles.manage`
+    permission in order to call this API successfully.
+  tags:
+    - User Permission Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_role_id
+      in: path
+      description: The user role to be added user permission for.
+      schema:
+        $ref: "../../../../../components/schemas/UserRole.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            user_permission_id:
+              $ref: "../../../../../components/schemas/UserPermission.yml#/properties/id"
+  responses:
+    "200":
+      description: User permission added to user role successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to add user permission to user role because the user
+        is not logged in.
+    "403":
+      description: Failed to add user permission to user role because the user
+        does not have the necessary permission.
+    "404":
+      description: Failed to add user permission to user role because user role
+        with user_role_id or user permission with user_permission_id does not
+        exist.
+    "409":
+      description: Failed to add user permission to user role because user role
+        with user_role_id already has user permission with user_permission_id.

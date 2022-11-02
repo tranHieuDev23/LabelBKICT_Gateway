@@ -1,0 +1,41 @@
+delete:
+  description: Remove a user tag from a user. User needs to have `users.manage`
+    permission in order to call this API successfully.
+  tags:
+    - User Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_id
+      in: path
+      description: The user to be remove user tag for.
+      schema:
+        $ref: "../../../../../../components/schemas/User.yml#/properties/id"
+      required: true
+    - name: user_tag_id
+      in: path
+      description: The user tag to be removed from the user.
+      schema:
+        $ref: "../../../../../../components/schemas/UserTag.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: User tag removed to user successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to remove user tag from user because the user is not
+        logged in.
+    "403":
+      description: Failed to remove user tag from user because the user does not
+        have the necessary permission.
+    "404":
+      description: Failed to remove user tag from user because user with user_id
+        or user tag with user_tag_id does not exist.
+    "409":
+      description: Failed to remove user tag from user because user with user_id
+        does not have user tag with user_tag_id.

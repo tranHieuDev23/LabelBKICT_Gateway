@@ -1,0 +1,46 @@
+post:
+  description:
+    Add a user tag to a user. User needs to have `users.manage` permission
+    in order to call this API successfully.
+  tags:
+    - User Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: user_id
+      in: path
+      description: The user to be added user tag for.
+      schema:
+        $ref: "../../../../../components/schemas/User.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            user_tag_id:
+              $ref: "../../../../../components/schemas/UserTag.yml#/properties/id"
+  responses:
+    "200":
+      description: User tag added to user successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to add user tag to user because the user is not logged
+        in.
+    "403":
+      description: Failed to add user tag to user because the user does not have
+        the necessary permission.
+    "404":
+      description: Failed to add user tag to user because user with user_id or
+        user tag with user_tag_id does not exist.
+    "409":
+      description:
+        Failed to add user tag to user because user with user_id already
+        has user tag with user_tag_id.

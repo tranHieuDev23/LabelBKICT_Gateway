@@ -1,0 +1,18 @@
+type: object
+description:
+  An image type for images on the system. The type of an image determines
+  which tags the image can be assigned with and which labels the regions on
+  that image can take.
+properties:
+  id:
+    type: integer
+    description: Image type ID, should be unique across all image type.
+  display_name:
+    type: string
+    description: The image type's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256
+  has_predictive_model:
+    type: boolean
+    description: If true, the system can automatically detect regions on images
+      of this type. This value should only be set manually by the developers.

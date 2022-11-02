@@ -1,0 +1,7 @@
+type: object
+description: Metadata for LABEL operation on a Region.
+properties:
+  old_label:
+    $ref: "./Region.yml#/properties/label"
+  new_label:
+    $ref: "./Region.yml#/properties/label"

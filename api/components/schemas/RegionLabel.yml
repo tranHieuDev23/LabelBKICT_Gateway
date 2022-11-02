@@ -1,0 +1,16 @@
+type: object
+description: A label that a region on an image can take. Each RegionLabel is
+  associated with one ImageType only.
+properties:
+  id:
+    type: integer
+    description: Region label ID, should be unique across all label.
+  display_name:
+    type: string
+    description: The region label's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256
+  color:
+    type: string
+    description: The color for regions assigned with this label.
+    pattern: "^#[0-9A-F]{6}$"

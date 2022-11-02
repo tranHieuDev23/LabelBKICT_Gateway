@@ -1,0 +1,11 @@
+type: object
+description: A polygon on a 2D plane. Polygons are represented by an array of
+  its vertices - two consecutive elements of the array, as well as the first
+  and the last element of the array share an edge together.
+properties:
+  vertex:
+    type: array
+    items:
+      $ref: "./Point.yml"
+    minItems: 3
+    maxItems: 327680

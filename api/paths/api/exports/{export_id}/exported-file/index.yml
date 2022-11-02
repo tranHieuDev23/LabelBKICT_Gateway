@@ -1,0 +1,40 @@
+get:
+  description:
+    Get the exported file of an export current session user. User needs
+    to have `images.export` permission in order to call this API successfully.
+  tags:
+    - Export Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: export_id
+      in: path
+      description: The export to be deleted.
+      schema:
+        $ref: "../../../../../components/schemas/Export.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Retrieved export file successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        "*/*":
+          schema:
+            type: string
+            format: binary
+            description: The exported file.
+    "401":
+      description:
+        Failed to retrieve exported file because the user is not logged
+        in.
+    "403":
+      description: Failed to retrieve exported file because the user does not
+        have the necessary permission.
+    "404":
+      description: Failed to retrieve exported file because the export cannot
+        be found, or the export is not yet in DONE status.

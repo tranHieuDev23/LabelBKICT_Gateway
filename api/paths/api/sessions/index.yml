@@ -1,0 +1,14 @@
+delete:
+  description:
+    Log out. User needs to already be logged in to the system in order
+    to call this API successfully.
+  tags:
+    - Session Management
+  security:
+    - AuthenticationToken: []
+  responses:
+    "200":
+      description: User is logged out successfully.
+    "401":
+      description: Failed to log user out because the user has not been logged
+        in.

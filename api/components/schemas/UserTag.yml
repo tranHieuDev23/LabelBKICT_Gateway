@@ -1,0 +1,16 @@
+type: object
+description: A tag value, that can be assigned to a user for classification
+  purpose.
+properties:
+  id:
+    type: integer
+    description: User tag ID, should be unique across all user tag.
+  display_name:
+    type: string
+    description: The user tag's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256
+  description:
+    type: string
+    description: A short description about the user tag.
+    maxLength: 256

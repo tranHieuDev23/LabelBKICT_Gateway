@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+service PinPageService {
+    rpc CreatePinnedPage(CreatePinnedPageRequest) returns (CreatePinnedPageResponse) {}
+    rpc GetPinnedPageList(GetPinnedPageListRequest) returns (GetPinnedPageListResponse) {}
+    rpc GetPinnedPage(GetPinnedPageRequest) returns (GetPinnedPageResponse) {}
+    rpc UpdatePinnedPage(UpdatePinnedPageRequest) returns (UpdatePinnedPageResponse) {}
+    rpc DeletePinnedPage(DeletePinnedPageRequest) returns (DeletePinnedPageResponse) {}
+}
+
+// Business objects
+message PinnedPage {
+    uint32 id = 1;
+    uint32 of_user_id = 2;
+    uint64 pin_time = 3;
+    string url = 4;
+    string screenshot_filename = 5;
+    string description = 6;
+}
+
+// Request and response bodies of API calls
+message CreatePinnedPageRequest {
+    uint32 of_user_id = 1;
+    string url = 2;
+    string description = 3;
+    bytes screenshot_data = 4;
+}
+
+message CreatePinnedPageResponse {
+    PinnedPage pinned_page = 1;
+}
+
+message GetPinnedPageListRequest {
+    uint32 of_user_id = 1;
+    uint32 offset = 2;
+    uint32 limit = 3;
+}
+
+message GetPinnedPageListResponse {
+    uint32 total_pinned_page_count = 1;
+    repeated PinnedPage pinned_page_list = 2;
+}
+
+message GetPinnedPageRequest {
+    uint32 id = 1;
+}
+
+message GetPinnedPageResponse {
+    PinnedPage pinned_page = 1;
+}
+
+message UpdatePinnedPageRequest {
+    uint32 id = 1;
+    string description = 2;
+}
+
+message UpdatePinnedPageResponse {
+    PinnedPage pinned_page = 1;
+}
+
+message DeletePinnedPageRequest {
+    uint32 id = 1;
+}
+
+message DeletePinnedPageResponse {}

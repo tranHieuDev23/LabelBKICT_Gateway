@@ -1,0 +1,7 @@
+type: object
+description: A bookmark on an image. Users can bookmark images to add personal
+  notes of their own, or to make it easier to track an image.
+properties:
+  description:
+    type: string
+    description: The description an user added to an image bookmark.

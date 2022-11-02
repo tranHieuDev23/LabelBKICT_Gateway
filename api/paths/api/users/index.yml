@@ -1,0 +1,165 @@
+post:
+  description: Create a new user.
+  tags:
+    - User Management
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              $ref: "../../../components/schemas/User.yml#/properties/username"
+            display_name:
+              $ref: "../../../components/schemas/User.yml#/properties/display_name"
+            password:
+              $ref: "../../../components/schemas/UserPassword.yml"
+  responses:
+    "200":
+      description: User created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/User.yml"
+    "400":
+      description: Failed to create user because the username or display name
+        does not satisfy the constraints.
+    "409":
+      description: Failed to create user because the username has already been
+        taken.
+get:
+  description: Get user list. User needs to have `users.manage` permission in
+    order to call this API successfully.
+  tags:
+    - User Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: offset
+      description: The index of the first item to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    - name: sort_order
+      description:
+        The order to return items in. Can be either 0 (sorted by ascending
+        id), 1 (sorted by descending id), 2 (sorted by ascending username) or 3
+        (sorted by descending username), 4 (sorted by ascending display name) or
+        5 (sorted by descending display name).
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 5
+        default: 0
+    - name: with_user_role
+      description:
+        If equal to 1, will return the list of user roles each user in
+        the list has.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: with_user_tag
+      description: If equal to 1, will return the list of user tags each user in
+        the list has.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: username_query
+      description:
+        If provided, filter for user that have user name or display name
+        containing this query string (case insensitive).
+      in: query
+      schema:
+        type: string
+        maxLength: 256
+        default: ""
+      allowEmptyValue: true
+      allowReserved: true
+    - name: filter_user_tags
+      description:
+        A list of user tag IDs. If provided, filter for users that belong
+        to one of these user tags.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_user_roles
+      description:
+        A list of user role IDs. If provided, filter for users that have
+        one of these user roles.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+  responses:
+    "200":
+      description: User list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              total_user_count:
+                type: integer
+                description: The total number of users.
+              user_list:
+                type: array
+                items:
+                  $ref: "../../../components/schemas/User.yml"
+                description: The list of users.
+              user_role_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/UserRole.yml"
+                description: If with_user_role = 1, this field is the list of
+                  user roles each user in user_list has, in the same order. If
+                  with_user_role = 0, this field is not returned.
+              user_tag_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/UserTag.yml"
+                description:
+                  If with_user_tag = 1, this field is the list of user
+                  tags each user in user_list has, in the same order. If with_user_tag
+                  = 0, this field is not returned.
+    "400":
+      description: Failed to retrieve user list because the arguments provided
+        does not satisfy the constraints.
+    "401":
+      description: Failed to retrieve user list because the user is not logged
+        in.
+    "403":
+      description: Failed to retrieve user list because the user does not have
+        the necessary permission.

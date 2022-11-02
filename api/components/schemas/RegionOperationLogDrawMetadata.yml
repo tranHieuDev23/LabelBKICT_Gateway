@@ -1,0 +1,17 @@
+type: object
+description: Metadata for DRAW operation on a Region.
+properties:
+  old_border:
+    $ref: "./Region.yml#/properties/border"
+  old_holes:
+    type: array
+    items:
+      $ref: "./Polygon.yml"
+    description: The list of holes in the region before the operation.
+  new_border:
+    $ref: "./Region.yml#/properties/border"
+  new_holes:
+    type: array
+    items:
+      $ref: "./Polygon.yml"
+    description: The list of holes in the region after the operation.

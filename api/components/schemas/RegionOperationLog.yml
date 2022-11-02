@@ -1,0 +1,25 @@
+type: object
+description: A log of operations on a region.
+properties:
+  id:
+    type: integer
+    description: Log ID, should be unique across all log.
+  by_user:
+    $ref: "./User.yml"
+  operation_time:
+    type: integer
+    description: The time when this operation took place.
+  operation_type:
+    type: integer
+    description:
+      The type of operation. Can take a value of 0 (DRAW - for operations
+      where the user draws/redraws the border/holes of the region) or 1 (LABEL
+      - for operations where the user assign a label for the region).
+  operation_metadata:
+    oneOf:
+      - $ref: "./RegionOperationLogDrawMetadata.yml"
+      - $ref: "./RegionOperationLogLabelMetadata.yml"
+    description:
+      Metadata of the operation. For DRAW operations, this is a RegionOperationLogDrawMetadata
+      object. For LABEL operations, this is a RegionOperationLogLabelMetadata
+      object.
