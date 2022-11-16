@@ -3,7 +3,7 @@ post:
     Add image tag list to image list. User needs to either (1) have `images.manage.self`
     permission and is updating an image of their own, (2) have `images.verify`
     permission and is updating an image with PUBLISHED status that they are allowed
-    to verify, or (3) have `images.manage.all` permission and is updating an image
+    to verify, or (3) have `images.manage.all` permission and is updating images
     that they are allowed to edit in order to call this API successfully.
   tags:
     - Image Management
@@ -30,24 +30,14 @@ post:
       description: Image updated successfully.
       headers:
         Set-Cookie:
-          description: Renewed authentication token, if the user old token is
-            about to expire.
+          description: Renewed authentication token, if the user old token is about to expire.
           schema:
             $ref: "../../../../components/schemas/Token.yml"
-    "400":
-      description:
-        Failed to update image because the tag with image_tag_id of image_tag_id_list cannot
-        be assigned to some image in image list.
     "401":
       description: Failed to update image because the user is not logged in.
     "403":
-      description:
-        Failed to update image because the user does not have the necessary
-        permission.
+      description: Failed to update image because the user does not have the necessary permission.
     "404":
-      description: Failed to update image because the some images in image list or the
-        some tags in image tag list does not exist.
+      description: Failed to update image because one or more images in the image list or one or more tags in image tag list does not exist.
     "409":
-      description:
-        Failed to update image because some images already
-        has the tag.
+      description: Failed to update image because the tag with image_tag_id of image_tag_id_list cannot be assigned to some image in image list.

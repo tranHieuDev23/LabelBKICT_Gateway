@@ -61,6 +61,7 @@ export class BucketDMImpl implements BucketDM {
     }
 
     public async getFileStream(fileName: string): Promise<Readable> {
+        this.logger.info("debug", { fileName });
         try {
             return this.minioClient.getObject(this.bucketName, fileName);
         } catch (error) {

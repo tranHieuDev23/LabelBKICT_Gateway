@@ -45,6 +45,13 @@ export class GatewayHTTPServer {
         server.use(cookieParser());
         server.use(compression());
 
+        server.use(
+            middleware({
+                apiSpec: apiSpecPath,
+                ignoreUndocumented: true,
+            })
+        );
+
         if (!isProductionEnvironment()) {
             this.logger.info("running in development environment, will use s3 middleware to serve static files");
             server.get(
@@ -60,12 +67,6 @@ export class GatewayHTTPServer {
                 this.minioMiddlewareFactory.getS3Middleware(this.s3Config.screenshotBucket)
             );
         }
-
-        server.use(
-            middleware({
-                apiSpec: apiSpecPath,
-            })
-        );
 
         server.use(this.routes);
         server.use(this.errorHandler);

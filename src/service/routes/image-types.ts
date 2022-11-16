@@ -3,9 +3,6 @@ import express from "express";
 import asyncHandler from "express-async-handler";
 import { ImageTagManagementOperator, IMAGE_TAG_MANAGEMENT_OPERATOR_TOKEN } from "../../module/image_tags";
 import { ImageTypeManagementOperator, IMAGE_TYPE_MANAGEMENT_OPERATOR_TOKEN } from "../../module/image_types";
-import { ImageTag } from "../../proto/gen/ImageTag";
-import { ImageTagGroup } from "../../proto/gen/ImageTagGroup";
-import { ImageTagGroupAndTagList } from "../../proto/gen/ImageTagGroupAndTagList";
 import { AuthMiddlewareFactory, AUTH_MIDDLEWARE_FACTORY_TOKEN, checkUserHasUserPermission } from "../utils";
 
 const IMAGE_TYPES_MANAGE_PERMISSION = "image_types.manage";
@@ -50,23 +47,22 @@ export function getImageTypesRouter(
     router.get(
         "/api/image-types/image-tag-groups",
         asyncHandler(async (req, res) => {
-            const imageTypeIdList = req.query.image_type_id_list === undefined 
-                ? []
-                : (req.query.image_type_id_list as string[]).map((item) => +item);
-            const imageTagGroupAndTagList =
-                await imageTagManagementOperator.getImageTagGroupListOfImageTypeList(
-                    imageTypeIdList
-                );
-            const imageTagGroupAndTagListJson: ImageTagGroupAndTagList[] = [];
-            for (const imageTagGroupAndTag of imageTagGroupAndTagList) {
-                const imageTagListOfImageTagGroupList: any[] = imageTagGroupAndTag.imageTagList
-                imageTagGroupAndTagListJson.push({
-                    imageTagGroupList: imageTagGroupAndTag.imageTagGroupList,
-                    imageTagListOfImageTagGroupList: imageTagListOfImageTagGroupList
+            const imageTypeIdList =
+                req.query.image_type_id_list === undefined
+                    ? []
+                    : (req.query.image_type_id_list as string[]).map((item) => +item);
+            const imageTagGroupListOfImageTypeList =
+                await imageTagManagementOperator.getImageTagGroupListOfImageTypeList(imageTypeIdList);
+            const imageTagGroupListOfImageTypeListJson = [];
+            for (const imageTagGroupAndTag of imageTagGroupListOfImageTypeList) {
+                const { imageTagGroupList, imageTagList } = imageTagGroupAndTag;
+                imageTagGroupListOfImageTypeListJson.push({
+                    image_tag_group_list: imageTagGroupList,
+                    image_tag_list: imageTagList,
                 });
             }
             res.json({
-                image_tag_group_and_tag_list: imageTagGroupAndTagListJson
+                image_tag_group_of_image_type_list: imageTagGroupListOfImageTypeListJson,
             });
         })
     );

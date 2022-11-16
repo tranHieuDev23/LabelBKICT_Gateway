@@ -7,19 +7,19 @@ get:
     - AuthenticationToken: []
   parameters:
     - name: image_type_id_list
-      description: A list of image tpe IDs.
+      description: A list of image type IDs.
       in: query
       schema:
         type: array
         items:
           type: integer
+        maxItems: 100
   responses:
     "200":
-      description: Image type list retrieved successfully.
+      description: Image tag group list retrieved successfully.
       headers:
         Set-Cookie:
-          description: Renewed authentication token, if the user old token is
-            about to expire.
+          description: Renewed authentication token, if the user old token is about to expire.
           schema:
             $ref: "../../../../components/schemas/Token.yml"
       content:
@@ -27,7 +27,7 @@ get:
           schema:
             type: object
             properties:
-              image_tag_group_and_tag_list:
+              image_tag_group_of_image_type_list:
                 type: array
                 items:
                   type: object
@@ -44,11 +44,6 @@ get:
                       description: The list of eligible image tag for the requested image type.
                 description: The list of image tag groups and related image tag.
     "401":
-      description: Failed to get the list of tag groups and tag values of
-        an image type list because the user is not logged in.
-    "403":
-      description: Failed to get the list of tag groups and tag values of
-        an image type list because the user does not have the necessary permission.
+      description: Failed to get the list of tag groups and tag values of image type list because the user is not logged in.
     "404":
-      description: Failed to get the list of tag groups and tag values of
-        an image type list because the image type with image_type_id does not exist.
+      description: Failed to get the list of tag groups and tag values of image type list because one more more image_type_id does not exist.

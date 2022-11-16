@@ -2,11 +2,7 @@ import { injected, token } from "brandi";
 import { ErrorRequestHandler } from "express";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import {
-    ErrorWithHTTPCode,
-    LOGGER_TOKEN,
-    maskSensitiveFields,
-} from "../../utils";
+import { ErrorWithHTTPCode, LOGGER_TOKEN, maskSensitiveFields } from "../../utils";
 import { error as OpenAPIError } from "express-openapi-validator";
 
 export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
@@ -22,27 +18,17 @@ export function getErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
         if (error instanceof ErrorWithHTTPCode) {
             response.status(error.code).json({ message: error.message });
         } else if (error instanceof OpenAPIError.BadRequest) {
-            response
-                .status(httpStatus.BAD_REQUEST)
-                .json({ message: "Bad request" });
+            response.status(httpStatus.BAD_REQUEST).json({ message: "Bad request" });
         } else if (error instanceof OpenAPIError.Unauthorized) {
-            response
-                .status(httpStatus.UNAUTHORIZED)
-                .json({ message: "Unauthorized" });
+            response.status(httpStatus.UNAUTHORIZED).json({ message: "Unauthorized" });
         } else if (error instanceof OpenAPIError.NotFound) {
-            response
-                .status(httpStatus.NOT_FOUND)
-                .json({ message: "Not found" });
+            response.status(httpStatus.NOT_FOUND).json({ message: "Not found" });
         } else {
-            response
-                .status(httpStatus.INTERNAL_SERVER_ERROR)
-                .json({ message: "Internal Server Error" });
+            response.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
         }
     };
 }
 
 injected(getErrorHandlerMiddleware, LOGGER_TOKEN);
 
-export const ERROR_HANDLER_MIDDLEWARE_TOKEN = token<ErrorRequestHandler>(
-    "ErrorHandlerMiddleware"
-);
+export const ERROR_HANDLER_MIDDLEWARE_TOKEN = token<ErrorRequestHandler>("ErrorHandlerMiddleware");

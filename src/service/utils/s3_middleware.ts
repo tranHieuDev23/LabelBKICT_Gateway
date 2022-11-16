@@ -20,6 +20,7 @@ export class MinioMiddlewareFactoryImpl implements S3MiddlewareFactory {
         return asyncHandler(async (request, response) => {
             const fileName = basename(request.path);
             const objectStream = await bucketDM.getFileStream(fileName);
+            console.log(objectStream);
             objectStream.pipe(response);
         });
     }
