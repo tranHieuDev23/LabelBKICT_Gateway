@@ -54,6 +54,8 @@ paths:
     $ref: "./paths/api/users/{user_id}/tags/{user_tag_id}/index.yml"
   "/api/image-types":
     $ref: "./paths/api/image-types/index.yml"
+  "/api/image-types/image-tag-groups":
+    $ref: "./paths/api/image-types/image-tag-groups/index.yml"
   "/api/image-types/{image_type_id}":
     $ref: "./paths/api/image-types/{image_type_id}/index.yml"
   "/api/image-types/{image_type_id}/labels":
@@ -104,6 +106,8 @@ paths:
     $ref: "./paths/api/images/{image_id}/status/index.yml"
   "/api/images/{image_id}/tags":
     $ref: "./paths/api/images/{image_id}/tags/index.yml"
+  "/api/images/tags":
+    $ref: "./paths/api/images/tags/index.yml"
   "/api/images/{image_id}/tags/{image_tag_id}":
     $ref: "./paths/api/images/{image_id}/tags/{image_tag_id}/index.yml"
   "/api/images/{image_id}/bookmark":

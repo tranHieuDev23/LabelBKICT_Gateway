@@ -200,6 +200,22 @@ export function getImagesRouter(
     );
 
     router.post(
+        "/api/images/tags",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list;
+            const imageTagIdList = req.body.image_tag_id_list;
+            await imageListManagementOperator.addImageTagListToImageList(
+                authenticatedUserInfo,
+                imageIdList,
+                imageTagIdList
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
         "/api/images/:imageId/tags",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {

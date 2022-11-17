@@ -14,6 +14,7 @@ export function getImageTypesRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imageTagsManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGE_TYPES_MANAGE_PERMISSION),
         true
@@ -32,6 +33,7 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types",
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const withRegionLabel = +(req.query.with_region_label || 0) === 1;
             const { imageTypeList, regionLabelList } = await imageTypeManagementOperator.getImageTypeList(
@@ -45,7 +47,32 @@ export function getImageTypesRouter(
     );
 
     router.get(
+        "/api/image-types/image-tag-groups",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTypeIdList =
+                req.query.image_type_id_list === undefined
+                    ? []
+                    : (req.query.image_type_id_list as string[]).map((item) => +item);
+            const imageTagGroupListOfImageTypeList =
+                await imageTagManagementOperator.getImageTagGroupListOfImageTypeList(imageTypeIdList);
+            const imageTagGroupListOfImageTypeListJson = [];
+            for (const imageTagGroupAndTag of imageTagGroupListOfImageTypeList) {
+                const { imageTagGroupList, imageTagList } = imageTagGroupAndTag;
+                imageTagGroupListOfImageTypeListJson.push({
+                    image_tag_group_list: imageTagGroupList,
+                    image_tag_list: imageTagList,
+                });
+            }
+            res.json({
+                image_tag_group_of_image_type_list: imageTagGroupListOfImageTypeListJson,
+            });
+        })
+    );
+
+    router.get(
         "/api/image-types/:imageTypeId",
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
             const { imageType, regionLabelList } = await imageTypeManagementOperator.getImageType(imageTypeId);
@@ -129,6 +156,7 @@ export function getImageTypesRouter(
 
     router.get(
         "/api/image-types/:imageTypeId/image-tag-groups",
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const imageTypeId = +req.params.imageTypeId;
             const { imageTagGroupList, imageTagList } =

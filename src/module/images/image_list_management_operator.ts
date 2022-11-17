@@ -20,6 +20,7 @@ import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -120,6 +121,11 @@ export interface ImageListManagementOperator {
         prevImageId: number | undefined;
         nextImageId: number | undefined;
     }>;
+    addImageTagListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        imageTagIdList: number[]
+    ): Promise<void>;
 }
 
 export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
@@ -129,6 +135,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
+        private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
@@ -144,13 +151,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         imageIdList: number[],
         imageTypeId: number
     ): Promise<void> {
-        const imageList = await Promise.all(
-            imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
-                return image;
-            })
-        );
-
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
             imageList
@@ -181,13 +182,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
-        const imageList = await Promise.all(
-            imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
-                return image;
-            })
-        );
-
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
             imageList
@@ -216,13 +211,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
-        const imageList = await Promise.all(
-            imageIdList.map(async (imageId) => {
-                const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
-                return image;
-            })
-        );
-
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
             imageList
@@ -550,7 +539,6 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         nextImageId: number | undefined;
     }> {
         const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
-
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
             imageProto
@@ -587,6 +575,40 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         const nextImageId = getImagePositionInListResponse?.nextImageId;
         return { position, totalImageCount, prevImageId, nextImageId };
     }
+
+    public async addImageTagListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        imageTagIdList: number[]
+    ): Promise<void> {
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
+        const canUserAccessImageList =
+            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImageList(
+                authenticatedUserInfo,
+                imageList
+            );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error: addImageTagListToImageListError } = await promisifyGRPCCall(
+            this.imageServiceDM.addImageTagListToImageList.bind(this.imageServiceDM),
+            { imageIdList, imageTagIdList }
+        );
+        if (addImageTagListToImageListError !== null) {
+            this.logger.error("failed to call image_service.addImageTagListToImageList()", {
+                userId: authenticatedUserInfo.user.id,
+                imageIdList,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to add image tag list to image list",
+                getHttpCodeFromGRPCStatus(addImageTagListToImageListError.code)
+            );
+        }
+    }
 }
 
 injected(
@@ -596,6 +618,7 @@ injected(
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,

@@ -1,0 +1,49 @@
+get:
+  description: Get the list of tag groups and tag values of an image type list.
+    User needs to already be logged in to the system in order to call this API successfully.
+  tags:
+    - Image Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_type_id_list
+      description: A list of image type IDs.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 100
+  responses:
+    "200":
+      description: Image tag group list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              image_tag_group_of_image_type_list:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    image_tag_group_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTagGroup.yml"
+                      description: The list of eligible image tag groups for the requested image type.
+                    image_tag_list:
+                      type: array
+                      items:
+                        $ref: "../../../../components/schemas/ImageTag.yml"
+                      description: The list of eligible image tag for the requested image type.
+                description: The list of image tag groups and related image tag.
+    "401":
+      description: Failed to get the list of tag groups and tag values of image type list because the user is not logged in.
+    "404":
+      description: Failed to get the list of tag groups and tag values of image type list because one more more image_type_id does not exist.
