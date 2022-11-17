@@ -12,6 +12,7 @@ export function getImageTagGroupsRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imageTagsManageAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGE_TAGS_MANAGE_PERMISSION),
         true
@@ -30,6 +31,7 @@ export function getImageTagGroupsRouter(
 
     router.get(
         "/api/image-tag-groups",
+        userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const withImageTag = +(req.query.with_image_tag || 0) === 1;
             const withImageType = +(req.query.with_image_type || 0) === 1;

@@ -27,21 +27,20 @@ export function getSessionsRouter(
 ): express.Router {
     const router = express.Router();
 
+    const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
+    const userLoggedInAuthMiddlewareWithoutTokenRefresh = authMiddlewareFactory.getAuthMiddleware(() => true, false);
     const imagesManageSelfAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_MANAGE_SELF_PERMISSION),
         true
     );
-
     const imagesManageAllAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_MANAGE_ALL_PERMISSION),
         true
     );
-
     const imagesVerifyAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_VERIFY_PERMISSION),
         true
     );
-
     const imagesExportAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_EXPORT_PERMISSION),
         true
@@ -66,7 +65,7 @@ export function getSessionsRouter(
 
     router.get(
         "/api/sessions/user",
-        authMiddlewareFactory.getAuthMiddleware(() => true, true),
+        userLoggedInAuthMiddleware,
         asyncHandler(async (_, res) => {
             const authenticatedUserInformation = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
@@ -80,7 +79,7 @@ export function getSessionsRouter(
 
     router.delete(
         "/api/sessions",
-        authMiddlewareFactory.getAuthMiddleware(() => true, false),
+        userLoggedInAuthMiddlewareWithoutTokenRefresh,
         asyncHandler(async (_, res) => {
             const authenticatedUserInformation = res.locals
                 .authenticatedUserInformation as AuthenticatedUserInformation;
