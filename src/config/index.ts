@@ -8,6 +8,7 @@ import { APPLICATION_CONFIG_TOKEN } from "./application";
 import { EXPORT_SERVICE_CONFIG_TOKEN } from "./export_service";
 import { MODEL_SERVICE_CONFIG_TOKEN } from "./model_service";
 import { PIN_PAGE_SERVICE_CONFIG_TOKEN } from "./pin_page_service";
+import { DUPLICATE_IMAGE_DETECTION_SERVICE_CONFIG_TOKEN } from "./duplicate_image_detection_service";
 import { ELASTICSEARCH_CONFIG_TOKEN } from "./elasticsearch";
 import { S3_CONFIG_TOKEN } from "./s3";
 
@@ -18,6 +19,7 @@ export * from "./image_service";
 export * from "./export_service";
 export * from "./model_service";
 export * from "./pin_page_service";
+export * from "./duplicate_image_detection_service";
 export * from "./log";
 export * from "./elasticsearch";
 export * from "./s3";
@@ -48,6 +50,10 @@ export function bindToContainer(container: Container): void {
     container
         .bind(MODEL_SERVICE_CONFIG_TOKEN)
         .toInstance(() => container.get(GATEWAY_CONFIG_TOKEN).modelServiceConfig)
+        .inSingletonScope();
+    container
+        .bind(DUPLICATE_IMAGE_DETECTION_SERVICE_CONFIG_TOKEN)
+        .toInstance(() => container.get(GATEWAY_CONFIG_TOKEN).duplicateImageDetectionServiceConfig)
         .inSingletonScope();
     container
         .bind(LOG_CONFIG_TOKEN)

@@ -4,6 +4,7 @@ import { getIdListFromQueryParam } from "../utils";
 
 export function getImageListFilterOptionsFromQueryParams(queryParams: ParsedQs): ImageListFilterOptions {
     const filterOptions = new ImageListFilterOptions();
+    filterOptions.image_id_list = getIdListFromQueryParam(queryParams.filter_image_ids);
     filterOptions.image_type_id_list =
         queryParams.filter_image_types === undefined
             ? []

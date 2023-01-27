@@ -78,6 +78,8 @@ paths:
     $ref: "./paths/api/image-types/{image_type_id}/image-tag-groups/index.yml"
   "/api/images":
     $ref: "./paths/api/images/index.yml"
+  "/api/images/{image_id}/duplicate-image":
+    $ref: "./paths/api/images/{image_id}/duplicate-image/index.yml"
   "/api/images/detection-task":
     $ref: "./paths/api/images/detection-task/index.yml"
   "/api/sessions/user/images":

@@ -1,0 +1,42 @@
+get:
+  description:
+    Get the list imageId of images that has been duplicated with other images. User needs to 
+    either (1) have `images.manage.self` permission and is updating an image of their own,
+    or (2) have `images.manage.all` permission and is updating an image that they are allowed to
+    edit in order to call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be query its duplicated image
+      schema:
+        $ref: "../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Get duplicate imageId list successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              duplicate_image_id_list:
+                type: array
+                items:
+                  type: integer
+                description: The list of imageId that has been duplicated.
+    "401":
+      description: Failed to get list of duplicated imageId because the user is
+        not logged in.
+    "403":
+      description: Failed to get list of duplicated imageId because the user does
+        not have the necessary permission.

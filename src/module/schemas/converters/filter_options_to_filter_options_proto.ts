@@ -23,6 +23,7 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto {
         return {
+            imageIdList: filterOptions.image_id_list,
             imageTypeIdList: filterOptions.image_type_id_list,
             imageTagIdList: filterOptions.image_tag_id_list,
             regionLabelIdList: filterOptions.region_label_id_list,
