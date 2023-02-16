@@ -137,7 +137,6 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            console.log(imageId)
             const duplicateImageIdList: number[] = await imageListManagementOperator.getDuplicateImageIdList(authenticatedUserInfo, imageId);
             res.json({ duplicate_image_id_list: duplicateImageIdList });
         })
