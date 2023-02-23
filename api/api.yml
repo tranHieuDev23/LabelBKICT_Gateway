@@ -80,6 +80,8 @@ paths:
     $ref: "./paths/api/images/index.yml"
   "/api/images/detection-task":
     $ref: "./paths/api/images/detection-task/index.yml"
+  "/api/images/classification-task":
+    $ref: "./paths/api/images/classification-task/index.yml"
   "/api/sessions/user/images":
     $ref: "./paths/api/sessions/user/images/index.yml"
   "/api/sessions/user/manageable-image-users":

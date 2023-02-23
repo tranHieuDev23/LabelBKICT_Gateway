@@ -35,6 +35,15 @@ get:
         minimum: 0
         maximum: 7
         default: 0
+    - name: filter_image_ids
+      description: A list of image IDs. If provided, filter for images that have ID
+        belong to one of these image ids.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
     - name: filter_image_types
       description: A list of image type IDs. If provided, filter for images that
         belong to one of these image types.

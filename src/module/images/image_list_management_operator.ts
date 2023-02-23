@@ -51,6 +51,10 @@ export interface ImageListManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void>;
+    createImageClassificationTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<void>;
     getUserImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         offset: number,
@@ -234,6 +238,38 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             throw new ErrorWithHTTPCode(
                 "Failed to create detection task for image list",
                 getHttpCodeFromGRPCStatus(createDetectionTaskBatchError.code)
+            );
+        }
+    }
+
+    public async createImageClassificationTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<void> {
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to create classification task for image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error: createClassificationTaskBatchError } = await promisifyGRPCCall(
+            this.modelServiceDM.CreateClassificationTaskBatch.bind(this.modelServiceDM),
+            { imageIdList: imageIdList }
+        );
+        
+        if (createClassificationTaskBatchError !== null) {
+            this.logger.error("failed to call model_service.createClassificationTask()", {
+                error: createClassificationTaskBatchError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create classification task for image list",
+                getHttpCodeFromGRPCStatus(createClassificationTaskBatchError.code)
             );
         }
     }

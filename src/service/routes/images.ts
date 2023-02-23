@@ -239,6 +239,17 @@ export function getImagesRouter(
     );
 
     router.post(
+        "/api/images/classification-task",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list as number[];
+            await imageListManagementOperator.createImageClassificationTaskList(authenticatedUserInfo, imageIdList);
+            res.json({});
+        })
+    )
+
+    router.post(
         "/api/images/:imageId/bookmark",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
