@@ -56,16 +56,24 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
             );
         }
 
-        if (
-            filterOptionsProto.uploadedByUserIdList === undefined ||
-            filterOptionsProto.uploadedByUserIdList.length === 0
-        ) {
-            filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
-        } else if (verifiableImageUserIdList.length > 0) {
-            const verifiableImageUserIdSet = new Set(verifiableImageUserIdList);
-            filterOptionsProto.uploadedByUserIdList = filterOptionsProto.uploadedByUserIdList.filter((userId) =>
-                verifiableImageUserIdSet.has(userId)
-            );
+        if (verifiableImageUserIdList.length > 0) {
+            if (
+                filterOptionsProto.uploadedByUserIdList === undefined ||
+                filterOptionsProto.uploadedByUserIdList.length === 0
+            ) {
+                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
+            } else {
+                const requestedUploadedByUserIdSet = new Set(filterOptionsProto.uploadedByUserIdList);
+                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
+                for (const userId of verifiableImageUserIdList) {
+                    if (!requestedUploadedByUserIdSet.has(userId)) {
+                        filterOptionsProto.notUploadedByUserIdList = [
+                            ...(filterOptionsProto.notUploadedByUserIdList || []),
+                            userId,
+                        ];
+                    }
+                }
+            }
         }
 
         filterOptionsProto.notUploadedByUserIdList = Array.from(
