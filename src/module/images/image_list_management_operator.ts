@@ -21,6 +21,8 @@ import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
+    MANAGE_SELF_AND_ALL_CHECKER_TOKEN,
+    VERIFY_CHECKER_TOKEN,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -78,6 +80,17 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
+    getImagePositionInUserManageableImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
+    }>;
     searchUserVerifiableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
@@ -93,6 +106,17 @@ export interface ImageListManagementOperator {
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+    }>;
+    getImagePositionInUserVerifiableImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
     }>;
     searchUserExportableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -110,17 +134,6 @@ export interface ImageListManagementOperator {
         imageList: Image[];
         imageTagList: ImageTag[][];
     }>;
-    getImagePositionInList(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number,
-        sortOrder: number,
-        filterOptions: ImageListFilterOptions
-    ): Promise<{
-        position: number;
-        totalImageCount: number;
-        prevImageId: number | undefined;
-        nextImageId: number | undefined;
-    }>;
     addImageTagListToImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[],
@@ -133,8 +146,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
+        private readonly manageSelfAndAllChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
-        private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
+        private readonly verifyChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
@@ -366,6 +380,56 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         return { totalImageCount, imageList, imageTagList };
     }
 
+    public async getImagePositionInUserManageableImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
+    }> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
+        }
+
+        const filterOptionsProto =
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
+                authenticatedUserInfo,
+                filterOptions
+            );
+        const { error: getImagePositionInListError, response: getImagePositionInListResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getImagePositionInList.bind(this.imageServiceDM), {
+                id: imageId,
+                sortOrder: sortOrder,
+                filterOptions: filterOptionsProto,
+            });
+        if (getImagePositionInListError !== null) {
+            this.logger.error("failed to call image_service.getImagePositionInList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get image position in list",
+                getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
+            );
+        }
+
+        const position = getImagePositionInListResponse?.position || 0;
+        const totalImageCount = getImagePositionInListResponse?.totalImageCount || 0;
+        const prevImageId = getImagePositionInListResponse?.prevImageId;
+        const nextImageId = getImagePositionInListResponse?.nextImageId;
+        return { position, totalImageCount, prevImageId, nextImageId };
+    }
+
     public async searchUserVerifiableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         query: string,
@@ -445,6 +509,56 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         );
 
         return { totalImageCount, imageList, imageTagList };
+    }
+
+    public async getImagePositionInUserVerifiableImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        position: number;
+        totalImageCount: number;
+        prevImageId: number | undefined;
+        nextImageId: number | undefined;
+    }> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.verifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
+        }
+
+        const filterOptionsProto =
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
+                authenticatedUserInfo,
+                filterOptions
+            );
+        const { error: getImagePositionInListError, response: getImagePositionInListResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getImagePositionInList.bind(this.imageServiceDM), {
+                id: imageId,
+                sortOrder: sortOrder,
+                filterOptions: filterOptionsProto,
+            });
+        if (getImagePositionInListError !== null) {
+            this.logger.error("failed to call image_service.getImagePositionInList()");
+            throw new ErrorWithHTTPCode(
+                "Failed to get image position in list",
+                getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
+            );
+        }
+
+        const position = getImagePositionInListResponse?.position || 0;
+        const totalImageCount = getImagePositionInListResponse?.totalImageCount || 0;
+        const prevImageId = getImagePositionInListResponse?.prevImageId;
+        const nextImageId = getImagePositionInListResponse?.nextImageId;
+        return { position, totalImageCount, prevImageId, nextImageId };
     }
 
     public async searchUserExportableImageUserList(
@@ -527,55 +641,6 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         return { totalImageCount, imageList, imageTagList };
     }
 
-    public async getImagePositionInList(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number,
-        sortOrder: number,
-        filterOptions: ImageListFilterOptions
-    ): Promise<{
-        position: number;
-        totalImageCount: number;
-        prevImageId: number | undefined;
-        nextImageId: number | undefined;
-    }> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
-        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-            authenticatedUserInfo,
-            imageProto
-        );
-        if (!canUserAccessImage) {
-            this.logger.error("user is not allowed to access image", {
-                userId: authenticatedUserInfo.user.id,
-                imageId,
-            });
-            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
-        }
-
-        const filterOptionsProto = this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
-            authenticatedUserInfo,
-            filterOptions
-        );
-        const { error: getImagePositionInListError, response: getImagePositionInListResponse } =
-            await promisifyGRPCCall(this.imageServiceDM.getImagePositionInList.bind(this.imageServiceDM), {
-                id: imageId,
-                sortOrder: sortOrder,
-                filterOptions: filterOptionsProto,
-            });
-        if (getImagePositionInListError !== null) {
-            this.logger.error("failed to call image_service.getImagePositionInList()");
-            throw new ErrorWithHTTPCode(
-                "Failed to get image position in list",
-                getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
-            );
-        }
-
-        const position = getImagePositionInListResponse?.position || 0;
-        const totalImageCount = getImagePositionInListResponse?.totalImageCount || 0;
-        const prevImageId = getImagePositionInListResponse?.prevImageId;
-        const nextImageId = getImagePositionInListResponse?.nextImageId;
-        return { position, totalImageCount, prevImageId, nextImageId };
-    }
-
     public async addImageTagListToImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[],
@@ -616,8 +681,9 @@ injected(
     IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
+    MANAGE_SELF_AND_ALL_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
-    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
+    VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,

@@ -1,9 +1,8 @@
 get:
-  description: Get the position of an image within the filtered image list. User
-    needs to either (1) have `images.manage.self` permission and is getting the
-    information of an image of their own, (2) have `images.verify` permission
-    and is getting is getting the information of an image with PUBLISHED status
-    that they are allowed to verify, or (3) have `images.manage.all` permission
+  description:
+    Get the position of an image within the manageable image list of the user.
+    User needs to either (1) have `images.manage.self` permission and is getting the
+    information of an image of their own, or (2) have `images.manage.all` permission
     and is getting the information of an image that they are allowed to manage
     in order to call this API successfully.
   tags:

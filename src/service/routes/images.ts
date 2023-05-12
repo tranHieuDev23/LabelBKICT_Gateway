@@ -150,7 +150,7 @@ export function getImagesRouter(
     );
 
     router.get(
-        "/api/images/:imageId/position",
+        "/api/images/:imageId/manageable-images-position",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
@@ -158,7 +158,33 @@ export function getImagesRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
             const { position, totalImageCount, prevImageId, nextImageId } =
-                await imageListManagementOperator.getImagePositionInList(
+                await imageListManagementOperator.getImagePositionInUserManageableImageList(
+                    authenticatedUserInfo,
+                    imageId,
+                    sortOrder,
+                    filterOptions
+                );
+
+            const responseBody: any = {
+                position,
+                total_image_count: totalImageCount,
+                prev_image_id: prevImageId,
+                next_image_id: nextImageId,
+            };
+            res.json(responseBody);
+        })
+    );
+
+    router.get(
+        "/api/images/:imageId/verifiable-images-position",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
+            const { position, totalImageCount, prevImageId, nextImageId } =
+                await imageListManagementOperator.getImagePositionInUserVerifiableImageList(
                     authenticatedUserInfo,
                     imageId,
                     sortOrder,

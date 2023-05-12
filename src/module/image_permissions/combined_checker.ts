@@ -10,14 +10,22 @@ import { ImagesManageSelfChecker } from "./images_manage_self";
 import { ImagesVerifyChecker } from "./images_verify";
 import { ImagePermissionChecker } from "./image_permission_checker";
 
+export function getManageSelfAndAllChecker(
+    userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider
+): ImagePermissionChecker {
+    return new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, false);
+}
+
 export function getManageSelfAndAllCanEditChecker(
     userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider
 ): ImagePermissionChecker {
-    return new ImagesManageAllChecker(
-        new ImagesManageSelfChecker(null),
-        userCanManageUserImageInfoProvider,
-        true
-    );
+    return new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, true);
+}
+
+export function getVerifyChecker(
+    userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
+): ImagePermissionChecker {
+    return new ImagesVerifyChecker(null, userCanVerifyUserImageInfoProvider);
 }
 
 export function getManageSelfAndAllAndVerifyChecker(
@@ -25,11 +33,7 @@ export function getManageSelfAndAllAndVerifyChecker(
     userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
 ): ImagePermissionChecker {
     return new ImagesVerifyChecker(
-        new ImagesManageAllChecker(
-            new ImagesManageSelfChecker(null),
-            userCanManageUserImageInfoProvider,
-            false
-        ),
+        new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, false),
         userCanVerifyUserImageInfoProvider
     );
 }
@@ -39,19 +43,14 @@ export function getManageSelfAndAllCanEditAndVerifyChecker(
     userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
 ): ImagePermissionChecker {
     return new ImagesVerifyChecker(
-        new ImagesManageAllChecker(
-            new ImagesManageSelfChecker(null),
-            userCanManageUserImageInfoProvider,
-            true
-        ),
+        new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, true),
         userCanVerifyUserImageInfoProvider
     );
 }
 
-injected(
-    getManageSelfAndAllCanEditChecker,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN
-);
+injected(getManageSelfAndAllChecker, USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN);
+injected(getManageSelfAndAllCanEditChecker, USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN);
+injected(getVerifyChecker, USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN);
 injected(
     getManageSelfAndAllAndVerifyChecker,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
@@ -63,9 +62,14 @@ injected(
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN
 );
 
-export const MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN =
-    token<ImagePermissionChecker>("ManageSelfAndAllCanEditChecker");
-export const MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN =
-    token<ImagePermissionChecker>("ManageSelfAndAllAndVerifyChecker");
-export const MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN =
-    token<ImagePermissionChecker>("ManageSelfAndAllCanEditAndVerifyChecker");
+export const MANAGE_SELF_AND_ALL_CHECKER_TOKEN = token<ImagePermissionChecker>("ManageSelfAndAllChecker");
+export const MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN = token<ImagePermissionChecker>(
+    "ManageSelfAndAllCanEditChecker"
+);
+export const VERIFY_CHECKER_TOKEN = token<ImagePermissionChecker>("VerifyChecker");
+export const MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN = token<ImagePermissionChecker>(
+    "ManageSelfAndAllAndVerifyChecker"
+);
+export const MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN = token<ImagePermissionChecker>(
+    "ManageSelfAndAllCanEditAndVerifyChecker"
+);
