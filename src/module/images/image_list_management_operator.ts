@@ -536,7 +536,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         }
 
         const filterOptionsProto =
-            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
+            await this.userVerifiableImageFilterOptionsProvider.getUserVerifiableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
