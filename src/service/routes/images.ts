@@ -244,8 +244,8 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIdList = req.body.image_id_list as number[];
-            const classificationType = +(req.body.classification_type || 0);
-            await imageListManagementOperator.createImageClassificationTaskList(authenticatedUserInfo, imageIdList, classificationType);
+            const classificationTypeId = +(req.body.classification_type_id || 0);
+            await imageListManagementOperator.createImageClassificationTaskList(authenticatedUserInfo, imageIdList, classificationTypeId);
             res.json({});
         })
     )

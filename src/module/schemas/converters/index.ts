@@ -1,8 +1,4 @@
 import { Container } from "brandi";
-import { 
-    ClassificationTypeToClassificationTypeProtoConverterImpl,
-    CLASSIFICATION_TYPE_TO_CLASSIFICATION_TYPE_PROTO_CONVERTER_TOKEN 
-} from "./classification_type_to_classification_type_proto";
 import {
     ExportProtoToExportConverterImpl,
     EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
@@ -54,7 +50,6 @@ export * from "./export_proto_to_export";
 export * from "./pinned_page_proto_to_pinned_page";
 export * from "./user_can_manage_user_image_proto_to_user_can_manage_user_image";
 export * from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
-export * from "./classification_type_to_classification_type_proto";
 
 export function bindToContainer(container: Container): void {
     container
@@ -102,11 +97,5 @@ export function bindToContainer(container: Container): void {
             USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN
         )
         .toInstance(UserCanVerifyUserImageProtoToUserCanVerifyUserImageImpl)
-        .inSingletonScope();
-    container
-        .bind(
-            CLASSIFICATION_TYPE_TO_CLASSIFICATION_TYPE_PROTO_CONVERTER_TOKEN
-        )
-        .toInstance(ClassificationTypeToClassificationTypeProtoConverterImpl)
         .inSingletonScope();
 }

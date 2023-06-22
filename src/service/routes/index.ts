@@ -10,6 +10,7 @@ import { getImagesRouter, IMAGES_ROUTER_TOKEN } from "./images";
 import { EXPORTS_ROUTER_TOKEN, getExportsRouter } from "./exports";
 import { getPinnedPagesRouter, PINNED_PAGES_ROUTER_TOKEN } from "./pinned-pages";
 import { getUserTagsRouter, USER_TAGS_ROUTER_TOKEN } from "./user-tags";
+import { getClassificationTypesRouter, CLASSIFICATION_TYPES_ROUTER_TOKEN } from "./classification-types"
 
 export const ROUTES_TOKEN = token<express.Router[]>("Routes");
 
@@ -24,6 +25,7 @@ export function bindToContainer(container: Container): void {
     container.bind(IMAGES_ROUTER_TOKEN).toInstance(getImagesRouter).inSingletonScope();
     container.bind(EXPORTS_ROUTER_TOKEN).toInstance(getExportsRouter).inSingletonScope();
     container.bind(PINNED_PAGES_ROUTER_TOKEN).toInstance(getPinnedPagesRouter).inSingletonScope();
+    container.bind(CLASSIFICATION_TYPES_ROUTER_TOKEN).toInstance(getClassificationTypesRouter).inSingletonScope();
     container
         .bind(ROUTES_TOKEN)
         .toInstance(() => [
@@ -37,6 +39,7 @@ export function bindToContainer(container: Container): void {
             container.get(IMAGES_ROUTER_TOKEN),
             container.get(EXPORTS_ROUTER_TOKEN),
             container.get(PINNED_PAGES_ROUTER_TOKEN),
+            container.get(CLASSIFICATION_TYPES_ROUTER_TOKEN)
         ])
         .inSingletonScope();
 }

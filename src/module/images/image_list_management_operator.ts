@@ -14,10 +14,7 @@ import {
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     User,
     FilterOptionsToFilterOptionsProtoConverter,
-    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
-    ClassificationType,
-    ClassificationTypeToClassificationTypeProtoConverter,
-    CLASSIFICATION_TYPE_TO_CLASSIFICATION_TYPE_PROTO_CONVERTER_TOKEN
+    FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -57,7 +54,7 @@ export interface ImageListManagementOperator {
     createImageClassificationTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[],
-        classificationType: ClassificationType
+        classificationTypeId: number
     ): Promise<void>;
     getUserImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -148,7 +145,6 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
         private readonly userVerifiableImageFilterOptionsProvider: UserVerifiableImageFilterOptionsProvider,
-        private readonly classificationTypeToClassificationTypeProtoConverter: ClassificationTypeToClassificationTypeProtoConverter,
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly modelServiceDM: ModelServiceClient,
@@ -250,7 +246,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
     public async createImageClassificationTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[],
-        classificationType: ClassificationType
+        classificationTypeId: number
     ): Promise<void> {
         const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
@@ -264,12 +260,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             throw new ErrorWithHTTPCode("Failed to create classification task for image list", httpStatus.FORBIDDEN);
         }
 
-        const classificationTypeProto =
-            this.classificationTypeToClassificationTypeProtoConverter.convert(classificationType);
-
         const { error: createClassificationTaskBatchError } = await promisifyGRPCCall(
             this.modelServiceDM.CreateClassificationTaskBatch.bind(this.modelServiceDM),
-            { imageIdList: imageIdList, classificationType: classificationTypeProto }
+            { imageIdList: imageIdList, classificationTypeId: classificationTypeId }
         );
         
         if (createClassificationTaskBatchError !== null) {
@@ -668,7 +661,6 @@ injected(
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
-    CLASSIFICATION_TYPE_TO_CLASSIFICATION_TYPE_PROTO_CONVERTER_TOKEN,
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     MODEL_SERVICE_DM_TOKEN,

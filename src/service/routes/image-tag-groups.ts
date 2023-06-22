@@ -35,8 +35,9 @@ export function getImageTagGroupsRouter(
         asyncHandler(async (req, res) => {
             const withImageTag = +(req.query.with_image_tag || 0) === 1;
             const withImageType = +(req.query.with_image_type || 0) === 1;
-            const { imageTagGroupList, imageTagList, imageTypeList } =
-                await imageTagManagementOperator.getImageTagGroupList(withImageTag, withImageType);
+            const withClassificationType = +(req.query.with_classification_type || 0) === 1;
+            const { imageTagGroupList, imageTagList, imageTypeList, classificationTypeList } =
+                await imageTagManagementOperator.getImageTagGroupList(withImageTag, withImageType, withClassificationType);
             const responseBody: any = {
                 image_tag_group_list: imageTagGroupList,
             };
@@ -46,6 +47,10 @@ export function getImageTagGroupsRouter(
             if (withImageType) {
                 responseBody["image_type_list"] = imageTypeList;
             }
+            if (withClassificationType) {
+                responseBody["classification_type_list"] = classificationTypeList;
+            }
+
             res.json(responseBody);
         })
     );
@@ -132,6 +137,28 @@ export function getImageTagGroupsRouter(
             const imageTagGroupId = +req.params.imageTagGroupId;
             const imageTypeId = +req.params.imageTypeId;
             await imageTagManagementOperator.removeImageTypeFromImageTagGroup(imageTagGroupId, imageTypeId);
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/image-tag-groups/:imageTagGroupId/classification-types",
+        imageTagsManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const classificationTypeId = +req.body.classification_type_id;
+            const imageTag = await imageTagManagementOperator.addClassificationTypeToImageTagGroup(imageTagGroupId, classificationTypeId);
+            res.json(imageTag);
+        })
+    );
+
+    router.delete(
+        "/api/image-tag-groups/:imageTagGroupId/classification-types/:classificationTypeId",
+        imageTagsManageAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const imageTagGroupId = +req.params.imageTagGroupId;
+            const classificationTypeId = +req.params.classificationTypeId;
+            await imageTagManagementOperator.removeClassificationTypeFromImageTagGroup(imageTagGroupId, classificationTypeId);
             res.json({});
         })
     );

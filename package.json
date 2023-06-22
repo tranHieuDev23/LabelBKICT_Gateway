@@ -9,7 +9,7 @@
     "clean": "rm -r ./src/proto/gen && tsc --build --clean",
     "debug": "npm run build && npm run watch",
     "lint": "npx eslint ./src --ext .js,.jsx,.ts,.tsx",
-    "serve": "node dist/main.js",
+    "serve": "ts-node src/main.ts",
     "start": "node dist/main.js --prod",
     "watch-node": "nodemon --ignore \"logs/**\" --delay 1s --inspect dist/main.js",
     "watch-ts": "tsc -w",

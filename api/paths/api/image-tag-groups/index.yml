@@ -68,6 +68,15 @@ get:
         minimum: 0
         maximum: 1
         default: 0
+    - name: with_classification_type
+      in: query
+      description: If equal to 1, will return the list of allow classification types that
+        each classification tag group in the list has.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
   responses:
     "200":
       description: Image tag group list retrieved successfully.
@@ -106,6 +115,16 @@ get:
                 description: If with_allowed_image_type = 1, this field is the
                   list of allowed image type each tag group in image_tag_group_list
                   has, in the same order. If with_allowed_image_type = 0, this
+                  field is not returned.
+              classification_type_list:
+                type: array
+                items:
+                  type: array
+                  items:
+                    $ref: "../../../components/schemas/ClassificationType.yml"
+                description: If with_allowed_classification_type = 1, this field is the
+                  list of allowed classification type each tag group in image_tag_group_list
+                  has, in the same order. If with_allowed_classification_type = 0, this
                   field is not returned.
     "400":
       description: Failed to retrieve image tag group list because the arguments

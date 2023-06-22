@@ -1,0 +1,13 @@
+type: object
+description:
+  An classification type for images on the system. The classification type of an image determines
+  the type of classification that user request to the system to classify for the image.
+properties:
+  id:
+    type: integer
+    description: Classification type ID, should be unique across all classification type.
+  display_name:
+    type: string
+    description: The classification type's name, to be displayed on the UI.
+    minLength: 1
+    maxLength: 256

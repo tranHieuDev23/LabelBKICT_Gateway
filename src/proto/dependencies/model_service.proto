@@ -5,15 +5,16 @@ service ModelService {
     rpc CreateDetectionTaskBatch(CreateDetectionTaskBatchRequest) returns (CreateDetectionTaskBatchResponse) {}
     rpc CreateClassificationTask(CreateClassificationTaskRequest) returns (CreateClassificationTaskResponse) {}
     rpc CreateClassificationTaskBatch(CreateClassificationTaskBatchRequest) returns (CreateClassificationTaskBatchResponse) {}
+    
+    rpc GetClassificationType(GetClassificationTypeRequest) returns (GetClassificationTypeResponse) {}
+    rpc GetClassificationTypeList(GetClassificationTypeListRequest) returns (GetClassificationTypeListResponse) {}
+    rpc GetClassificationTypeByDisplayName(GetClassificationTypeByDisplayNameRequest) returns (GetClassificationTypeByDisplayNameResponse) {}
 }
 
 // Business objects
 message ClassificationType {
-    enum Values {
-        ANATOMICAL_SITE = 0;
-        LESION_TYPE = 1;
-        HP = 2;
-    }
+    uint32 classification_type_id = 1;
+    string display_name = 2;
 }
 
 message CreateDetectionTaskRequest {
@@ -26,18 +27,40 @@ message CreateDetectionTaskBatchRequest {
     repeated uint32 image_id_list = 1;
 }
 
-message CreateDetectionTaskBatchResponse {}
+message CreateDetectionTaskBatchResponse {} 
 
 message CreateClassificationTaskRequest {
     uint32 image_id = 1;
-    ClassificationType.Values classification_type = 2;
+    uint32 classification_type_id = 2;
 }
 
 message CreateClassificationTaskResponse {}
 
 message CreateClassificationTaskBatchRequest {
     repeated uint32 image_id_list = 1;
-    ClassificationType.Values classification_type = 2;
+    uint32 classification_type_id = 2;
 }
 
 message CreateClassificationTaskBatchResponse {}
+
+message GetClassificationTypeRequest {
+    uint32 classification_type_id = 1;
+}
+
+message GetClassificationTypeResponse {
+    ClassificationType classification_type = 1;
+}
+
+message GetClassificationTypeListRequest {}
+
+message GetClassificationTypeListResponse {
+    repeated ClassificationType classification_type_list = 1;
+}
+
+message GetClassificationTypeByDisplayNameRequest {
+    string display_name = 1;
+}
+
+message GetClassificationTypeByDisplayNameResponse {
+    ClassificationType classification_type = 1;
+}

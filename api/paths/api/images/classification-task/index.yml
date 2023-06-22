@@ -20,12 +20,9 @@ post:
                 $ref: "../../../../components/schemas/Image.yml#/properties/id"
               description: The imageID list to be updated.
               maxItems: 500
-            classification_type:
+            classification_type_id:
               type: integer
-              description: Types of the classification's request to the system. Can take a value of
-                0 (ANATOMICAL_SITE), 1 (LESION_TYPE), 2(HP).
-              minimum: 0
-              maximum: 2
+              description: Id of the classification type's request to the system.
   responses:
     "200":
       description: Requested for classification successfully.

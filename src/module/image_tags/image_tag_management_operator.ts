@@ -3,17 +3,19 @@ import { Logger } from "winston";
 import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
-import { ImageTagGroup, ImageTag, ImageType } from "../schemas";
+import { ImageTagGroup, ImageTag, ImageType, ClassificationType } from "../schemas";
 
 export interface ImageTagManagementOperator {
     createImageTagGroup(displayName: string, isSingleValue: boolean): Promise<ImageTagGroup>;
     getImageTagGroupList(
         withImageTag: boolean,
-        withImageType: boolean
+        withImageType: boolean,
+        withClassificationType: boolean
     ): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][] | undefined;
         imageTypeList: ImageType[][] | undefined;
+        classificationTypeList: ClassificationType[][] | undefined;
     }>;
     updateImageTagGroup(
         id: number,
@@ -30,6 +32,8 @@ export interface ImageTagManagementOperator {
     removeImageTagFromImageTagGroup(imageTypeId: number, ImageTagId: number): Promise<void>;
     addImageTypeToImageTagGroup(imageTagGroupId: number, imageTypeId: number): Promise<void>;
     removeImageTypeFromImageTagGroup(imageTagGroupId: number, imageTypeId: number): Promise<void>;
+    addClassificationTypeToImageTagGroup(imageTagGroupId: number, classificationTypeId: number): Promise<void>;
+    removeClassificationTypeFromImageTagGroup(imageTagGroupId: number, classificationTypeId: number): Promise<void>;
     getImageTagGroupListOfImageType(imageTypeId: number): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][];
@@ -63,15 +67,17 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
 
     public async getImageTagGroupList(
         withImageTag: boolean,
-        withImageType: boolean
+        withImageType: boolean,
+        withClassificationType: boolean
     ): Promise<{
         imageTagGroupList: ImageTagGroup[];
         imageTagList: ImageTag[][] | undefined;
         imageTypeList: ImageType[][] | undefined;
+        classificationTypeList: ClassificationType[][] | undefined;
     }> {
         const { error: getImageTagGroupListError, response: getImageTagGroupListResponse } = await promisifyGRPCCall(
             this.imageServiceDM.getImageTagGroupList.bind(this.imageServiceDM),
-            { withImageTag, withImageType }
+            { withImageTag, withImageType, withClassificationType }
         );
         if (getImageTagGroupListError !== null) {
             this.logger.error("failed to call image_service.getImageTagGroupList()", {
@@ -94,8 +100,13 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
                   (imageTypeList) => imageTypeList.imageTypeList?.map(ImageType.fromProto) || []
               ) || []
             : undefined;
-
-        return { imageTagGroupList, imageTagList, imageTypeList };
+        const classificationTypeList = withClassificationType
+            ? getImageTagGroupListResponse?.classificationTypeListOfImageTagGroupList?.map(
+                (classificationTypeList) => classificationTypeList.classificationTypeList?.map(ClassificationType.fromProto) || []
+            ) || []
+            : undefined;
+        
+        return { imageTagGroupList, imageTagList, imageTypeList, classificationTypeList };
     }
 
     public async updateImageTagGroup(
@@ -298,6 +309,44 @@ export class ImageTagManagementOperatorImpl implements ImageTagManagementOperato
             imageTagGroupAndTagList.push({ imageTagGroupList, imageTagList });
         }
         return imageTagGroupAndTagList;
+    }
+
+    public async addClassificationTypeToImageTagGroup(
+        imageTagGroupId: number,
+        classificationTypeId: number
+    ): Promise<void> {
+        const { error: addClassificationTypeToImageTagGroupError } = await promisifyGRPCCall(
+            this.imageServiceDM.addClassificationTypeToImageTagGroup.bind(this.imageServiceDM),
+            { imageTagGroupId: imageTagGroupId, classificationTypeId: classificationTypeId }
+        );
+        if (addClassificationTypeToImageTagGroupError !== null) {
+            this.logger.error("failed to call image_service.addClassificationTypeToImageTagGroup()", {
+                error: addClassificationTypeToImageTagGroupError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to add classification type to image tag group",
+                getHttpCodeFromGRPCStatus(addClassificationTypeToImageTagGroupError.code)
+            );
+        }
+    }
+
+    public async removeClassificationTypeFromImageTagGroup(
+        imageTagGroupId: number,
+        classificationTypeId: number
+    ): Promise<void> {
+        const { error: removeClassificationTypeFromImageTagGroupError } = await promisifyGRPCCall(
+            this.imageServiceDM.removeClassificationTypeFromImageTagGroup.bind(this.imageServiceDM),
+            { imageTagGroupId: imageTagGroupId, classificationTypeId: classificationTypeId }
+        );
+        if (removeClassificationTypeFromImageTagGroupError !== null) {
+            this.logger.error("failed to call image_service.removeClassificationTypeFromImageTagGroup()", {
+                error: removeClassificationTypeFromImageTagGroupError,
+            });
+            throw new ErrorWithHTTPCode(
+                "failed to remove classification type from image tag group",
+                getHttpCodeFromGRPCStatus(removeClassificationTypeFromImageTagGroupError.code)
+            );
+        }
     }
 }
 

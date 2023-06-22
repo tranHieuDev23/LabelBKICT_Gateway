@@ -74,6 +74,10 @@ paths:
     $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/image-types/index.yml"
   "/api/image-tag-groups/{image_tag_group_id}/image-types/{image_type_id}":
     $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/image-types/{image_type_id}/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/classification-types":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/classification-types/index.yml"
+  "/api/image-tag-groups/{image_tag_group_id}/classification-types/{classification_type_id}":
+    $ref: "./paths/api/image-tag-groups/{image_tag_group_id}/classification-types/{classification_type_id}/index.yml"
   "/api/image-types/{image_type_id}/image-tag-groups":
     $ref: "./paths/api/image-types/{image_type_id}/image-tag-groups/index.yml"
   "/api/images":
@@ -134,3 +138,5 @@ paths:
     $ref: "./paths/api/pinned-page/index.yml"
   "/api/pinned-pages/{pinned_page_id}":
     $ref: "./paths/api/pinned-page/{pinned_page_id}/index.yml"
+  "/api/classification-types":
+    $ref: "./paths/api/classification-types/index.yml"

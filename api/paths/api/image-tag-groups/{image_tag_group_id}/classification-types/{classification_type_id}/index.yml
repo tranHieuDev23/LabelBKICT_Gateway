@@ -1,0 +1,46 @@
+delete:
+  description: Remove an classification type from the list of allowed classification types of an
+    image tag group. User needs to have `image_tags.manage` permission in order
+    to call this API successfully.
+  tags:
+    - Image Tag Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_tag_group_id
+      in: path
+      description: The image tag group to deleted image tag for.
+      schema:
+        $ref: "../../../../../../components/schemas/ImageTagGroup.yml#/properties/id"
+      required: true
+    - name: classification_type_id
+      in: path
+      description: The classification type to be removed.
+      schema:
+        $ref: "../../../../../../components/schemas/ClassificationType.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Removed classification type from image tag group successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is
+            about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to remove classification type from image tag group because the
+        user is not logged in.
+    "403":
+      description: Failed to remove classification type from image tag group because user
+        does not have the necessary permission.
+    "404":
+      description:
+        Failed to remove classification type from image tag group because image
+        tag group with image_tag_group_id or classification type with classification_type_id does
+        not exist.
+    "409":
+      description:
+        Failed to remove classification type from image tag group because image
+        tag group with image_tag_group_id does not have classification type with classification_type_id
+        in the list of allowed classification types.
