@@ -49,6 +49,7 @@ export function getImagesRouter(
             const description = req.body.description || "";
             const originalFileName = fileList[0].originalname;
             const imageData = fileList[0].buffer;
+            const shouldUseDetectionModel = req.body.should_use_detection_model === "1";
 
             const image = await imageManagementOperator.createImage(
                 authenticatedUserInfo,
@@ -56,7 +57,8 @@ export function getImagesRouter(
                 imageTagIdList,
                 originalFileName,
                 description,
-                imageData
+                imageData,
+                shouldUseDetectionModel
             );
             res.json(image);
         })
