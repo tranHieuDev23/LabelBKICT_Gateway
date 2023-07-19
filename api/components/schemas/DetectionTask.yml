@@ -8,9 +8,13 @@ properties:
     type: object
     properties:
       id:
-        $ref: ./Image.yml#/properties/id
-      thumbnail_url::
-        $ref: ./Image.yml#/properties/thumbnail_url
+        type: integer
+        description: Image ID, should be unique across all image.
+      thumbnail_url:
+        type: string
+        description:
+          The URL to the compressed small-size thumbnail of the image,
+          for display purpose.
   request_time:
     type: integer
     description: The time when this detection task was requested.
