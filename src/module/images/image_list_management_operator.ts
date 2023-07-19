@@ -44,7 +44,6 @@ import {
 } from "./user_verifiable_image_filter_options_provider";
 import { DetectionTask } from "../schemas/detection_task";
 import { _DetectionTaskStatus_Values } from "../../proto/gen/DetectionTaskStatus";
-import { Image as ImageProto } from "../../proto/gen/Image";
 
 export interface ImageListManagementOperator {
     updateImageList(
