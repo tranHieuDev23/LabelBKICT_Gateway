@@ -19,6 +19,8 @@ import {
 import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
+const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
+const DEFAULT_GET_DETECTION_TASK_LIST_LIMIT = 10;
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -31,6 +33,10 @@ export function getImagesRouter(
     const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imagesUploadAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_UPLOAD_PERMISSION),
+        true
+    );
+    const imagesManageAllAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_MANAGE_ALL_PERMISSION),
         true
     );
 
@@ -83,6 +89,41 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIdList = req.body.image_id_list as number[];
             await imageListManagementOperator.deleteImageList(authenticatedUserInfo, imageIdList);
+            res.json({});
+        })
+    );
+
+    router.get(
+        "/api/images/detection-task",
+        imagesManageAllAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_DETECTION_TASK_LIST_LIMIT);
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
+            const { totalDetectionTaskCount, detectionTaskList } =
+                await imageListManagementOperator.getImageDetectionTaskList(
+                    authenticatedUserInfo,
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions
+                );
+            res.json({
+                total_detection_task_count: totalDetectionTaskCount,
+                detection_task_list: detectionTaskList,
+            });
+        })
+    );
+
+    router.post(
+        "/api/images/detection-task",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list as number[];
+            await imageListManagementOperator.createImageDetectionTaskList(authenticatedUserInfo, imageIdList);
             res.json({});
         })
     );
@@ -251,17 +292,6 @@ export function getImagesRouter(
             const imageId = +req.params.imageId;
             const imageTagId = +(req.body.image_tag_id || 0);
             await imageManagementOperator.addImageTagToImage(authenticatedUserInfo, imageId, imageTagId);
-            res.json({});
-        })
-    );
-
-    router.post(
-        "/api/images/detection-task",
-        userLoggedInAuthMiddleware,
-        asyncHandler(async (req, res) => {
-            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIdList = req.body.image_id_list as number[];
-            await imageListManagementOperator.createImageDetectionTaskList(authenticatedUserInfo, imageIdList);
             res.json({});
         })
     );

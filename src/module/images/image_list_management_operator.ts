@@ -15,9 +15,10 @@ import {
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    DetectionTaskProtoToDetectionTaskConverter,
+    DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
 } from "../schemas";
 import {
-    MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
@@ -41,6 +42,8 @@ import {
     UserVerifiableImageFilterOptionsProvider,
     USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
 } from "./user_verifiable_image_filter_options_provider";
+import { DetectionTask } from "../schemas/detection_task";
+import { _DetectionTaskStatus_Values } from "../../proto/gen/DetectionTaskStatus";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -49,6 +52,16 @@ export interface ImageListManagementOperator {
         imageTypeId: number
     ): Promise<void>;
     deleteImageList(authenticatedUserInfo: AuthenticatedUserInformation, imageIdList: number[]): Promise<void>;
+    getImageDetectionTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        offset: number,
+        limit: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        totalDetectionTaskCount: number;
+        detectionTaskList: DetectionTask[];
+    }>;
     createImageDetectionTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
@@ -152,6 +165,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
+        private readonly detectionTaskProtoToDetectionTaskConverter: DetectionTaskProtoToDetectionTaskConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
         private readonly userVerifiableImageFilterOptionsProvider: UserVerifiableImageFilterOptionsProvider,
         private readonly userServiceDM: UserServiceClient,
@@ -219,6 +233,63 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
                 getHttpCodeFromGRPCStatus(deleteImageListError.code)
             );
         }
+    }
+
+    public async getImageDetectionTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        offset: number,
+        limit: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        totalDetectionTaskCount: number;
+        detectionTaskList: DetectionTask[];
+    }> {
+        const { imageList } = await this.getUserManageableImageList(
+            authenticatedUserInfo,
+            0,
+            undefined,
+            0,
+            filterOptions
+        );
+        const imageIdToImageMap = new Map<number, Image>();
+        for (const image of imageList) {
+            imageIdToImageMap.set(image.id, image);
+        }
+
+        const { error: getDetectionTaskListError, response: getDetectionTaskListResponse } = await promisifyGRPCCall(
+            this.modelServiceDM.getDetectionTaskList.bind(this.modelServiceDM),
+            {
+                offset,
+                limit,
+                ofImageIdList: Array.from(imageIdToImageMap.keys()),
+                statusList: [_DetectionTaskStatus_Values.REQUESTED, _DetectionTaskStatus_Values.PROCESSING],
+                sortOrder: sortOrder,
+            }
+        );
+        if (getDetectionTaskListError !== null) {
+            this.logger.error("failed to call model_service.getDetectionTaskList()", {
+                error: getDetectionTaskListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's manageable image list",
+                getHttpCodeFromGRPCStatus(getDetectionTaskListError.code)
+            );
+        }
+
+        const totalDetectionTaskCount = getDetectionTaskListResponse?.totalDetectionTaskCount || 0;
+        const detectionTaskList: DetectionTask[] = [];
+        for (const detectionTask of getDetectionTaskListResponse?.detectionTaskList || []) {
+            const image = imageIdToImageMap.get(detectionTask.ofImageId || 0);
+            if (image === undefined) {
+                this.logger.error("image not found for detection task", { detectionTask });
+                throw new ErrorWithHTTPCode("Internal server error", httpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            detectionTaskList.push(this.detectionTaskProtoToDetectionTaskConverter.convert(detectionTask, image));
+        }
+
+        return { totalDetectionTaskCount, detectionTaskList };
     }
 
     public async createImageDetectionTaskList(
@@ -334,7 +405,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
     public async getUserManageableImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
         offset: number,
-        limit: number,
+        limit: number | undefined,
         sortOrder: number,
         filterOptions: ImageListFilterOptions
     ): Promise<{
@@ -687,6 +758,7 @@ injected(
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_SERVICE_DM_TOKEN,

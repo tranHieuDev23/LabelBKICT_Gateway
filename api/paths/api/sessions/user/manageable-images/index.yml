@@ -227,16 +227,10 @@ get:
                   type: array
                   items:
                     $ref: "../../../../../components/schemas/ImageTag.yml"
-                description:
-                  The list of image tags each image in image_list has,
-                  in the same order.
+                description: The list of image tags each image in image_list has, in the same order.
     "400":
-      description:
-        Failed to retrieve image list because one or more of the arguments
-        provided is invalid.
+      description: Failed to retrieve image list because one or more of the arguments provided is invalid.
     "401":
-      description: Failed to update image because the user is not logged in.
+      description: Failed to retrieve image list because the user is not logged in.
     "403":
-      description:
-        Failed to update image because the user does not have the necessary
-        permission.
+      description: Failed to retrieve image list because the user does not have the necessary permission.
