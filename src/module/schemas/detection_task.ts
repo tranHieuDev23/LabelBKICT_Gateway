@@ -6,10 +6,14 @@ export enum DetectionTaskStatus {
     DONE = 2,
 }
 
+export class DetectionTaskImage {
+    constructor(id: number, thumbnail_url: string) {}
+}
+
 export class DetectionTask {
     constructor(
         public id: number,
-        public of_image: Image,
+        public of_image: DetectionTaskImage,
         public request_time: number,
         public status: DetectionTaskStatus,
         public update_time: number

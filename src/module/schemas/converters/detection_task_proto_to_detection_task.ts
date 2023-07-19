@@ -2,27 +2,34 @@ import { injected, token } from "brandi";
 import { Logger } from "winston";
 import { _ImageStatus_Values } from "../../../proto/gen/ImageStatus";
 import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../../utils";
-import { Image } from "../image";
-import { DetectionTask, DetectionTaskStatus } from "../detection_task";
+import { DetectionTask, DetectionTaskImage, DetectionTaskStatus } from "../detection_task";
 import { DetectionTask as DetectionTaskProto } from "../../../proto/gen/DetectionTask";
 import { _DetectionTaskStatus_Values } from "../../../proto/gen/DetectionTaskStatus";
 import httpStatus from "http-status";
+import { APPLICATION_CONFIG_TOKEN, ApplicationConfig } from "../../../config";
 
 export interface DetectionTaskProtoToDetectionTaskConverter {
-    convert(detectionTaskProto: DetectionTaskProto | undefined, image: Image): DetectionTask;
+    convert(detectionTaskProto: DetectionTaskProto | undefined, thumbnailImageFileName: string): DetectionTask;
 }
 
 export class DetectionTaskProtoToDetectionTaskConverterImpl implements DetectionTaskProtoToDetectionTaskConverter {
-    constructor(private readonly logger: Logger) {}
+    constructor(private readonly applicationConfig: ApplicationConfig, private readonly logger: Logger) {}
 
-    public convert(detectionTaskProto: DetectionTaskProto | undefined, image: Image): DetectionTask {
+    public convert(detectionTaskProto: DetectionTaskProto | undefined, thumbnailImageFileName: string): DetectionTask {
         return new DetectionTask(
             detectionTaskProto?.id || 0,
-            image,
+            new DetectionTaskImage(
+                detectionTaskProto?.ofImageId || 0,
+                this.getThumbnailImageFileURL(thumbnailImageFileName)
+            ),
             +(detectionTaskProto?.requestTime || 0),
             this.getStatusFromStatusProto(detectionTaskProto?.status),
             +(detectionTaskProto?.updateTime || 0)
         );
+    }
+
+    private getThumbnailImageFileURL(thumbnailFilename: string): string {
+        return `/${this.applicationConfig.thumbnailImageURLPrefix}/${thumbnailFilename}`;
     }
 
     private getStatusFromStatusProto(
@@ -48,7 +55,7 @@ export class DetectionTaskProtoToDetectionTaskConverterImpl implements Detection
     }
 }
 
-injected(DetectionTaskProtoToDetectionTaskConverterImpl, LOGGER_TOKEN);
+injected(DetectionTaskProtoToDetectionTaskConverterImpl, APPLICATION_CONFIG_TOKEN, LOGGER_TOKEN);
 
 export const DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN = token<DetectionTaskProtoToDetectionTaskConverter>(
     "DetectionTaskProtoToDetectionTask"

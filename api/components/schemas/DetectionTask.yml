@@ -5,7 +5,12 @@ properties:
     type: integer
     description: Detection task ID, should be unique across all export.
   of_image:
-    $ref: ./Image.yml
+    type: object
+    properties:
+      id:
+        $ref: ./Image.yml#/properties/id
+      thumbnail_url::
+        $ref: ./Image.yml#/properties/thumbnail_url
   request_time:
     type: integer
     description: The time when this detection task was requested.

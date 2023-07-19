@@ -44,6 +44,7 @@ import {
 } from "./user_verifiable_image_filter_options_provider";
 import { DetectionTask } from "../schemas/detection_task";
 import { _DetectionTaskStatus_Values } from "../../proto/gen/DetectionTaskStatus";
+import { Image as ImageProto } from "../../proto/gen/Image";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -245,16 +246,32 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         totalDetectionTaskCount: number;
         detectionTaskList: DetectionTask[];
     }> {
-        const { imageList } = await this.getUserManageableImageList(
-            authenticatedUserInfo,
-            0,
-            undefined,
-            0,
-            filterOptions
+        const filterOptionsProto =
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
+                authenticatedUserInfo,
+                filterOptions
+            );
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+            }
         );
-        const imageIdToImageMap = new Map<number, Image>();
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's manageable image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const imageList = getImageListResponse?.imageList || [];
+        const imageIdToThumbnailImageFileNameMap = new Map<number, string>();
         for (const image of imageList) {
-            imageIdToImageMap.set(image.id, image);
+            imageIdToThumbnailImageFileNameMap.set(image.id || 0, image.thumbnailImageFilename || "");
         }
 
         const { error: getDetectionTaskListError, response: getDetectionTaskListResponse } = await promisifyGRPCCall(
@@ -262,7 +279,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             {
                 offset,
                 limit,
-                ofImageIdList: Array.from(imageIdToImageMap.keys()),
+                ofImageIdList: Array.from(imageIdToThumbnailImageFileNameMap.keys()),
                 statusList: [_DetectionTaskStatus_Values.REQUESTED, _DetectionTaskStatus_Values.PROCESSING],
                 sortOrder: sortOrder,
             }
@@ -280,13 +297,15 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         const totalDetectionTaskCount = getDetectionTaskListResponse?.totalDetectionTaskCount || 0;
         const detectionTaskList: DetectionTask[] = [];
         for (const detectionTask of getDetectionTaskListResponse?.detectionTaskList || []) {
-            const image = imageIdToImageMap.get(detectionTask.ofImageId || 0);
-            if (image === undefined) {
+            const thumbnailImageFileName = imageIdToThumbnailImageFileNameMap.get(detectionTask.ofImageId || 0);
+            if (thumbnailImageFileName === undefined) {
                 this.logger.error("image not found for detection task", { detectionTask });
                 throw new ErrorWithHTTPCode("Internal server error", httpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            detectionTaskList.push(this.detectionTaskProtoToDetectionTaskConverter.convert(detectionTask, image));
+            detectionTaskList.push(
+                this.detectionTaskProtoToDetectionTaskConverter.convert(detectionTask, thumbnailImageFileName)
+            );
         }
 
         return { totalDetectionTaskCount, detectionTaskList };
