@@ -350,7 +350,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             }
         );
         if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()");
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's image list",
                 getHttpCodeFromGRPCStatus(getImageListError.code)
@@ -429,7 +429,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             }
         );
         if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()");
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's manageable image list",
                 getHttpCodeFromGRPCStatus(getImageListError.code)
@@ -560,7 +560,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             }
         );
         if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()");
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's verifiable image list",
                 getHttpCodeFromGRPCStatus(getImageListError.code)
@@ -690,7 +690,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             }
         );
         if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()");
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's exportable image list",
                 getHttpCodeFromGRPCStatus(getImageListError.code)
