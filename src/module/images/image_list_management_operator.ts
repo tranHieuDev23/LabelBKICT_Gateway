@@ -254,7 +254,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             this.imageServiceDM.getImageList.bind(this.imageServiceDM),
             {
                 offset,
-                limit,
+                limit: undefined,
                 sortOrder,
                 filterOptions: filterOptionsProto,
             }
