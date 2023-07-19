@@ -7,7 +7,7 @@ export enum DetectionTaskStatus {
 }
 
 export class DetectionTaskImage {
-    constructor(id: number, thumbnail_url: string) {}
+    constructor(public id: number, public thumbnail_url: string) {}
 }
 
 export class DetectionTask {
