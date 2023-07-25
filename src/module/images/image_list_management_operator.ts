@@ -16,6 +16,7 @@ import {
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    PHashingValue,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -40,7 +41,6 @@ import {
     UserVerifiableImageFilterOptionsProvider,
     USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
 } from "./user_verifiable_image_filter_options_provider";
-import { SubDuplicateImageIdList } from "../../proto/gen/SubDuplicateImageIdList";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -132,6 +132,10 @@ export interface ImageListManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<number[]>;
+    getDuplicateImageIdListofImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<number[][]>;
 }
 
 export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
@@ -652,6 +656,50 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             );
         }
         return getDuplicateImageIdListResponse?.duplicateImageIdList || [];
+    }
+
+    public async getDuplicateImageIdListofImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<number[][]> {
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
+        
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
+        }
+        
+        const {
+            error: getPHashingValueListOfImageIdListError,
+            response: getPHashingValueListOfImageIdListResponse
+        } = await promisifyGRPCCall(
+            this.duplicateImageDetectionServiceDM.getPHashingValueListOfImageIdList.bind(this.duplicateImageDetectionServiceDM),
+            { imageIdList: imageIdList }
+        );
+
+        if (getPHashingValueListOfImageIdListError !== null) {
+            this.logger.error("failed to call duplicate_image_detection_service.getPHashingValueListOfImageIdList()", {
+                userId: authenticatedUserInfo.user.id
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get pHashing value list",
+                getHttpCodeFromGRPCStatus(getPHashingValueListOfImageIdListError.code)
+            );
+        }
+        
+        const pHashingValueListOfImageIdList = getPHashingValueListOfImageIdListResponse?.duplicateImageIdListOfImageIdList || [];
+        const pHashingValueProtoList = pHashingValueListOfImageIdList.map((pHashingValueList) => pHashingValueList.ofImageIdList || []);
+        
+        // const pHashingValueList = pHashingValueProtoList.map((pHashingValueProtoSubList) =>
+        //     pHashingValueProtoSubList.map(PHashingValue.fromProto)
+        // );
+        return pHashingValueProtoList;
     }
 }
 

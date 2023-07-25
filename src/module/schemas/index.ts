@@ -21,6 +21,7 @@ export * from "./pinned_page";
 export * from "./converters";
 export * from "./user_can_manage_user_image";
 export * from "./user_can_verify_user_image";
+export * from "./p_hashing_value";
 
 export function bindToContainer(container: Container): void {
     converters.bindToContainer(container);
