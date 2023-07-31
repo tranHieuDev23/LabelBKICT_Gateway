@@ -42,3 +42,5 @@ PinnedPage:
   $ref: "./schemas/PinnedPage.yml"
 ClassificationType:
   $ref: "./schemas/ClassificationType.yml"
+DetectionTask:
+  $ref: "./schemas/DetectionTask.yml"

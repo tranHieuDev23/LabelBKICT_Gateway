@@ -19,6 +19,8 @@ import {
 import { getImageListFilterOptionsFromQueryParams } from "./utils";
 
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
+const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
+const DEFAULT_GET_DETECTION_TASK_LIST_LIMIT = 10;
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -31,6 +33,10 @@ export function getImagesRouter(
     const userLoggedInAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(() => true, true);
     const imagesUploadAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
         (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_UPLOAD_PERMISSION),
+        true
+    );
+    const imagesManageAllAuthMiddleware = authMiddlewareFactory.getAuthMiddleware(
+        (authUserInfo) => checkUserHasUserPermission(authUserInfo.userPermissionList, IMAGES_MANAGE_ALL_PERMISSION),
         true
     );
 
@@ -49,6 +55,7 @@ export function getImagesRouter(
             const description = req.body.description || "";
             const originalFileName = fileList[0].originalname;
             const imageData = fileList[0].buffer;
+            const shouldUseDetectionModel = req.body.should_use_detection_model === "1";
 
             const image = await imageManagementOperator.createImage(
                 authenticatedUserInfo,
@@ -56,7 +63,8 @@ export function getImagesRouter(
                 imageTagIdList,
                 originalFileName,
                 description,
-                imageData
+                imageData,
+                shouldUseDetectionModel
             );
             res.json(image);
         })
@@ -81,6 +89,41 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageIdList = req.body.image_id_list as number[];
             await imageListManagementOperator.deleteImageList(authenticatedUserInfo, imageIdList);
+            res.json({});
+        })
+    );
+
+    router.get(
+        "/api/images/detection-task",
+        imagesManageAllAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_DETECTION_TASK_LIST_LIMIT);
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
+            const { totalDetectionTaskCount, detectionTaskList } =
+                await imageListManagementOperator.getImageDetectionTaskList(
+                    authenticatedUserInfo,
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions
+                );
+            res.json({
+                total_detection_task_count: totalDetectionTaskCount,
+                detection_task_list: detectionTaskList,
+            });
+        })
+    );
+
+    router.post(
+        "/api/images/detection-task",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list as number[];
+            await imageListManagementOperator.createImageDetectionTaskList(authenticatedUserInfo, imageIdList);
             res.json({});
         })
     );
@@ -150,7 +193,7 @@ export function getImagesRouter(
     );
 
     router.get(
-        "/api/images/:imageId/position",
+        "/api/images/:imageId/manageable-images-position",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
@@ -158,7 +201,33 @@ export function getImagesRouter(
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
             const { position, totalImageCount, prevImageId, nextImageId } =
-                await imageListManagementOperator.getImagePositionInList(
+                await imageListManagementOperator.getImagePositionInUserManageableImageList(
+                    authenticatedUserInfo,
+                    imageId,
+                    sortOrder,
+                    filterOptions
+                );
+
+            const responseBody: any = {
+                position,
+                total_image_count: totalImageCount,
+                prev_image_id: prevImageId,
+                next_image_id: nextImageId,
+            };
+            res.json(responseBody);
+        })
+    );
+
+    router.get(
+        "/api/images/:imageId/verifiable-images-position",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
+            const { position, totalImageCount, prevImageId, nextImageId } =
+                await imageListManagementOperator.getImagePositionInUserVerifiableImageList(
                     authenticatedUserInfo,
                     imageId,
                     sortOrder,
@@ -223,17 +292,6 @@ export function getImagesRouter(
             const imageId = +req.params.imageId;
             const imageTagId = +(req.body.image_tag_id || 0);
             await imageManagementOperator.addImageTagToImage(authenticatedUserInfo, imageId, imageTagId);
-            res.json({});
-        })
-    );
-
-    router.post(
-        "/api/images/detection-task",
-        userLoggedInAuthMiddleware,
-        asyncHandler(async (req, res) => {
-            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIdList = req.body.image_id_list as number[];
-            await imageListManagementOperator.createImageDetectionTaskList(authenticatedUserInfo, imageIdList);
             res.json({});
         })
     );

@@ -5,6 +5,7 @@ import {
     ImageListFilterOptions,
 } from "../schemas";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../proto/gen/ImageListFilterOptions";
+import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
 import {
     UserCanVerifyUserImageInfoProvider,
     UserTagInfoProvider,
@@ -47,16 +48,32 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
             filterOptions
         );
 
-        if (
-            filterOptionsProto.uploadedByUserIdList === undefined ||
-            filterOptionsProto.uploadedByUserIdList.length === 0
-        ) {
-            filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
-        } else if (verifiableImageUserIdList.length > 0) {
-            const manageableImageUserIdSet = new Set(verifiableImageUserIdList);
-            filterOptionsProto.uploadedByUserIdList = filterOptionsProto.uploadedByUserIdList?.filter((userId) =>
-                manageableImageUserIdSet.has(userId)
+        if (filterOptionsProto.imageStatusList === undefined || filterOptionsProto.imageStatusList.length === 0) {
+            filterOptionsProto.imageStatusList = [_ImageStatus_Values.PUBLISHED, _ImageStatus_Values.VERIFIED];
+        } else {
+            filterOptionsProto.imageStatusList = filterOptionsProto.imageStatusList.filter(
+                (status) => status === _ImageStatus_Values.PUBLISHED || status === _ImageStatus_Values.VERIFIED
             );
+        }
+
+        if (verifiableImageUserIdList.length > 0) {
+            if (
+                filterOptionsProto.uploadedByUserIdList === undefined ||
+                filterOptionsProto.uploadedByUserIdList.length === 0
+            ) {
+                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
+            } else {
+                const requestedUploadedByUserIdSet = new Set(filterOptionsProto.uploadedByUserIdList);
+                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
+                for (const userId of verifiableImageUserIdList) {
+                    if (!requestedUploadedByUserIdSet.has(userId)) {
+                        filterOptionsProto.notUploadedByUserIdList = [
+                            ...(filterOptionsProto.notUploadedByUserIdList || []),
+                            userId,
+                        ];
+                    }
+                }
+            }
         }
 
         filterOptionsProto.notUploadedByUserIdList = Array.from(

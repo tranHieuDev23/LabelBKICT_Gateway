@@ -1,0 +1,32 @@
+type: object
+description: A task to detect regions of interest in an image.
+properties:
+  id:
+    type: integer
+    description: Detection task ID, should be unique across all export.
+  of_image:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: Image ID, should be unique across all image.
+      thumbnail_url:
+        type: string
+        description:
+          The URL to the compressed small-size thumbnail of the image,
+          for display purpose.
+  request_time:
+    type: integer
+    description: The time when this detection task was requested.
+  status:
+    type: integer
+    description:
+      The status of the detection task on the system. Can take a value of
+      0 (REQUESTED) - for detection task that have just been requested, 1 (PROCESSING)
+      - for detection tasks that are currently being processed and 2 (DONE) - for detection tasks
+      that have been successfully processed.
+    minimum: 0
+    maximum: 2
+  update_time:
+    type: integer
+    description: The time when this detection task was last updated on the system.
