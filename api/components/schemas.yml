@@ -44,3 +44,5 @@ ClassificationType:
   $ref: "./schemas/ClassificationType.yml"
 DetectionTask:
   $ref: "./schemas/DetectionTask.yml"
+ClassificationTask:
+  $ref: "./schemas/ClassificationTask.yml"

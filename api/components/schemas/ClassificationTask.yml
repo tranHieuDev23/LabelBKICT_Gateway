@@ -1,0 +1,31 @@
+type: object
+description: A task to classify an image.
+properties:
+  id:
+    type: integer
+    description: Classification task ID, should be unique across all export.
+  of_image:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: Image ID, should be unique across all image.
+      thumbnail_url:
+        type: string
+        description:
+          The URL to the compressed small-size thumbnail of the image,
+          for display purpose.
+  of_classification_type_id:
+    type: integer
+    description: Classification type ID
+  request_time:
+    type: integer
+    description: The time when this classification task was requested.
+  status:
+    type: integer
+    description:
+      The status of the classification task on the system. Can take a value of
+      0 (REQUESTED) - for classification task that have just been requested and 1 (DONE) - for classification tasks
+      that have been successfully processed.
+    minimum: 0
+    maximum: 1

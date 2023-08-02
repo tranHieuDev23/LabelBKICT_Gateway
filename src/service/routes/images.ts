@@ -21,6 +21,7 @@ import { getImageListFilterOptionsFromQueryParams } from "./utils";
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
 const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
 const DEFAULT_GET_DETECTION_TASK_LIST_LIMIT = 10;
+const DEFAULT_GET_CLASSIFICATION_TASK_LIST_LIMIT = 10;
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -127,6 +128,42 @@ export function getImagesRouter(
             res.json({});
         })
     );
+
+    router.get(
+        "/api/images/classification-task",
+        imagesManageAllAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_CLASSIFICATION_TASK_LIST_LIMIT);
+            const sortOrder = +(req.query.sort_order || 0);
+            const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
+            const { totalClassificationTaskCount, classificationTaskList } =
+                await imageListManagementOperator.getImageClassificationTaskList(
+                    authenticatedUserInfo,
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions
+                );
+            res.json({
+                total_classification_task_count: totalClassificationTaskCount,
+                classification_task_list: classificationTaskList,
+            }); 
+        })
+    )
+
+    router.post(
+        "/api/images/classification-task",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list as number[];
+            const classificationTypeId = +(req.body.classification_type_id || 0);
+            await imageListManagementOperator.createImageClassificationTaskList(authenticatedUserInfo, imageIdList, classificationTypeId);
+            res.json({});
+        })
+    )
 
     router.get(
         "/api/images/:imageId",
@@ -295,18 +332,6 @@ export function getImagesRouter(
             res.json({});
         })
     );
-
-    router.post(
-        "/api/images/classification-task",
-        userLoggedInAuthMiddleware,
-        asyncHandler(async (req, res) => {
-            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
-            const imageIdList = req.body.image_id_list as number[];
-            const classificationTypeId = +(req.body.classification_type_id || 0);
-            await imageListManagementOperator.createImageClassificationTaskList(authenticatedUserInfo, imageIdList, classificationTypeId);
-            res.json({});
-        })
-    )
 
     router.post(
         "/api/images/:imageId/bookmark",

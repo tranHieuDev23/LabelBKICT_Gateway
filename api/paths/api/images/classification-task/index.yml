@@ -1,3 +1,228 @@
+get:
+  description:
+    Request for the list of REQUESTED and PROCESSING classification tasks currently executed on a list of images. User needs
+    to have `images.manage.all` permission in order to call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: offset
+      description: The index of the first item to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 10
+    - name: sort_order
+      description:
+        The order to return items in. Can be either 0 (sorted by ascending
+        id), 1 (sorted by descending id), 2 (sorted by ascending request time), 3
+        (sorted by descending request time).
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 3
+        default: 0
+    - name: filter_image_types
+      description: A list of image type IDs. If provided, filter for images that
+        belong to one of these image types.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_image_tags
+      description: A list of image tag IDs. If provided, filter for images that
+        has one of these image tags (or all of these image tags, if must_match_all_image_tags
+        = 1).
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_region_labels
+      description:
+        A list of region label IDs. If provided, filter for images that
+        has one of these region labels (or all of these region labels, if must_match_all_region_labels
+        = 1).
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_uploaded_by_user_ids
+      description:
+        A list of user IDs. If provided, filter for images that are uploaded
+        by one of these users.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_published_by_user_ids
+      description:
+        A list of user IDs. If provided, filter for images that are published
+        by one of these users.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_verified_by_user_ids
+      description:
+        A list of user IDs. If provided, filter for images that are verified
+        by one of these users.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 10
+    - name: filter_upload_time_start
+      description:
+        If non-zero, filter for images that are uploaded from or after
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: filter_upload_time_end
+      description: If non-zero, filter for images that are uploaded before or on
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: filter_publish_time_start
+      description:
+        If non-zero, filter for images that are published from or after
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: filter_publish_time_end
+      description:
+        If non-zero, filter for images that are published before or on
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: filter_verify_time_start
+      description:
+        If non-zero, filter for images that are verified from or after
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: filter_verify_time_end
+      description: If non-zero, filter for images that are verified before or on
+        this timestamp.
+      in: query
+      schema:
+        type: integer
+        default: 0
+    - name: original_filename_query
+      description:
+        If provided, filter for images that have original name containing
+        this query string (case insensitive).
+      in: query
+      schema:
+        type: string
+        maxLength: 256
+        default: ""
+      allowEmptyValue: true
+      allowReserved: true
+    - name: filter_image_statuses
+      description: A list of image statuses. If provided, filter for images that
+        have one of these statuses.
+      in: query
+      schema:
+        type: array
+        items:
+          $ref: "../../../../components/schemas/Image.yml#/properties/status"
+        maxItems: 10
+    - name: must_match_all_image_tags
+      description: If equal to 1, images in the results must have all image tags
+        provided in the filter.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: must_match_all_region_labels
+      description:
+        If equal to 1, images in the results must have all region labels
+        provided in the filter.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: must_be_bookmarked
+      description:
+        If equal to 1, images in the results must be bookmarked by the
+        session user.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+    - name: must_have_description
+      description: If equal to 1, images in the results must have non-empty description.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
+  responses:
+    "200":
+      description: Classification task list retrieved successfully.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user's old token is about to expire.
+          schema:
+            $ref: "../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              total_classification_task_count:
+                type: integer
+                description: The total number of classificationt tasks meeting the filter condition.
+              classification_task_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/ClassificationTask.yml"
+                description: The list of classification tasks meeting the filter condition in the requested page.
+    "400":
+      description: Failed to retrieve classification task list because one or more of the arguments provided is invalid.
+    "401":
+      description: Failed to retrieve classification task list because the user is not logged in.
+    "403":
+      description: Failed to retrieve classification task list because the user does not have the necessary permission.
 post:
   description: Request for classification for a list of images. User needs to
     either (1) have `images.manage.self` permission and is updating images of
@@ -44,4 +269,4 @@ post:
         of the images do not exist.
     "409":
       description: Failed to requested for classification because there is an
-        existing detection task for one or more the images.
+        existing classification task for one or more the images.

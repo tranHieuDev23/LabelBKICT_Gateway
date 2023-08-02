@@ -17,6 +17,8 @@ import {
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     DetectionTaskProtoToDetectionTaskConverter,
     DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
+    ClassificationTaskProtoToClassificationTaskConverter,
+    CLASSIFICATION_TASK_PROTO_TO_CLASSIFICATION_TASK_CONVERTER_TOKEN,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
@@ -44,6 +46,8 @@ import {
 } from "./user_verifiable_image_filter_options_provider";
 import { DetectionTask } from "../schemas/detection_task";
 import { _DetectionTaskStatus_Values } from "../../proto/gen/DetectionTaskStatus";
+import { ClassificationTask } from "../schemas/classification_task";
+import { _ClassificationTaskStatus_Values } from "../../proto/gen/ClassificationTaskStatus";
 
 export interface ImageListManagementOperator {
     updateImageList(
@@ -61,6 +65,16 @@ export interface ImageListManagementOperator {
     ): Promise<{
         totalDetectionTaskCount: number;
         detectionTaskList: DetectionTask[];
+    }>;
+    getImageClassificationTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        offset: number,
+        limit: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        totalClassificationTaskCount: number;
+        classificationTaskList: ClassificationTask[];
     }>;
     createImageDetectionTaskList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -171,6 +185,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter,
         private readonly detectionTaskProtoToDetectionTaskConverter: DetectionTaskProtoToDetectionTaskConverter,
+        private readonly classificationTaskProtoToClassificationTaskConverter: ClassificationTaskProtoToClassificationTaskConverter,
         private readonly userManageableImageFilterOptionsProvider: UserManageableImageFilterOptionsProvider,
         private readonly userVerifiableImageFilterOptionsProvider: UserVerifiableImageFilterOptionsProvider,
         private readonly userServiceDM: UserServiceClient,
@@ -313,6 +328,82 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         }
 
         return { totalDetectionTaskCount, detectionTaskList };
+    }
+
+    public async getImageClassificationTaskList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        offset: number,
+        limit: number,
+        sortOrder: number,
+        filterOptions: ImageListFilterOptions
+    ): Promise<{
+        totalClassificationTaskCount: number;
+        classificationTaskList: ClassificationTask[];
+    }> {
+        const filterOptionsProto =
+            await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
+                authenticatedUserInfo,
+                filterOptions
+            );
+        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            {
+                offset,
+                limit: undefined,
+                sortOrder,
+                filterOptions: filterOptionsProto,
+            }
+        );
+        if (getImageListError !== null) {
+            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's manageable image list",
+                getHttpCodeFromGRPCStatus(getImageListError.code)
+            );
+        }
+
+        const imageList = getImageListResponse?.imageList || [];
+        const imageIdToThumbnailImageFileNameMap = new Map<number, string>();
+        for (const image of imageList) {
+            imageIdToThumbnailImageFileNameMap.set(image.id || 0, image.thumbnailImageFilename || "");
+        }
+
+        const { error: getClassificationTaskListError, response: getClassificationTaskListResponse } = await promisifyGRPCCall(
+            this.modelServiceDM.getClassificationTaskList.bind(this.modelServiceDM),
+            {
+                offset,
+                limit,
+                ofImageIdList: Array.from(imageIdToThumbnailImageFileNameMap.keys()),
+                ofClassificationTypeIdList: [0, 1, 2],
+                statusList: [_ClassificationTaskStatus_Values.REQUESTED, _ClassificationTaskStatus_Values.DONE],
+                sortOrder: sortOrder,
+            }
+        );
+        if (getClassificationTaskListError !== null) {
+            this.logger.error("failed to call model_service.getClassificationTaskList()", {
+                error: getClassificationTaskListError,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user's manageable image list",
+                getHttpCodeFromGRPCStatus(getClassificationTaskListError.code)
+            );
+        }
+
+        const totalClassificationTaskCount = getClassificationTaskListResponse?.totalClassificationTaskCount || 0;
+        const classificationTaskList: ClassificationTask[] = [];
+        for (const classificationTask of getClassificationTaskListResponse?.classificationTaskList || []) {
+            const thumbnailImageFileName = imageIdToThumbnailImageFileNameMap.get(classificationTask.ofImageId || 0);
+            if (thumbnailImageFileName === undefined) {
+                this.logger.error("image not found for classification task", { classificationTask });
+                throw new ErrorWithHTTPCode("Internal server error", httpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            classificationTaskList.push(
+                this.classificationTaskProtoToClassificationTaskConverter.convert(classificationTask, thumbnailImageFileName)
+            );
+        }
+        
+        return { totalClassificationTaskCount, classificationTaskList };
     }
 
     public async createImageDetectionTaskList(
@@ -815,6 +906,7 @@ injected(
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
     DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
+    CLASSIFICATION_TASK_PROTO_TO_CLASSIFICATION_TASK_CONVERTER_TOKEN,
     USER_MANAGEABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_VERIFIABLE_IMAGE_FILTER_OPTIONS_PROVIDER,
     USER_SERVICE_DM_TOKEN,
