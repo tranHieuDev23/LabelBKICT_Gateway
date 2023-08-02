@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+service DuplicateImageDetectionService {
+    rpc CreatePHashingValue(CreatePHashingValueRequest) returns (CreatePHashingValueResponse) {}
+    rpc CreatePHashingValueBatch(CreatePHashingValueBatchRequest) returns (CreatePHashingValueBatchResponse) {}
+    rpc GetDuplicateImageIdList(GetDuplicateImageIdListRequest) returns (GetDuplicateImageIdListResponse) {}
+    rpc GetPHashingValueListOfImageIdList(GetPHashingValueListOfImageIdListRequest) returns (GetPHashingValueListOfImageIdListResponse) {}
+}
+
+// Business objects
+message PHashingValue {
+    uint32 p_hashing_id = 1;
+    uint32 of_image_id = 2;
+    string p_hashing_value = 3;
+    uint32 duplicate_with_image_id = 4;
+}
+
+message DuplicateImageIdList {
+    repeated uint32 of_image_id_list = 1;
+}
+
+// Request and response bodies of API calls
+message CreatePHashingValueRequest {
+    uint32 image_id = 1;
+}
+
+message CreatePHashingValueResponse {}
+
+message CreatePHashingValueBatchRequest {
+    repeated uint32 image_id_list = 1;
+}
+
+message CreatePHashingValueBatchResponse {} 
+
+message GetDuplicateImageIdListRequest {
+    uint32 image_id = 1;
+}
+
+message GetDuplicateImageIdListResponse {
+    repeated uint32 duplicate_image_id_list = 1;
+}
+
+message GetPHashingValueListOfImageIdListRequest {
+    repeated uint32 image_id_list = 1;
+}
+
+message GetPHashingValueListOfImageIdListResponse {
+    repeated DuplicateImageIdList duplicate_image_id_list_of_image_id_list = 1;
+}

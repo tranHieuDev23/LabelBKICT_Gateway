@@ -212,6 +212,33 @@ export function getImagesRouter(
     );
 
     router.get(
+        "/api/images/:imageId/duplicate-image",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const duplicateImageIdList: number[] = await imageListManagementOperator.getDuplicateImageIdList(authenticatedUserInfo, imageId);
+            res.json({ duplicate_image_id_list: duplicateImageIdList });
+        })
+    );
+
+    router.post(
+        "/api/images/duplicate-image",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.ids;
+            const duplicateImageIdListOfImageIdList: number[][] = await imageListManagementOperator.getDuplicateImageIdListofImageList(
+                authenticatedUserInfo,
+                imageIdList
+            );
+            res.json({
+                duplicate_image_id_list_of_image_id_list: duplicateImageIdListOfImageIdList
+            });
+        })
+    )
+
+    router.get(
         "/api/images/:imageId/region-snapshots",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {

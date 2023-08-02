@@ -1,9 +1,10 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import { IMAGE_SERVICE_DM_TOKEN, MODEL_SERVICE_DM_TOKEN, USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
+import { DUPLICATE_IMAGE_DETECTION_SERVICE_DM_TOKEN, IMAGE_SERVICE_DM_TOKEN, MODEL_SERVICE_DM_TOKEN, USER_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { ModelServiceClient } from "../../proto/gen/ModelService";
+import { DuplicateImageDetectionServiceClient } from "../../proto/gen/DuplicateImageDetectionService";
 import { AuthenticatedUserInformation } from "../../service/utils";
 import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
 import {
@@ -15,6 +16,7 @@ import {
     User,
     FilterOptionsToFilterOptionsProtoConverter,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
+    PHashingValue,
     DetectionTaskProtoToDetectionTaskConverter,
     DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
     ClassificationTaskProtoToClassificationTaskConverter,
@@ -171,6 +173,14 @@ export interface ImageListManagementOperator {
         imageIdList: number[],
         imageTagIdList: number[]
     ): Promise<void>;
+    getDuplicateImageIdList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<number[]>;
+    getDuplicateImageIdListofImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<number[][]>;
 }
 
 export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
@@ -191,6 +201,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly userServiceDM: UserServiceClient,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly modelServiceDM: ModelServiceClient,
+        private readonly duplicateImageDetectionServiceDM: DuplicateImageDetectionServiceClient,
         private readonly logger: Logger
     ) {}
 
@@ -892,6 +903,87 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             );
         }
     }
+
+    public async getDuplicateImageIdList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<number[]> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
+        }
+
+        const { 
+            error: getDuplicateImageIdListError,
+            response: getDuplicateImageIdListResponse
+        } = await promisifyGRPCCall(
+            this.duplicateImageDetectionServiceDM.getDuplicateImageIdList.bind(this.duplicateImageDetectionServiceDM),
+            { imageId: imageId }
+        );
+
+        if (getDuplicateImageIdListError !== null) {
+            this.logger.error("failed to call duplicate_image_detection_service.getDuplicateImageIdList()", {
+                userId: authenticatedUserInfo.user.id
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get duplicated imageId list",
+                getHttpCodeFromGRPCStatus(getDuplicateImageIdListError.code)
+            );
+        }
+        return getDuplicateImageIdListResponse?.duplicateImageIdList || [];
+    }
+
+    public async getDuplicateImageIdListofImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[]
+    ): Promise<number[][]> {
+        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageList
+        );
+        
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
+        }
+        
+        const {
+            error: getPHashingValueListOfImageIdListError,
+            response: getPHashingValueListOfImageIdListResponse
+        } = await promisifyGRPCCall(
+            this.duplicateImageDetectionServiceDM.getPHashingValueListOfImageIdList.bind(this.duplicateImageDetectionServiceDM),
+            { imageIdList: imageIdList }
+        );
+
+        if (getPHashingValueListOfImageIdListError !== null) {
+            this.logger.error("failed to call duplicate_image_detection_service.getPHashingValueListOfImageIdList()", {
+                userId: authenticatedUserInfo.user.id
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to get pHashing value list",
+                getHttpCodeFromGRPCStatus(getPHashingValueListOfImageIdListError.code)
+            );
+        }
+        
+        const pHashingValueListOfImageIdList = getPHashingValueListOfImageIdListResponse?.duplicateImageIdListOfImageIdList || [];
+        const pHashingValueProtoList = pHashingValueListOfImageIdList.map((pHashingValueList) => pHashingValueList.ofImageIdList || []);
+        
+        // const pHashingValueList = pHashingValueProtoList.map((pHashingValueProtoSubList) =>
+        //     pHashingValueProtoSubList.map(PHashingValue.fromProto)
+        // );
+        return pHashingValueProtoList;
+    }
 }
 
 injected(
@@ -912,6 +1004,7 @@ injected(
     USER_SERVICE_DM_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     MODEL_SERVICE_DM_TOKEN,
+    DUPLICATE_IMAGE_DETECTION_SERVICE_DM_TOKEN,
     LOGGER_TOKEN
 );
 
