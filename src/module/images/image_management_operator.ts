@@ -1,19 +1,11 @@
 import { injected, token } from "brandi";
 import httpStatus from "http-status";
 import { Logger } from "winston";
-import {
-    IMAGE_SERVICE_DM_TOKEN,
-    MODEL_SERVICE_DM_TOKEN,
-} from "../../dataaccess/grpc";
+import { IMAGE_SERVICE_DM_TOKEN, MODEL_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
 import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { ModelServiceClient } from "../../proto/gen/ModelService";
 import { AuthenticatedUserInformation } from "../../service/utils";
-import {
-    ErrorWithHTTPCode,
-    getHttpCodeFromGRPCStatus,
-    LOGGER_TOKEN,
-    promisifyGRPCCall,
-} from "../../utils";
+import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
 import {
     Image,
     ImageBookmark,
@@ -33,10 +25,7 @@ import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
 } from "../image_permissions";
-import {
-    ImageInfoProvider,
-    IMAGE_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
+import { ImageInfoProvider, IMAGE_INFO_PROVIDER_TOKEN } from "../info_providers";
 import { status } from "@grpc/grpc-js";
 
 export interface ImageManagementOperator {
@@ -46,7 +35,8 @@ export interface ImageManagementOperator {
         imageTagIdList: number[],
         originalFileName: string,
         description: string,
-        imageData: Buffer
+        imageData: Buffer,
+        shouldUseDetectionModel: boolean
     ): Promise<Image>;
     getImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -87,32 +77,20 @@ export interface ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void>;
-    createDetectionTaskForImage(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<void>;
+    createDetectionTaskForImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
     createImageBookmark(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number,
         description: string
     ): Promise<ImageBookmark>;
-    getImageBookmark(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<ImageBookmark>;
+    getImageBookmark(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<ImageBookmark>;
     updateImageBookmark(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number,
         description: string
     ): Promise<ImageBookmark>;
-    deleteImageBookmark(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<void>;
-    deleteImage(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<void>;
+    deleteImageBookmark(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
+    deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
 }
 
 export class ImageManagementOperatorImpl implements ImageManagementOperator {
@@ -135,29 +113,24 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageTagIdList: number[],
         originalFileName: string,
         description: string,
-        imageData: Buffer
+        imageData: Buffer,
+        shouldUseDetectionModel: boolean
     ): Promise<Image> {
-        const { error: createImageError, response: createImageTypeResponse } =
-            await promisifyGRPCCall(
-                this.imageServiceDM.createImage.bind(this.imageServiceDM),
-                {
-                    uploadedByUserId: authenticatedUserInfo.user.id,
-                    imageTypeId: imageTypeId,
-                    originalFileName: originalFileName,
-                    description: description,
-                    imageData: imageData,
-                    imageTagIdList: imageTagIdList,
-                }
-            );
+        const { error: createImageError, response: createImageTypeResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.createImage.bind(this.imageServiceDM),
+            {
+                uploadedByUserId: authenticatedUserInfo.user.id,
+                imageTypeId: imageTypeId,
+                originalFileName: originalFileName,
+                description: description,
+                imageData: imageData,
+                imageTagIdList: imageTagIdList,
+                shouldUseDetectionModel: shouldUseDetectionModel,
+            }
+        );
         if (createImageError !== null) {
-            this.logger.error(
-                "failed to call image_service.image_service.createImage()",
-                { error: createImageError }
-            );
-            throw new ErrorWithHTTPCode(
-                "Failed to create new image",
-                getHttpCodeFromGRPCStatus(createImageError.code)
-            );
+            this.logger.error("failed to call image_service.image_service.createImage()", { error: createImageError });
+            throw new ErrorWithHTTPCode("Failed to create new image", getHttpCodeFromGRPCStatus(createImageError.code));
         }
 
         const imageProto = createImageTypeResponse?.image;
@@ -179,34 +152,27 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             regionList: regionProtoList,
         } = await this.imageInfoProvider.getImage(imageId, true, true);
 
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
         }
 
         const image = await this.imageProtoToImageConverter.convert(imageProto);
         const imageTagList = (imageTagProtoList || []).map(ImageTag.fromProto);
         const regionList = await Promise.all(
-            (regionProtoList || []).map((regionProto) =>
-                this.regionProtoToRegionConverter.convert(regionProto)
-            )
+            (regionProtoList || []).map((regionProto) => this.regionProtoToRegionConverter.convert(regionProto))
         );
-        const canEdit =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
+        const canEdit = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
+        );
 
         return { image, imageTagList, regionList, canEdit };
     }
@@ -216,55 +182,37 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         atStatus: ImageStatus
     ): Promise<Region[]> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get region snapshot list of image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to get region snapshot list of image", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: getRegionSnapshotListOfImageError,
-            response: getRegionSnapshotListOfImageResponse,
-        } = await promisifyGRPCCall(
-            this.imageServiceDM.getRegionSnapshotListOfImage.bind(
-                this.imageServiceDM
-            ),
-            { ofImageId: imageId, atStatus: atStatus }
-        );
+        const { error: getRegionSnapshotListOfImageError, response: getRegionSnapshotListOfImageResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getRegionSnapshotListOfImage.bind(this.imageServiceDM), {
+                ofImageId: imageId,
+                atStatus: atStatus,
+            });
         if (getRegionSnapshotListOfImageError !== null) {
-            this.logger.error(
-                "failed to call image_service.getRegionSnapshotListOfImage()",
-                { error: getRegionSnapshotListOfImageError }
-            );
+            this.logger.error("failed to call image_service.getRegionSnapshotListOfImage()", {
+                error: getRegionSnapshotListOfImageError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to get region snapshot list of image",
-                getHttpCodeFromGRPCStatus(
-                    getRegionSnapshotListOfImageError.code
-                )
+                getHttpCodeFromGRPCStatus(getRegionSnapshotListOfImageError.code)
             );
         }
 
-        const regionProtoList =
-            getRegionSnapshotListOfImageResponse?.regionList || [];
+        const regionProtoList = getRegionSnapshotListOfImageResponse?.regionList || [];
         const regionList = await Promise.all(
-            regionProtoList.map((regionProto) =>
-                this.regionProtoToRegionConverter.convert(regionProto)
-            )
+            regionProtoList.map((regionProto) => this.regionProtoToRegionConverter.convert(regionProto))
         );
         return regionList;
     }
@@ -274,39 +222,27 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string | undefined
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to update metadata of image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to update metadata of image", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: updateImageMetadataError,
-            response: updateImageMetadataResponse,
-        } = await promisifyGRPCCall(
+        const { error: updateImageMetadataError, response: updateImageMetadataResponse } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageMetadata.bind(this.imageServiceDM),
             { id: imageId, description: description }
         );
         if (updateImageMetadataError !== null) {
-            this.logger.error(
-                "failed to call image_service.updateImageMetadata()",
-                { error: updateImageMetadataError }
-            );
+            this.logger.error("failed to call image_service.updateImageMetadata()", {
+                error: updateImageMetadataError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to update metadata of image",
                 getHttpCodeFromGRPCStatus(updateImageMetadataError.code)
@@ -314,8 +250,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageMetadataResponse?.image;
-        const updatedImage =
-            this.imageProtoToImageConverter.convert(updatedImageProto);
+        const updatedImage = this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -324,39 +259,27 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTypeId: number
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to update image type of image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to update image type of image", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: updateImageImageTypeError,
-            response: updateImageImageTypeResponse,
-        } = await promisifyGRPCCall(
+        const { error: updateImageImageTypeError, response: updateImageImageTypeResponse } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageImageType.bind(this.imageServiceDM),
             { id: imageId, imageTypeId: imageTypeId }
         );
         if (updateImageImageTypeError !== null) {
-            this.logger.error(
-                "failed to call image_service.updateImageImageType()",
-                { error: updateImageImageTypeError }
-            );
+            this.logger.error("failed to call image_service.updateImageImageType()", {
+                error: updateImageImageTypeError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to update image type of image",
                 getHttpCodeFromGRPCStatus(updateImageImageTypeError.code)
@@ -364,8 +287,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageImageTypeResponse?.image;
-        const updatedImage =
-            this.imageProtoToImageConverter.convert(updatedImageProto);
+        const updatedImage = this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -374,34 +296,22 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         status: ImageStatus
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to update status of image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to update status of image", httpStatus.FORBIDDEN);
         }
 
-        const statusProto =
-            this.imageStatusToImageStatusProtoConverter.convert(status);
+        const statusProto = this.imageStatusToImageStatusProtoConverter.convert(status);
 
-        const {
-            error: updateImageStatusError,
-            response: updateImageStatusResponse,
-        } = await promisifyGRPCCall(
+        const { error: updateImageStatusError, response: updateImageStatusResponse } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageStatus.bind(this.imageServiceDM),
             {
                 id: imageId,
@@ -410,10 +320,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             }
         );
         if (updateImageStatusError !== null) {
-            this.logger.error(
-                "failed to call image_service.updateImageStatus()",
-                { error: updateImageStatusError }
-            );
+            this.logger.error("failed to call image_service.updateImageStatus()", { error: updateImageStatusError });
             throw new ErrorWithHTTPCode(
                 "Failed to update status of image",
                 getHttpCodeFromGRPCStatus(updateImageStatusError.code)
@@ -421,8 +328,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
 
         const updatedImageProto = updateImageStatusResponse?.image;
-        const updatedImage =
-            this.imageProtoToImageConverter.convert(updatedImageProto);
+        const updatedImage = this.imageProtoToImageConverter.convert(updatedImageProto);
         return updatedImage;
     }
 
@@ -431,25 +337,17 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to add image tag to image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to add image tag to image", httpStatus.FORBIDDEN);
         }
 
         const { error: addImageTagToImageError } = await promisifyGRPCCall(
@@ -460,13 +358,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             }
         );
         if (addImageTagToImageError !== null) {
-            this.logger.error(
-                "failed to call image_service.addImageTagToImage()",
-                {
-                    userId: authenticatedUserInfo.user.id,
-                    imageId,
-                }
-            );
+            this.logger.error("failed to call image_service.addImageTagToImage()", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to add image tag to image",
                 getHttpCodeFromGRPCStatus(addImageTagToImageError.code)
@@ -479,44 +374,31 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to remove image tag from image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to remove image tag from image", httpStatus.FORBIDDEN);
         }
 
         const { error: removeImageTagFromImageError } = await promisifyGRPCCall(
-            this.imageServiceDM.removeImageTagFromImage.bind(
-                this.imageServiceDM
-            ),
+            this.imageServiceDM.removeImageTagFromImage.bind(this.imageServiceDM),
             {
                 imageId: imageId,
                 imageTagId: imageTagId,
             }
         );
         if (removeImageTagFromImageError !== null) {
-            this.logger.error(
-                "failed to call image_service.removeImageTagFromImage()",
-                {
-                    userId: authenticatedUserInfo.user.id,
-                    imageId,
-                }
-            );
+            this.logger.error("failed to call image_service.removeImageTagFromImage()", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to remove image tag from image",
                 getHttpCodeFromGRPCStatus(removeImageTagFromImageError.code)
@@ -528,25 +410,17 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to delete image", httpStatus.FORBIDDEN);
         }
 
         const { error: createDetectionTaskError } = await promisifyGRPCCall(
@@ -554,10 +428,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             { imageId }
         );
         if (createDetectionTaskError !== null) {
-            this.logger.error(
-                "failed to call model_service.createDetectionTask()",
-                { userId: authenticatedUserInfo.user.id, imageId }
-            );
+            this.logger.error("failed to call model_service.createDetectionTask()", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to create detection task for image",
                 getHttpCodeFromGRPCStatus(createDetectionTaskError.code)
@@ -570,31 +444,20 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to create image bookmark",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to create image bookmark", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: createImageBookmarkError,
-            response: createImageBookmarkResponse,
-        } = await promisifyGRPCCall(
+        const { error: createImageBookmarkError, response: createImageBookmarkResponse } = await promisifyGRPCCall(
             this.imageServiceDM.createImageBookmark.bind(this.imageServiceDM),
             {
                 userId: authenticatedUserInfo.user.id,
@@ -603,50 +466,36 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             }
         );
         if (createImageBookmarkError !== null) {
-            this.logger.error(
-                "failed to call image_service.createImageBookmark()",
-                { error: createImageBookmarkError }
-            );
+            this.logger.error("failed to call image_service.createImageBookmark()", {
+                error: createImageBookmarkError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to create image bookmark",
                 getHttpCodeFromGRPCStatus(createImageBookmarkError.code)
             );
         }
 
-        return ImageBookmark.fromProto(
-            createImageBookmarkResponse?.imageBookmark
-        );
+        return ImageBookmark.fromProto(createImageBookmarkResponse?.imageBookmark);
     }
 
     public async getImageBookmark(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image bookmark",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to get image bookmark", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: getImageBookmarkError,
-            response: getImageBookmarkResponse,
-        } = await promisifyGRPCCall(
+        const { error: getImageBookmarkError, response: getImageBookmarkResponse } = await promisifyGRPCCall(
             this.imageServiceDM.getImageBookmark.bind(this.imageServiceDM),
             {
                 userId: authenticatedUserInfo.user.id,
@@ -659,16 +508,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                     userId: authenticatedUserInfo.user.id,
                     imageId,
                 });
-                throw new ErrorWithHTTPCode(
-                    "Failed to get image bookmark",
-                    httpStatus.CONFLICT
-                );
+                throw new ErrorWithHTTPCode("Failed to get image bookmark", httpStatus.CONFLICT);
             }
 
-            this.logger.error(
-                "failed to call image_service.getImageBookmark()",
-                { error: getImageBookmarkError }
-            );
+            this.logger.error("failed to call image_service.getImageBookmark()", { error: getImageBookmarkError });
             throw new ErrorWithHTTPCode(
                 "Failed to get image bookmark",
                 getHttpCodeFromGRPCStatus(getImageBookmarkError.code)
@@ -683,31 +526,20 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to update image bookmark",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to update image bookmark", httpStatus.FORBIDDEN);
         }
 
-        const {
-            error: deleteImageBookmarkError,
-            response: updateImageBookmarkResponse,
-        } = await promisifyGRPCCall(
+        const { error: deleteImageBookmarkError, response: updateImageBookmarkResponse } = await promisifyGRPCCall(
             this.imageServiceDM.updateImageBookmark.bind(this.imageServiceDM),
             {
                 userId: authenticatedUserInfo.user.id,
@@ -721,50 +553,36 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                     userId: authenticatedUserInfo.user.id,
                     imageId,
                 });
-                throw new ErrorWithHTTPCode(
-                    "Failed to update image bookmark",
-                    httpStatus.CONFLICT
-                );
+                throw new ErrorWithHTTPCode("Failed to update image bookmark", httpStatus.CONFLICT);
             }
 
-            this.logger.error(
-                "failed to call image_service.updateImageBookmark()",
-                { error: deleteImageBookmarkError }
-            );
+            this.logger.error("failed to call image_service.updateImageBookmark()", {
+                error: deleteImageBookmarkError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to update image bookmark",
                 getHttpCodeFromGRPCStatus(deleteImageBookmarkError.code)
             );
         }
 
-        return ImageBookmark.fromProto(
-            updateImageBookmarkResponse?.imageBookmark
-        );
+        return ImageBookmark.fromProto(updateImageBookmarkResponse?.imageBookmark);
     }
 
     public async deleteImageBookmark(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image bookmark",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to delete image bookmark", httpStatus.FORBIDDEN);
         }
 
         const { error: deleteImageBookmarkError } = await promisifyGRPCCall(
@@ -780,16 +598,12 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                     userId: authenticatedUserInfo.user.id,
                     imageId,
                 });
-                throw new ErrorWithHTTPCode(
-                    "Failed to delete image bookmark",
-                    httpStatus.CONFLICT
-                );
+                throw new ErrorWithHTTPCode("Failed to delete image bookmark", httpStatus.CONFLICT);
             }
 
-            this.logger.error(
-                "failed to call image_service.deleteImageBookmark()",
-                { error: deleteImageBookmarkError }
-            );
+            this.logger.error("failed to call image_service.deleteImageBookmark()", {
+                error: deleteImageBookmarkError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to delete image bookmark",
                 getHttpCodeFromGRPCStatus(deleteImageBookmarkError.code)
@@ -797,29 +611,18 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
     }
 
-    public async deleteImage(
-        authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(
-            imageId,
-            false,
-            false
+    public async deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void> {
+        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageProto
         );
-        const canUserAccessImage =
-            await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image",
-                httpStatus.FORBIDDEN
-            );
+            throw new ErrorWithHTTPCode("Failed to delete image", httpStatus.FORBIDDEN);
         }
 
         const { error: deleteImageError } = await promisifyGRPCCall(
@@ -831,10 +634,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
             });
-            throw new ErrorWithHTTPCode(
-                "Failed to delete image",
-                getHttpCodeFromGRPCStatus(deleteImageError.code)
-            );
+            throw new ErrorWithHTTPCode("Failed to delete image", getHttpCodeFromGRPCStatus(deleteImageError.code));
         }
     }
 }
@@ -853,6 +653,4 @@ injected(
     LOGGER_TOKEN
 );
 
-export const IMAGE_MANAGEMENT_OPERATOR_TOKEN = token<ImageManagementOperator>(
-    "ImageManagementOperator"
-);
+export const IMAGE_MANAGEMENT_OPERATOR_TOKEN = token<ImageManagementOperator>("ImageManagementOperator");

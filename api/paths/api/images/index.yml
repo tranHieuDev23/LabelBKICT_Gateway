@@ -31,6 +31,11 @@ post:
               type: string
               format: binary
               description: The image file to be uploaded.
+            should_use_detection_model:
+              type: string
+              description: If equals to "1", create a detection task for this image.
+              pattern: "^(0|1)$"
+              default: "0"
         encoding:
           image_file:
             contentType: image/*

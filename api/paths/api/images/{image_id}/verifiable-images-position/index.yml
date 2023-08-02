@@ -1,27 +1,20 @@
 get:
-  description: Get image list uploaded by all users, that the current session's
-    user is allowed to manage. User needs to have `images.manage.all` permission
-    in order to call this API successfully.
+  description:
+    Get the position of an image within the verifiable image list of the user.
+    User needs to have `images.verify` permission and is getting is getting the information
+    of an image with PUBLISHED status that they are allowed to verify, in order to call
+    this API successfully.
   tags:
     - Image List Management
   security:
     - AuthenticationToken: []
   parameters:
-    - name: offset
-      description: The index of the first item to be returned.
-      in: query
+    - name: image_id
+      in: path
+      description: The image to be retrieved.
       schema:
-        type: integer
-        minimum: 0
-        default: 0
-    - name: limit
-      description: The maximum number of items to be returned.
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 500
-        default: 12
+        $ref: "../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
     - name: sort_order
       description:
         The order to return items in. Can be either 0 (sorted by ascending
@@ -200,7 +193,7 @@ get:
         default: 0
   responses:
     "200":
-      description: Image list retrieved successfully.
+      description: Retrieved position of image in filtered image list successfully.
       headers:
         Set-Cookie:
           description: Renewed authentication token, if the user old token is
@@ -212,25 +205,32 @@ get:
           schema:
             type: object
             properties:
+              position:
+                type: integer
+                description:
+                  1-indexed position of the image in the filtered image
+                  list.
               total_image_count:
                 type: integer
                 description: The total number of images meeting the filter condition.
-              image_list:
-                type: array
-                items:
-                  $ref: "../../../../../components/schemas/Image.yml"
-                description: The list of images meeting the filter condition,
-                  in the requested page.
-              image_tag_list:
-                type: array
-                items:
-                  type: array
-                  items:
-                    $ref: "../../../../../components/schemas/ImageTag.yml"
-                description: The list of image tags each image in image_list has, in the same order.
+              prev_image_id:
+                type: integer
+                description: The ID of the image before this image in the filter
+                  image list. If there is no previous image, this field is not
+                  returned.
+              next_image_id:
+                type: integer
+                description: The ID of the image after this image in the filter
+                  image list. If there is no next image, this field is not returned.
     "400":
-      description: Failed to retrieve image list because one or more of the arguments provided is invalid.
+      description: Failed to retrieve position of image in filtered image list
+        because of invalid at_status value.
     "401":
-      description: Failed to retrieve image list because the user is not logged in.
+      description: Failed to retrieve position of image in filtered image list
+        because the user is not logged in.
     "403":
-      description: Failed to retrieve image list because the user does not have the necessary permission.
+      description: Failed to retrieve position of image in filtered image list
+        because the user does not have the necessary permission.
+    "404":
+      description: Failed to retrieve position of image in filtered image list
+        because the image with image_id does not exist.

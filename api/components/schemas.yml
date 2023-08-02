@@ -40,3 +40,5 @@ Export:
   $ref: "./schemas/Export.yml"
 PinnedPage:
   $ref: "./schemas/PinnedPage.yml"
+DetectionTask:
+  $ref: "./schemas/DetectionTask.yml"

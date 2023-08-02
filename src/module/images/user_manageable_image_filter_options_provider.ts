@@ -47,16 +47,24 @@ export class UserManageableImageFilterOptionsProviderImpl implements UserManagea
             filterOptions
         );
 
-        if (
-            filterOptionsProto.uploadedByUserIdList === undefined ||
-            filterOptionsProto.uploadedByUserIdList.length === 0
-        ) {
-            filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
-        } else if (manageableImageUserIdList.length > 0) {
-            const manageableImageUserIdSet = new Set(manageableImageUserIdList);
-            filterOptionsProto.uploadedByUserIdList = filterOptionsProto.uploadedByUserIdList?.filter((userId) =>
-                manageableImageUserIdSet.has(userId)
-            );
+        if (manageableImageUserIdList.length > 0) {
+            if (
+                filterOptionsProto.uploadedByUserIdList === undefined ||
+                filterOptionsProto.uploadedByUserIdList.length === 0
+            ) {
+                filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
+            } else {
+                const requestedUploadedByUserIdSet = new Set(filterOptionsProto.uploadedByUserIdList);
+                filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
+                for (const userId of manageableImageUserIdList) {
+                    if (!requestedUploadedByUserIdSet.has(userId)) {
+                        filterOptionsProto.notUploadedByUserIdList = [
+                            ...(filterOptionsProto.notUploadedByUserIdList || []),
+                            userId,
+                        ];
+                    }
+                }
+            }
         }
 
         filterOptionsProto.notUploadedByUserIdList = Array.from(

@@ -3,6 +3,34 @@ syntax = "proto3";
 service ModelService {
     rpc CreateDetectionTask(CreateDetectionTaskRequest) returns (CreateDetectionTaskResponse) {}
     rpc CreateDetectionTaskBatch(CreateDetectionTaskBatchRequest) returns (CreateDetectionTaskBatchResponse) {}
+    rpc GetDetectionTaskList(GetDetectionTaskListRequest) returns (GetDetectionTaskListResponse) {}
+}
+
+message DetectionTaskStatus {
+    enum Values {
+        REQUESTED = 0;
+        PROCESSING = 1;
+        DONE = 2;
+    }
+}
+
+message DetectionTask {
+    uint32 id = 1;
+    uint32 of_image_id = 2;
+    uint64 request_time = 3;
+    DetectionTaskStatus.Values status = 4;
+    uint64 update_time = 5;
+}
+
+message DetectionTaskListSortOrder {
+    enum Values {
+        ID_ASCENDING = 0;
+        ID_DESCENDING = 1;
+        REQUEST_TIME_ASCENDING = 2;
+        REQUEST_TIME_DESCENDING = 3;
+        UPDATE_TIME_ASCENDING = 4;
+        UPDATE_TIME_DESCENDING = 5;
+    }
 }
 
 message CreateDetectionTaskRequest {
@@ -16,3 +44,16 @@ message CreateDetectionTaskBatchRequest {
 }
 
 message CreateDetectionTaskBatchResponse {} 
+
+message GetDetectionTaskListRequest {
+    uint32 offset = 1;
+    uint32 limit = 2;
+    repeated uint32 of_image_id_list = 3;
+    repeated DetectionTaskStatus.Values status_list = 4;
+    DetectionTaskListSortOrder.Values sort_order = 5;
+}
+
+message GetDetectionTaskListResponse {
+    uint32 total_detection_task_count = 1;
+    repeated DetectionTask detection_task_list = 2;
+}

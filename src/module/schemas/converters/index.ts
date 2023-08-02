@@ -1,16 +1,10 @@
 import { Container } from "brandi";
-import {
-    ExportProtoToExportConverterImpl,
-    EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN,
-} from "./export_proto_to_export";
+import { ExportProtoToExportConverterImpl, EXPORT_PROTO_TO_EXPORT_CONVERTER_TOKEN } from "./export_proto_to_export";
 import {
     FilterOptionsToFilterOptionsProtoConverterImpl,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER,
 } from "./filter_options_to_filter_options_proto";
-import {
-    ImageProtoToImageConverterImpl,
-    IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
-} from "./image_proto_to_image";
+import { ImageProtoToImageConverterImpl, IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN } from "./image_proto_to_image";
 import {
     ImageStatusToImageStatusProtoConverterImpl,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
@@ -23,10 +17,7 @@ import {
     RegionOperationLogProtoToRegionOperationLogConverterImpl,
     REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN,
 } from "./region_operation_log_proto_to_region_operation_log";
-import {
-    RegionProtoToRegionConverterImpl,
-    REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
-} from "./region_proto_to_region";
+import { RegionProtoToRegionConverterImpl, REGION_PROTO_TO_REGION_CONVERTER_TOKEN } from "./region_proto_to_region";
 import {
     UserCanManageUserImageProtoToUserCanManageUserImageImpl,
     USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN,
@@ -35,10 +26,11 @@ import {
     UserCanVerifyUserImageProtoToUserCanVerifyUserImageImpl,
     USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN,
 } from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
+import { UserIdToUserConverterImpl, USER_ID_TO_USER_CONVERTER_TOKEN } from "./user_id_to_user";
 import {
-    UserIdToUserConverterImpl,
-    USER_ID_TO_USER_CONVERTER_TOKEN,
-} from "./user_id_to_user";
+    DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
+    DetectionTaskProtoToDetectionTaskConverterImpl,
+} from "./detection_task_proto_to_detection_task";
 
 export * from "./user_id_to_user";
 export * from "./image_proto_to_image";
@@ -50,16 +42,11 @@ export * from "./export_proto_to_export";
 export * from "./pinned_page_proto_to_pinned_page";
 export * from "./user_can_manage_user_image_proto_to_user_can_manage_user_image";
 export * from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
+export * from "./detection_task_proto_to_detection_task";
 
 export function bindToContainer(container: Container): void {
-    container
-        .bind(USER_ID_TO_USER_CONVERTER_TOKEN)
-        .toInstance(UserIdToUserConverterImpl)
-        .inSingletonScope();
-    container
-        .bind(IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN)
-        .toInstance(ImageProtoToImageConverterImpl)
-        .inSingletonScope();
+    container.bind(USER_ID_TO_USER_CONVERTER_TOKEN).toInstance(UserIdToUserConverterImpl).inSingletonScope();
+    container.bind(IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN).toInstance(ImageProtoToImageConverterImpl).inSingletonScope();
     container
         .bind(REGION_PROTO_TO_REGION_CONVERTER_TOKEN)
         .toInstance(RegionProtoToRegionConverterImpl)
@@ -73,9 +60,7 @@ export function bindToContainer(container: Container): void {
         .toInstance(FilterOptionsToFilterOptionsProtoConverterImpl)
         .inSingletonScope();
     container
-        .bind(
-            REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN
-        )
+        .bind(REGION_OPERATION_LOG_PROTO_TO_REGION_OPERATION_LOG_CONVERTER_TOKEN)
         .toInstance(RegionOperationLogProtoToRegionOperationLogConverterImpl)
         .inSingletonScope();
     container
@@ -87,15 +72,15 @@ export function bindToContainer(container: Container): void {
         .toInstance(PinnedPageProtoToPinnedPageConverterImpl)
         .inSingletonScope();
     container
-        .bind(
-            USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN
-        )
+        .bind(USER_CAN_MANAGE_USER_IMAGE_PROTO_TO_USER_CAN_MANAGE_USER_IMAGE_TOKEN)
         .toInstance(UserCanManageUserImageProtoToUserCanManageUserImageImpl)
         .inSingletonScope();
     container
-        .bind(
-            USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN
-        )
+        .bind(USER_CAN_VERIFY_USER_IMAGE_PROTO_TO_USER_CAN_VERIFY_USER_IMAGE_TOKEN)
         .toInstance(UserCanVerifyUserImageProtoToUserCanVerifyUserImageImpl)
+        .inSingletonScope();
+    container
+        .bind(DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN)
+        .toInstance(DetectionTaskProtoToDetectionTaskConverterImpl)
         .inSingletonScope();
 }
