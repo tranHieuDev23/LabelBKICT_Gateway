@@ -251,7 +251,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
                 filterOptions
             );
         const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
-            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
+            this.imageServiceDM.getImageIdList.bind(this.imageServiceDM),
             {
                 offset,
                 limit: undefined,
@@ -267,18 +267,12 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             );
         }
 
-        const imageList = getImageListResponse?.imageList || [];
-        const imageIdToThumbnailImageFileNameMap = new Map<number, string>();
-        for (const image of imageList) {
-            imageIdToThumbnailImageFileNameMap.set(image.id || 0, image.thumbnailImageFilename || "");
-        }
-
         const { error: getDetectionTaskListError, response: getDetectionTaskListResponse } = await promisifyGRPCCall(
             this.modelServiceDM.getDetectionTaskList.bind(this.modelServiceDM),
             {
                 offset,
                 limit,
-                ofImageIdList: Array.from(imageIdToThumbnailImageFileNameMap.keys()),
+                ofImageIdList: getImageListResponse?.imageIdList,
                 statusList: [_DetectionTaskStatus_Values.REQUESTED, _DetectionTaskStatus_Values.PROCESSING],
                 sortOrder: sortOrder,
             }
@@ -296,14 +290,12 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         const totalDetectionTaskCount = getDetectionTaskListResponse?.totalDetectionTaskCount || 0;
         const detectionTaskList: DetectionTask[] = [];
         for (const detectionTask of getDetectionTaskListResponse?.detectionTaskList || []) {
-            const thumbnailImageFileName = imageIdToThumbnailImageFileNameMap.get(detectionTask.ofImageId || 0);
-            if (thumbnailImageFileName === undefined) {
-                this.logger.error("image not found for detection task", { detectionTask });
-                throw new ErrorWithHTTPCode("Internal server error", httpStatus.INTERNAL_SERVER_ERROR);
-            }
-
+            const { image } = await this.imageInfoProvider.getImage(detectionTask.ofImageId || 0, false, false);
             detectionTaskList.push(
-                this.detectionTaskProtoToDetectionTaskConverter.convert(detectionTask, thumbnailImageFileName)
+                this.detectionTaskProtoToDetectionTaskConverter.convert(
+                    detectionTask,
+                    image.thumbnailImageFilename || ""
+                )
             );
         }
 
