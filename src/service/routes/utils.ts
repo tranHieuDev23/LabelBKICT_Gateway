@@ -4,10 +4,8 @@ import { getIdListFromQueryParam } from "../utils";
 
 export function getImageListFilterOptionsFromQueryParams(queryParams: ParsedQs): ImageListFilterOptions {
     const filterOptions = new ImageListFilterOptions();
-    filterOptions.image_type_id_list =
-        queryParams.filter_image_types === undefined
-            ? []
-            : (queryParams.filter_image_types as string[]).map((item) => +item);
+    filterOptions.image_id_list = getIdListFromQueryParam(queryParams.filter_image_ids);
+    filterOptions.image_type_id_list = getIdListFromQueryParam(queryParams.filter_image_types);
     filterOptions.image_tag_id_list = getIdListFromQueryParam(queryParams.filter_image_tags);
     filterOptions.region_label_id_list = getIdListFromQueryParam(queryParams.filter_region_labels);
     filterOptions.uploaded_by_user_id_list = getIdListFromQueryParam(queryParams.filter_uploaded_by_user_ids);
@@ -30,6 +28,7 @@ export function getImageListFilterOptionsFromQueryParams(queryParams: ParsedQs):
 
 export function getImageListFilterOptionsFromBody(filter_options: any): ImageListFilterOptions {
     const filterOptions = new ImageListFilterOptions();
+    filterOptions.image_id_list = filter_options.image_id_list || [];
     filterOptions.image_type_id_list = filter_options.image_type_id_list || [];
     filterOptions.image_tag_id_list = filter_options.image_tag_id_list || [];
     filterOptions.region_label_id_list = filter_options.region_label_id_list || [];

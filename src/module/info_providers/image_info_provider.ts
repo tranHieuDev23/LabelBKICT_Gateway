@@ -7,6 +7,8 @@ import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { ImageTag } from "../../proto/gen/ImageTag";
 import { Region } from "../../proto/gen/Region";
 import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
+import { ImageBookmark } from "../schemas";
+import { status } from "@grpc/grpc-js";
 
 export interface ImageInfoProvider {
     getImage(
@@ -23,6 +25,7 @@ export interface ImageInfoProvider {
         withImageTag: boolean,
         withRegion: boolean
     ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] | undefined; regionList: Region[][] | undefined }>;
+    getUserBookmark(userId: number, imageId: number): Promise<ImageBookmark | null>;
 }
 
 export class ImageInfoProviderImpl implements ImageInfoProvider {
@@ -77,6 +80,26 @@ export class ImageInfoProviderImpl implements ImageInfoProvider {
         const imageTagList = withImageTag ? getImageResultList.map((result) => result.imageTagList || []) : undefined;
         const regionList = withRegion ? getImageResultList.map((result) => result.regionList || []) : undefined;
         return { imageList, imageTagList, regionList };
+    }
+
+    public async getUserBookmark(userId: number, imageId: number): Promise<ImageBookmark | null> {
+        const { error: getImageBookmarkError, response: getImageBookmarkResponse } = await promisifyGRPCCall(
+            this.imageServiceDM.getImageBookmark.bind(this.imageServiceDM),
+            { userId, imageId }
+        );
+        if (getImageBookmarkError !== null) {
+            if (getImageBookmarkError.code === status.NOT_FOUND) {
+                return null;
+            }
+
+            this.logger.error("failed to call image_service.getImageBookmark()", { error: getImageBookmarkError });
+            throw new ErrorWithHTTPCode(
+                "Failed to get image bookmark",
+                getHttpCodeFromGRPCStatus(getImageBookmarkError.code)
+            );
+        }
+
+        return ImageBookmark.fromProto(getImageBookmarkResponse?.imageBookmark);
     }
 }
 

@@ -495,30 +495,16 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to get image bookmark", httpStatus.FORBIDDEN);
         }
 
-        const { error: getImageBookmarkError, response: getImageBookmarkResponse } = await promisifyGRPCCall(
-            this.imageServiceDM.getImageBookmark.bind(this.imageServiceDM),
-            {
+        const bookmark = await this.imageInfoProvider.getUserBookmark(authenticatedUserInfo.user.id, imageId);
+        if (bookmark === null) {
+            this.logger.error("user has not yet bookmarked the image", {
                 userId: authenticatedUserInfo.user.id,
-                imageId: imageId,
-            }
-        );
-        if (getImageBookmarkError !== null) {
-            if (getImageBookmarkError.code === status.NOT_FOUND) {
-                this.logger.error("user has not yet bookmarked the image", {
-                    userId: authenticatedUserInfo.user.id,
-                    imageId,
-                });
-                throw new ErrorWithHTTPCode("Failed to get image bookmark", httpStatus.CONFLICT);
-            }
-
-            this.logger.error("failed to call image_service.getImageBookmark()", { error: getImageBookmarkError });
-            throw new ErrorWithHTTPCode(
-                "Failed to get image bookmark",
-                getHttpCodeFromGRPCStatus(getImageBookmarkError.code)
-            );
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to get image bookmark", httpStatus.CONFLICT);
         }
 
-        return ImageBookmark.fromProto(getImageBookmarkResponse?.imageBookmark);
+        return bookmark;
     }
 
     public async updateImageBookmark(

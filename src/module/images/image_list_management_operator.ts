@@ -76,6 +76,7 @@ export interface ImageListManagementOperator {
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }>;
     searchUserManageableImageUserList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -92,6 +93,7 @@ export interface ImageListManagementOperator {
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }>;
     getImagePositionInUserManageableImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -119,6 +121,7 @@ export interface ImageListManagementOperator {
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }>;
     getImagePositionInUserVerifiableImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -146,6 +149,7 @@ export interface ImageListManagementOperator {
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }>;
     addImageTagListToImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -343,6 +347,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }> {
         const filterOptionsProto = this.filterOptionsToFilterOptionsProto.convertImageFilterOptions(
             authenticatedUserInfo,
@@ -379,7 +384,17 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             imageTagProtoSublist.map(ImageTag.fromProto)
         );
 
-        return { totalImageCount, imageList, imageTagList };
+        const bookmarkedImageIdList: number[] = [];
+        for (const image of imageList) {
+            const bookmark = await this.imageInfoProvider.getUserBookmark(authenticatedUserInfo.user.id, image.id);
+            if (bookmark === null) {
+                continue;
+            }
+
+            bookmarkedImageIdList.push(image.id);
+        }
+
+        return { totalImageCount, imageList, imageTagList, bookmarkedImageIdList };
     }
 
     public async searchUserManageableImageUserList(
@@ -422,6 +437,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }> {
         const filterOptionsProto =
             await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
@@ -458,7 +474,17 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             imageTagProtoSublist.map(ImageTag.fromProto)
         );
 
-        return { totalImageCount, imageList, imageTagList };
+        const bookmarkedImageIdList: number[] = [];
+        for (const image of imageList) {
+            const bookmark = await this.imageInfoProvider.getUserBookmark(authenticatedUserInfo.user.id, image.id);
+            if (bookmark === null) {
+                continue;
+            }
+
+            bookmarkedImageIdList.push(image.id);
+        }
+
+        return { totalImageCount, imageList, imageTagList, bookmarkedImageIdList };
     }
 
     public async getImagePositionInUserManageableImageList(
@@ -552,6 +578,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }> {
         const filterOptionsProto =
             await this.userVerifiableImageFilterOptionsProvider.getUserVerifiableImageFilterOptionsProto(
@@ -589,7 +616,17 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             imageTagProtoSublist.map(ImageTag.fromProto)
         );
 
-        return { totalImageCount, imageList, imageTagList };
+        const bookmarkedImageIdList: number[] = [];
+        for (const image of imageList) {
+            const bookmark = await this.imageInfoProvider.getUserBookmark(authenticatedUserInfo.user.id, image.id);
+            if (bookmark === null) {
+                continue;
+            }
+
+            bookmarkedImageIdList.push(image.id);
+        }
+
+        return { totalImageCount, imageList, imageTagList, bookmarkedImageIdList };
     }
 
     public async getImagePositionInUserVerifiableImageList(
@@ -682,6 +719,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         totalImageCount: number;
         imageList: Image[];
         imageTagList: ImageTag[][];
+        bookmarkedImageIdList: number[];
     }> {
         const filterOptionsProto =
             await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
@@ -719,7 +757,17 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             imageTagProtoSublist.map(ImageTag.fromProto)
         );
 
-        return { totalImageCount, imageList, imageTagList };
+        const bookmarkedImageIdList: number[] = [];
+        for (const image of imageList) {
+            const bookmark = await this.imageInfoProvider.getUserBookmark(authenticatedUserInfo.user.id, image.id);
+            if (bookmark === null) {
+                continue;
+            }
+
+            bookmarkedImageIdList.push(image.id);
+        }
+
+        return { totalImageCount, imageList, imageTagList, bookmarkedImageIdList };
     }
 
     public async addImageTagListToImageList(

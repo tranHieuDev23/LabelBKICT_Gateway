@@ -10,19 +10,16 @@ export interface FilterOptionsToFilterOptionsProtoConverter {
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto;
-    convertUserFilterOptions(
-        filterOptions: UserListFilterOptions
-    ): UserListFilterOptionsProto;
+    convertUserFilterOptions(filterOptions: UserListFilterOptions): UserListFilterOptionsProto;
 }
 
-export class FilterOptionsToFilterOptionsProtoConverterImpl
-    implements FilterOptionsToFilterOptionsProtoConverter
-{
+export class FilterOptionsToFilterOptionsProtoConverterImpl implements FilterOptionsToFilterOptionsProtoConverter {
     public convertImageFilterOptions(
         authUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): ImageListFilterOptionsProto {
         return {
+            imageIdList: filterOptions.image_id_list,
             imageTypeIdList: filterOptions.image_type_id_list,
             imageTagIdList: filterOptions.image_tag_id_list,
             regionLabelIdList: filterOptions.region_label_id_list,
@@ -39,18 +36,13 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
             originalFileNameQuery: filterOptions.original_filename_query,
             imageStatusList: filterOptions.image_status_list,
             mustMatchAllImageTags: filterOptions.must_match_all_image_tags,
-            mustMatchAllRegionLabels:
-                filterOptions.must_match_all_region_labels,
-            bookmarkedByUserIdList: filterOptions.must_be_bookmarked
-                ? [authUserInfo.user.id]
-                : [],
+            mustMatchAllRegionLabels: filterOptions.must_match_all_region_labels,
+            bookmarkedByUserIdList: filterOptions.must_be_bookmarked ? [authUserInfo.user.id] : [],
             mustHaveDescription: filterOptions.must_have_description,
         };
     }
 
-    public convertUserFilterOptions(
-        filterOptions: UserListFilterOptions
-    ): UserListFilterOptionsProto {
+    public convertUserFilterOptions(filterOptions: UserListFilterOptions): UserListFilterOptionsProto {
         return {
             usernameQuery: filterOptions.username_query,
             userTagIdList: filterOptions.user_tag_id_list,
@@ -61,7 +53,6 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl
 
 injected(FilterOptionsToFilterOptionsProtoConverterImpl);
 
-export const FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER =
-    token<FilterOptionsToFilterOptionsProtoConverter>(
-        "FilterOptionsToFilterOptionsProtoConverter"
-    );
+export const FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER = token<FilterOptionsToFilterOptionsProtoConverter>(
+    "FilterOptionsToFilterOptionsProtoConverter"
+);

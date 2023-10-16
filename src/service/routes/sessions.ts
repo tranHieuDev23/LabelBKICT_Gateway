@@ -98,17 +98,19 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
-            const { totalImageCount, imageList, imageTagList } = await imageListManagementOperator.getUserImageList(
-                authenticatedUserInformation,
-                offset,
-                limit,
-                sortOrder,
-                filterOptions
-            );
+            const { totalImageCount, imageList, imageTagList, bookmarkedImageIdList } =
+                await imageListManagementOperator.getUserImageList(
+                    authenticatedUserInformation,
+                    offset,
+                    limit,
+                    sortOrder,
+                    filterOptions
+                );
             res.json({
                 total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
+                bookmarked_image_id_list: bookmarkedImageIdList,
             });
         })
     );
@@ -140,7 +142,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
-            const { totalImageCount, imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList, bookmarkedImageIdList } =
                 await imageListManagementOperator.getUserManageableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -152,6 +154,7 @@ export function getSessionsRouter(
                 total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
+                bookmarked_image_id_list: bookmarkedImageIdList,
             });
         })
     );
@@ -183,7 +186,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
-            const { totalImageCount, imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList, bookmarkedImageIdList } =
                 await imageListManagementOperator.getUserVerifiableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -195,6 +198,7 @@ export function getSessionsRouter(
                 total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
+                bookmarked_image_id_list: bookmarkedImageIdList,
             });
         })
     );
@@ -226,7 +230,7 @@ export function getSessionsRouter(
             const limit = +(req.query.limit || DEFAULT_GET_IMAGE_LIST_LIMIT);
             const sortOrder = +(req.query.sort_order || 0);
             const filterOptions = getImageListFilterOptionsFromQueryParams(req.query);
-            const { totalImageCount, imageList, imageTagList } =
+            const { totalImageCount, imageList, imageTagList, bookmarkedImageIdList } =
                 await imageListManagementOperator.getUserExportableImageList(
                     authenticatedUserInformation,
                     offset,
@@ -238,6 +242,7 @@ export function getSessionsRouter(
                 total_image_count: totalImageCount,
                 image_list: imageList,
                 image_tag_list: imageTagList,
+                bookmarked_image_id_list: bookmarkedImageIdList,
             });
         })
     );

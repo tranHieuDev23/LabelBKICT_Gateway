@@ -35,6 +35,14 @@ get:
         minimum: 0
         maximum: 7
         default: 0
+    - name: filter_image_ids
+      description: A list of image IDs. If provided, filter for images with one of the provided IDs.
+      in: query
+      schema:
+        type: array
+        items:
+          type: integer
+        maxItems: 500
     - name: filter_image_types
       description: A list of image type IDs. If provided, filter for images that
         belong to one of these image types.
@@ -220,6 +228,11 @@ get:
                 description:
                   The list of image tags each image in image_list has,
                   in the same order.
+              bookmarked_image_id_list:
+                type: array
+                items:
+                  $ref: "../../../../../components/schemas/Image.yml#/properties/id"
+                description: The list of image IDs, which the requesting user has bookmarked among the returned image list.
     "400":
       description:
         Failed to retrieve image list because one or more of the arguments
