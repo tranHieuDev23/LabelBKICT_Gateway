@@ -21,4 +21,5 @@ export class ImageListFilterOptions {
     public must_match_all_region_labels = false;
     public must_be_bookmarked = false;
     public must_have_description = false;
+    public original_filename_list: string[] = [];
 }

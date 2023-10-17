@@ -108,3 +108,8 @@ properties:
   must_have_description:
     type: boolean
     description: If true, images in the results must have non-empty description.
+  original_filename_list:
+    type: array
+    items:
+      type: string
+    description: If provided, filter for images that have original name in this list (case sensitive).

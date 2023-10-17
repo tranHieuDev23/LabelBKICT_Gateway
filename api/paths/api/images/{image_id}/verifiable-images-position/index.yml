@@ -153,6 +153,15 @@ get:
         default: ""
       allowEmptyValue: true
       allowReserved: true
+    - name: filter_original_filename_list
+      description: If provided, filter for images that have original name in this list (case sensitive).
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          maxLength: 256
+          default: ""
     - name: filter_image_statuses
       description: A list of image statuses. If provided, filter for images that
         have one of these statuses.

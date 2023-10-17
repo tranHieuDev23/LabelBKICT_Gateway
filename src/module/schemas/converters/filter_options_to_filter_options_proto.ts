@@ -39,6 +39,7 @@ export class FilterOptionsToFilterOptionsProtoConverterImpl implements FilterOpt
             mustMatchAllRegionLabels: filterOptions.must_match_all_region_labels,
             bookmarkedByUserIdList: filterOptions.must_be_bookmarked ? [authUserInfo.user.id] : [],
             mustHaveDescription: filterOptions.must_have_description,
+            originalFileNameList: filterOptions.original_filename_list,
         };
     }
 

@@ -1,6 +1,6 @@
 import { ParsedQs } from "qs";
 import { ImageListFilterOptions, UserListFilterOptions } from "../../module/schemas";
-import { getIdListFromQueryParam } from "../utils";
+import { getIdListFromQueryParam, getStringListFromQueryParam } from "../utils";
 
 export function getImageListFilterOptionsFromQueryParams(queryParams: ParsedQs): ImageListFilterOptions {
     const filterOptions = new ImageListFilterOptions();
@@ -23,6 +23,7 @@ export function getImageListFilterOptionsFromQueryParams(queryParams: ParsedQs):
     filterOptions.must_match_all_region_labels = +(queryParams.must_match_all_region_labels || 0) === 1;
     filterOptions.must_be_bookmarked = +(queryParams.must_be_bookmarked || 0) === 1;
     filterOptions.must_have_description = +(queryParams.must_have_description || 0) === 1;
+    filterOptions.original_filename_list = getStringListFromQueryParam(queryParams.filter_original_filename_list);
     return filterOptions;
 }
 
@@ -47,6 +48,7 @@ export function getImageListFilterOptionsFromBody(filter_options: any): ImageLis
     filterOptions.must_match_all_region_labels = filter_options.must_match_all_region_labels || false;
     filterOptions.must_be_bookmarked = filter_options.must_be_bookmarked || false;
     filterOptions.must_have_description = filter_options.must_have_description || false;
+    filterOptions.original_filename_list = filter_options.original_filename_list || [];
     return filterOptions;
 }
 
