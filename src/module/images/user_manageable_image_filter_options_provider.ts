@@ -5,12 +5,7 @@ import {
     ImageListFilterOptions,
 } from "../schemas";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../proto/gen/ImageListFilterOptions";
-import {
-    UserCanManageUserImageInfoProvider,
-    UserTagInfoProvider,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_TAG_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
+import { UserTagInfoProvider, USER_TAG_INFO_PROVIDER_TOKEN } from "../info_providers";
 import { injected, token } from "brandi";
 
 export interface UserManageableImageFilterOptionsProvider {
@@ -24,7 +19,6 @@ const USER_TAG_DISPLAY_NAME_DISABLED = "Disabled";
 
 export class UserManageableImageFilterOptionsProviderImpl implements UserManageableImageFilterOptionsProvider {
     constructor(
-        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter
     ) {}
@@ -33,10 +27,6 @@ export class UserManageableImageFilterOptionsProviderImpl implements UserManagea
         authenticatedUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): Promise<ImageListFilterOptionsProto> {
-        const userId = authenticatedUserInfo.user.id;
-        const manageableImageUserIdList =
-            await this.userCanManageUserImageInfoProvider.getManageableUserImageUserIdListOfUserId(userId);
-
         const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagByDisplayName(
             USER_TAG_DISPLAY_NAME_DISABLED
         );
@@ -46,27 +36,6 @@ export class UserManageableImageFilterOptionsProviderImpl implements UserManagea
             authenticatedUserInfo,
             filterOptions
         );
-
-        if (manageableImageUserIdList.length > 0) {
-            if (
-                filterOptionsProto.uploadedByUserIdList === undefined ||
-                filterOptionsProto.uploadedByUserIdList.length === 0
-            ) {
-                filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
-            } else {
-                const requestedUploadedByUserIdSet = new Set(filterOptionsProto.uploadedByUserIdList);
-                filterOptionsProto.uploadedByUserIdList = manageableImageUserIdList;
-                for (const userId of manageableImageUserIdList) {
-                    if (!requestedUploadedByUserIdSet.has(userId)) {
-                        filterOptionsProto.notUploadedByUserIdList = [
-                            ...(filterOptionsProto.notUploadedByUserIdList || []),
-                            userId,
-                        ];
-                    }
-                }
-            }
-        }
-
         filterOptionsProto.notUploadedByUserIdList = Array.from(
             new Set([...(filterOptionsProto.notUploadedByUserIdList || []), ...disabledUserIdList])
         );
@@ -77,7 +46,6 @@ export class UserManageableImageFilterOptionsProviderImpl implements UserManagea
 
 injected(
     UserManageableImageFilterOptionsProviderImpl,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_TAG_INFO_PROVIDER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER
 );

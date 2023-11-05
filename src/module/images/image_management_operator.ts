@@ -18,6 +18,7 @@ import {
     Region,
     RegionProtoToRegionConverter,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
+    User,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -25,7 +26,12 @@ import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
 } from "../image_permissions";
-import { ImageInfoProvider, IMAGE_INFO_PROVIDER_TOKEN } from "../info_providers";
+import {
+    ImageInfoProvider,
+    IMAGE_INFO_PROVIDER_TOKEN,
+    UserInfoProvider,
+    USER_INFO_PROVIDER_TOKEN,
+} from "../info_providers";
 import { status } from "@grpc/grpc-js";
 
 export interface ImageManagementOperator {
@@ -90,12 +96,45 @@ export interface ImageManagementOperator {
         description: string
     ): Promise<ImageBookmark>;
     deleteImageBookmark(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
+    getUserCanManageImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<{ user: User; canEdit: boolean }[]>;
+    createUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number,
+        canEdit: boolean
+    ): Promise<{ user: User; canEdit: boolean }>;
+    updateUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number,
+        canEdit: boolean
+    ): Promise<{ user: User; canEdit: boolean }>;
+    deleteUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<void>;
+    getUserCanVerifyImageList(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<User[]>;
+    createUserCanVerifyImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<User>;
+    deleteUserCanVerifyImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<void>;
     deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
 }
 
 export class ImageManagementOperatorImpl implements ImageManagementOperator {
     constructor(
         private readonly imageInfoProvider: ImageInfoProvider,
+        private readonly userInfoProvider: UserInfoProvider,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
@@ -154,7 +193,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -171,7 +210,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         );
         const canEdit = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
 
         return { image, imageTagList, regionList, canEdit };
@@ -182,10 +221,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         atStatus: ImageStatus
     ): Promise<Region[]> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -222,10 +260,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string | undefined
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -259,10 +296,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTypeId: number
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -296,10 +332,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         status: ImageStatus
     ): Promise<Image> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -337,10 +372,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -374,10 +408,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         imageTagId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -410,10 +443,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -444,10 +476,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -482,10 +513,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -512,10 +542,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageId: number,
         description: string
     ): Promise<ImageBookmark> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -558,10 +587,9 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -597,11 +625,351 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         }
     }
 
-    public async deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
+    public async getUserCanManageImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<{ user: User; canEdit: boolean }[]> {
         const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed get user can manage image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceDM.getUserCanManageImageListOfImageId.bind(this.imageServiceDM),
+            { imageId }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.getUserCanManageImageListOfImageId()", { error, imageId });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can manage image list",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+
+        const resultList: { user: User; canEdit: boolean }[] = [];
+        response?.userCanManageImageList?.forEach(async (item) => {
+            const user = await this.userInfoProvider.getUser(item.userId || 0);
+            if (user === null) {
+                this.logger.info("user with user_id not found", { userId: item.userId });
+                return;
+            }
+
+            resultList.push({ user: User.fromProto(user), canEdit: item.canEdit || false });
+        });
+
+        return resultList;
+    }
+
+    public async createUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number,
+        canEdit: boolean
+    ): Promise<{ user: User; canEdit: boolean }> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.FORBIDDEN);
+        }
+
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        if (image === null) {
+            this.logger.error("no image found with the provided image_id", { imageId });
+            throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("no user found with the provided user_id", { userId });
+            throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        if (image.uploadedByUserId === user.id) {
+            this.logger.error("user is already the uploader of the image", { imageId, userId });
+            throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.BAD_REQUEST);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.createUserCanManageImage.bind(this.imageServiceDM),
+            { userId, imageId, canEdit }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.createUserCanManageImage()", {
+                userId,
+                imageId,
+                canEdit,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to create user can manage image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+
+        return { user: User.fromProto(user), canEdit };
+    }
+
+    public async updateUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number,
+        canEdit: boolean
+    ): Promise<{ user: User; canEdit: boolean }> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.FORBIDDEN);
+        }
+
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        if (image === null) {
+            this.logger.error("no image found with the provided image_id", { imageId });
+            throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("no user found with the provided user_id", { userId });
+            throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        if (image.uploadedByUserId === user.id) {
+            this.logger.error("user is already the uploader of the image", { imageId, userId });
+            throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.BAD_REQUEST);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.updateUserCanManageImage.bind(this.imageServiceDM),
+            { userId, imageId, canEdit }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.updateUserCanManageImage()", {
+                userId,
+                imageId,
+                canEdit,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to update user can manage image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+
+        return { user: User.fromProto(user), canEdit };
+    }
+
+    public async deleteUserCanManageImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<void> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.FORBIDDEN);
+        }
+
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        if (image === null) {
+            this.logger.error("no image found with the provided image_id", { imageId });
+            throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("no user found with the provided user_id", { userId });
+            throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.NOT_FOUND);
+        }
+
+        if (image.uploadedByUserId === user.id) {
+            this.logger.error("user is already the uploader of the image", { imageId, userId });
+            throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.BAD_REQUEST);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteUserCanManageImage.bind(this.imageServiceDM),
+            { userId, imageId }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.deleteUserCanManageImage()", {
+                userId,
+                imageId,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can manage image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+    }
+
+    public async getUserCanVerifyImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number
+    ): Promise<User[]> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed get user can manage image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceDM.getUserCanVerifyImageListOfImageId.bind(this.imageServiceDM),
+            { imageId }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.getUserVerifyImageListOfImageId()", { error, imageId });
+            throw new ErrorWithHTTPCode(
+                "Failed to get user can manage image list",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+
+        const userList: User[] = [];
+        response?.userCanVerifyImageList?.forEach(async (item) => {
+            const user = await this.userInfoProvider.getUser(item.userId || 0);
+            if (user === null) {
+                this.logger.info("user with user_id not found", { userId: item.userId });
+                return;
+            }
+
+            userList.push(User.fromProto(user));
+        });
+
+        return userList;
+    }
+
+    public async createUserCanVerifyImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<User> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.FORBIDDEN);
+        }
+
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        if (image === null) {
+            this.logger.error("no image found with the provided image_id", { imageId });
+            throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.NOT_FOUND);
+        }
+
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("no user found with the provided user_id", { userId });
+            throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.NOT_FOUND);
+        }
+
+        if (image.uploadedByUserId === user.id) {
+            this.logger.error("user is already the uploader of the image", { imageId, userId });
+            throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.BAD_REQUEST);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.createUserCanVerifyImage.bind(this.imageServiceDM),
+            { userId, imageId }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.createUserCanVerifyImage()", { userId, imageId, error });
+            throw new ErrorWithHTTPCode(
+                "Failed to create user can verify image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+
+        return User.fromProto(user);
+    }
+
+    public async deleteUserCanVerifyImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        userId: number
+    ): Promise<void> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.FORBIDDEN);
+        }
+
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        if (image === null) {
+            this.logger.error("no image found with the provided image_id", { imageId });
+            throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.NOT_FOUND);
+        }
+
+        const user = await this.userInfoProvider.getUser(userId);
+        if (user === null) {
+            this.logger.error("no user found with the provided user_id", { userId });
+            throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.NOT_FOUND);
+        }
+
+        if (image.uploadedByUserId === user.id) {
+            this.logger.error("user is already the uploader of the image", { imageId, userId });
+            throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.BAD_REQUEST);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.deleteUserCanVerifyImage.bind(this.imageServiceDM),
+            { userId, imageId }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.deleteUserCanVerifyImage()", { userId, imageId, error });
+            throw new ErrorWithHTTPCode(
+                "Failed to delete user can verify image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+    }
+
+    public async deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -628,6 +996,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 injected(
     ImageManagementOperatorImpl,
     IMAGE_INFO_PROVIDER_TOKEN,
+    USER_INFO_PROVIDER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,

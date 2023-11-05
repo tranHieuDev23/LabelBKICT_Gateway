@@ -6,12 +6,7 @@ import {
 } from "../schemas";
 import { ImageListFilterOptions as ImageListFilterOptionsProto } from "../../proto/gen/ImageListFilterOptions";
 import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
-import {
-    UserCanVerifyUserImageInfoProvider,
-    UserTagInfoProvider,
-    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_TAG_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
+import { UserTagInfoProvider, USER_TAG_INFO_PROVIDER_TOKEN } from "../info_providers";
 import { injected, token } from "brandi";
 
 export interface UserVerifiableImageFilterOptionsProvider {
@@ -25,7 +20,6 @@ const USER_TAG_DISPLAY_NAME_DISABLED = "Disabled";
 
 export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifiableImageFilterOptionsProvider {
     constructor(
-        private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
         private readonly userTagInfoProvider: UserTagInfoProvider,
         private readonly filterOptionsToFilterOptionsProto: FilterOptionsToFilterOptionsProtoConverter
     ) {}
@@ -34,10 +28,6 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
         authenticatedUserInfo: AuthenticatedUserInformation,
         filterOptions: ImageListFilterOptions
     ): Promise<ImageListFilterOptionsProto> {
-        const userId = authenticatedUserInfo.user.id;
-        const verifiableImageUserIdList =
-            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
-
         const disabledUserList = await this.userTagInfoProvider.getUserListOfUserTagByDisplayName(
             USER_TAG_DISPLAY_NAME_DISABLED
         );
@@ -56,26 +46,6 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
             );
         }
 
-        if (verifiableImageUserIdList.length > 0) {
-            if (
-                filterOptionsProto.uploadedByUserIdList === undefined ||
-                filterOptionsProto.uploadedByUserIdList.length === 0
-            ) {
-                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
-            } else {
-                const requestedUploadedByUserIdSet = new Set(filterOptionsProto.uploadedByUserIdList);
-                filterOptionsProto.uploadedByUserIdList = verifiableImageUserIdList;
-                for (const userId of verifiableImageUserIdList) {
-                    if (!requestedUploadedByUserIdSet.has(userId)) {
-                        filterOptionsProto.notUploadedByUserIdList = [
-                            ...(filterOptionsProto.notUploadedByUserIdList || []),
-                            userId,
-                        ];
-                    }
-                }
-            }
-        }
-
         filterOptionsProto.notUploadedByUserIdList = Array.from(
             new Set([...(filterOptionsProto.notUploadedByUserIdList || []), ...disabledUserIdList])
         );
@@ -86,7 +56,6 @@ export class UserVerifiableImageFilterOptionsProviderImpl implements UserVerifia
 
 injected(
     UserVerifiableImageFilterOptionsProviderImpl,
-    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_TAG_INFO_PROVIDER_TOKEN,
     FILTER_OPTIONS_TO_FILTER_OPTIONS_PROTO_CONVERTER
 );

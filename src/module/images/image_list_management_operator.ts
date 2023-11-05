@@ -22,7 +22,6 @@ import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
-    MANAGE_SELF_AND_ALL_CHECKER_TOKEN,
     VERIFY_CHECKER_TOKEN,
 } from "../image_permissions";
 import {
@@ -163,7 +162,6 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         private readonly imageInfoProvider: ImageInfoProvider,
         private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
         private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider,
-        private readonly manageSelfAndAllChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly verifyChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
@@ -183,10 +181,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         imageIdList: number[],
         imageTypeId: number
     ): Promise<void> {
-        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
-            imageList
+            imageIdList
         );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
@@ -214,10 +211,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
-        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
-            imageList
+            imageIdList
         );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
@@ -310,10 +306,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageIdList: number[]
     ): Promise<void> {
-        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
             authenticatedUserInfo,
-            imageList
+            imageIdList
         );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
@@ -444,27 +439,28 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
                 authenticatedUserInfo,
                 filterOptions
             );
-        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
-            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-            {
+        const { error: getManageableImageListOfUserError, response: getManageableImageListOfUserResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getManageableImageListOfUser.bind(this.imageServiceDM), {
+                userId: authenticatedUserInfo.user.id,
                 offset,
                 limit,
                 sortOrder,
                 filterOptions: filterOptionsProto,
                 withImageTag: true,
-            }
-        );
-        if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
+            });
+        if (getManageableImageListOfUserError !== null) {
+            this.logger.error("failed to call image_service.getManageableImageListOfUser()", {
+                error: getManageableImageListOfUserError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's manageable image list",
-                getHttpCodeFromGRPCStatus(getImageListError.code)
+                getHttpCodeFromGRPCStatus(getManageableImageListOfUserError.code)
             );
         }
 
-        const totalImageCount = getImageListResponse?.totalImageCount || 0;
-        const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const totalImageCount = getManageableImageListOfUserResponse?.totalImageCount || 0;
+        const imageProtoList = getManageableImageListOfUserResponse?.imageList || [];
+        const imageTagListOfImageList = getManageableImageListOfUserResponse?.imageTagListOfImageList || [];
         const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
@@ -498,42 +494,35 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         prevImageId: number | undefined;
         nextImageId: number | undefined;
     }> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
-        const canUserAccessImage = await this.manageSelfAndAllChecker.checkUserHasPermissionForImage(
-            authenticatedUserInfo,
-            imageProto
-        );
-        if (!canUserAccessImage) {
-            this.logger.error("user is not allowed to access image", {
-                userId: authenticatedUserInfo.user.id,
-                imageId,
-            });
-            throw new ErrorWithHTTPCode("Failed to get image", httpStatus.FORBIDDEN);
-        }
-
         const filterOptionsProto =
             await this.userManageableImageFilterOptionsProvider.getUserManageableImageFilterOptionsProto(
                 authenticatedUserInfo,
                 filterOptions
             );
-        const { error: getImagePositionInListError, response: getImagePositionInListResponse } =
-            await promisifyGRPCCall(this.imageServiceDM.getImagePositionInList.bind(this.imageServiceDM), {
+        const {
+            error: getImagePositionInManageableImageListOfUserError,
+            response: getImagePositionInManageableImageListOfUserResponse,
+        } = await promisifyGRPCCall(
+            this.imageServiceDM.getImagePositionInManageableImageListOfUser.bind(this.imageServiceDM),
+            {
                 id: imageId,
+                userId: authenticatedUserInfo.user.id,
                 sortOrder: sortOrder,
                 filterOptions: filterOptionsProto,
-            });
-        if (getImagePositionInListError !== null) {
-            this.logger.error("failed to call image_service.getImagePositionInList()");
+            }
+        );
+        if (getImagePositionInManageableImageListOfUserError !== null) {
+            this.logger.error("failed to call image_service.getImagePositionInManageableImageListOfUser()");
             throw new ErrorWithHTTPCode(
                 "Failed to get image position in list",
-                getHttpCodeFromGRPCStatus(getImagePositionInListError.code)
+                getHttpCodeFromGRPCStatus(getImagePositionInManageableImageListOfUserError.code)
             );
         }
 
-        const position = getImagePositionInListResponse?.position || 0;
-        const totalImageCount = getImagePositionInListResponse?.totalImageCount || 0;
-        const prevImageId = getImagePositionInListResponse?.prevImageId;
-        const nextImageId = getImagePositionInListResponse?.nextImageId;
+        const position = getImagePositionInManageableImageListOfUserResponse?.position || 0;
+        const totalImageCount = getImagePositionInManageableImageListOfUserResponse?.totalImageCount || 0;
+        const prevImageId = getImagePositionInManageableImageListOfUserResponse?.prevImageId;
+        const nextImageId = getImagePositionInManageableImageListOfUserResponse?.nextImageId;
         return { position, totalImageCount, prevImageId, nextImageId };
     }
 
@@ -586,27 +575,28 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
                 filterOptions
             );
 
-        const { error: getImageListError, response: getImageListResponse } = await promisifyGRPCCall(
-            this.imageServiceDM.getImageList.bind(this.imageServiceDM),
-            {
+        const { error: getVerifiableImageListOfUserError, response: getVerifiableImageListOfUserResponse } =
+            await promisifyGRPCCall(this.imageServiceDM.getVerifiableImageListOfUser.bind(this.imageServiceDM), {
+                userId: authenticatedUserInfo.user.id,
                 offset,
                 limit,
                 sortOrder,
                 filterOptions: filterOptionsProto,
                 withImageTag: true,
-            }
-        );
-        if (getImageListError !== null) {
-            this.logger.error("failed to call image_service.getImageList()", { error: getImageListError });
+            });
+        if (getVerifiableImageListOfUserError !== null) {
+            this.logger.error("failed to call image_service.getVerifiableImageListOfUser()", {
+                error: getVerifiableImageListOfUserError,
+            });
             throw new ErrorWithHTTPCode(
                 "Failed to get user's verifiable image list",
-                getHttpCodeFromGRPCStatus(getImageListError.code)
+                getHttpCodeFromGRPCStatus(getVerifiableImageListOfUserError.code)
             );
         }
 
-        const totalImageCount = getImageListResponse?.totalImageCount || 0;
-        const imageProtoList = getImageListResponse?.imageList || [];
-        const imageTagListOfImageList = getImageListResponse?.imageTagListOfImageList || [];
+        const totalImageCount = getVerifiableImageListOfUserResponse?.totalImageCount || 0;
+        const imageProtoList = getVerifiableImageListOfUserResponse?.imageList || [];
+        const imageTagListOfImageList = getVerifiableImageListOfUserResponse?.imageTagListOfImageList || [];
         const imageTagProtoList = imageTagListOfImageList.map((imageTagList) => imageTagList.imageTagList || []);
 
         const imageList = await Promise.all(
@@ -640,10 +630,9 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         prevImageId: number | undefined;
         nextImageId: number | undefined;
     }> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, false, false);
         const canUserAccessImage = await this.verifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
-            imageProto
+            imageId
         );
         if (!canUserAccessImage) {
             this.logger.error("user is not allowed to access image", {
@@ -775,11 +764,10 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         imageIdList: number[],
         imageTagIdList: number[]
     ): Promise<void> {
-        const { imageList } = await this.imageInfoProvider.getImageList(imageIdList, false, false);
         const canUserAccessImageList =
             await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImageList(
                 authenticatedUserInfo,
-                imageList
+                imageIdList
             );
         if (!canUserAccessImageList) {
             this.logger.error("user is not allowed to access image list", {
@@ -810,7 +798,6 @@ injected(
     IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
     USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    MANAGE_SELF_AND_ALL_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,

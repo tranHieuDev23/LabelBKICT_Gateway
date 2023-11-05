@@ -1,0 +1,39 @@
+delete:
+  description:
+    Remove a user from the list of users who can manually allowed to verify the image. User needs to either (1) have
+    `images.manage.self` permission and is updating the information of an image of their own, or (2) have
+    `images.manage.all` permission and is updating the information of an image that they are allowed to edit in order to
+    call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be updated.
+      schema:
+        $ref: "../../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+    - name: user_id
+      in: path
+      description: The user to be removed.
+      schema:
+        $ref: "../../../../../../components/schemas/User.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Removed the user from the list of users who are manually allowed to verify the image successfully..
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is about to expire.
+          schema:
+            $ref: "../../../../../../components/schemas/Token.yml"
+    "401":
+      description: Failed to update image because the user is not logged in.
+    "403":
+      description: Failed to update image because the user does not have the necessary permission.
+    "404":
+      description: Failed to update image because the image with image_id or user with user_id does not exist.
+    "409":
+      description: Failed to update user because the user is already in the list.

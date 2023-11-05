@@ -1,6 +1,7 @@
-import { Image as ImageProto } from "../../proto/gen/Image";
+import { Logger } from "winston";
+import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { AuthenticatedUserInformation, checkUserHasUserPermission } from "../../service/utils";
-import { UserCanManageUserImageInfoProvider } from "../info_providers";
+import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, promisifyGRPCCall } from "../../utils";
 import { UserPermission } from "../schemas";
 import { ImagePermissionCheckerDecorator, ImagePermissionChecker } from "./image_permission_checker";
 
@@ -9,70 +10,87 @@ const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
 export class ImagesManageAllChecker extends ImagePermissionCheckerDecorator {
     constructor(
         baseChecker: ImagePermissionChecker | null,
-        private readonly userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
-        private readonly canEdit: boolean
+        private readonly imageServiceClient: ImageServiceClient,
+        private readonly canEdit: boolean,
+        private readonly logger: Logger
     ) {
         super(baseChecker);
     }
 
     public async checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto
+        imageId: number
     ): Promise<boolean> {
-        if (await super.checkUserHasPermissionForImage(authUserInfo, image)) {
+        if (await super.checkUserHasPermissionForImage(authUserInfo, imageId)) {
             return true;
         }
 
-        const { userPermissionList } = authUserInfo;
-        if (!this.userHasImagesManageAllPermission(userPermissionList)) {
+        if (!this.userHasImagesManageAllPermission(authUserInfo.userPermissionList)) {
             return false;
         }
 
-        const userId = authUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(userId);
-        if (userCanManageUserImageList.length === 0) {
-            return true;
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceClient.checkUserCanManageImageList.bind(this.imageServiceClient),
+            { userId: authUserInfo.user.id, imageIdList: [imageId] }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.checkUserCanManageImageList()", {
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to check if user has permission for image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
         }
 
-        const userCanManageUserImageUserIdSet = this.canEdit
-            ? new Set([
-                  ...userCanManageUserImageList.filter((item) => item.canEdit).map((item) => item.imageOfUserId || 0),
-                  userId,
-              ])
-            : new Set([...userCanManageUserImageList.map((item) => item.imageOfUserId || 0), userId]);
-        return userCanManageUserImageUserIdSet.has(image.uploadedByUserId || 0);
+        const canManageList = response?.canManageList || [];
+        const canEditList = response?.canEditList || [];
+
+        if (this.canEdit) {
+            if (!canEditList.every((item) => item)) {
+                return false;
+            }
+        }
+
+        return canManageList.every((item) => item);
     }
 
     public async checkUserHasPermissionForImageList(
         authUserInfo: AuthenticatedUserInformation,
-        imageList: ImageProto[]
+        imageIdList: number[]
     ): Promise<boolean> {
-        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageList)) {
+        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageIdList)) {
             return true;
         }
 
-        const { userPermissionList } = authUserInfo;
-        if (!this.userHasImagesManageAllPermission(userPermissionList)) {
+        if (!this.userHasImagesManageAllPermission(authUserInfo.userPermissionList)) {
             return false;
         }
 
-        const userId = authUserInfo.user.id;
-        const userCanManageUserImageList =
-            await this.userCanManageUserImageInfoProvider.getUserCanManageUserImageListOfUserId(userId);
-        if (userCanManageUserImageList.length === 0) {
-            return true;
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceClient.checkUserCanManageImageList.bind(this.imageServiceClient),
+            { userId: authUserInfo.user.id, imageIdList }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.checkUserCanManageImageList()", {
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to check if user has permission for image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
         }
 
-        const userCanManageUserImageUserIdSet = this.canEdit
-            ? new Set([
-                  ...userCanManageUserImageList.filter((item) => item.canEdit).map((item) => item.imageOfUserId || 0),
-                  userId,
-              ])
-            : new Set([...userCanManageUserImageList.map((item) => item.imageOfUserId || 0), userId]);
-        return imageList.every((image) => {
-            return userCanManageUserImageUserIdSet.has(image.uploadedByUserId || 0);
-        });
+        const canManageList = response?.canManageList || [];
+        const canEditList = response?.canEditList || [];
+
+        if (this.canEdit) {
+            if (!canEditList.every((item) => item)) {
+                return false;
+            }
+        }
+
+        return canManageList.every((item) => item);
     }
 
     private userHasImagesManageAllPermission(userPermissionList: UserPermission[]): boolean {

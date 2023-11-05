@@ -1,14 +1,10 @@
-import { Image as ImageProto } from "../../proto/gen/Image";
 import { AuthenticatedUserInformation } from "../../service/utils";
 
 export interface ImagePermissionChecker {
-    checkUserHasPermissionForImage(
-        authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto
-    ): Promise<boolean>;
+    checkUserHasPermissionForImage(authUserInfo: AuthenticatedUserInformation, imageId: number): Promise<boolean>;
     checkUserHasPermissionForImageList(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto[]
+        imageIdList: number[]
     ): Promise<boolean>;
 }
 
@@ -17,26 +13,20 @@ export class ImagePermissionCheckerDecorator implements ImagePermissionChecker {
 
     public async checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto
+        imageId: number
     ): Promise<boolean> {
         if (this.baseChecker) {
-            return this.baseChecker.checkUserHasPermissionForImage(
-                authUserInfo,
-                image
-            );
+            return this.baseChecker.checkUserHasPermissionForImage(authUserInfo, imageId);
         }
         return false;
     }
 
     public async checkUserHasPermissionForImageList(
         authUserInfo: AuthenticatedUserInformation,
-        imageList: ImageProto[]
+        imageIdList: number[]
     ): Promise<boolean> {
         if (this.baseChecker) {
-            return this.baseChecker.checkUserHasPermissionForImageList(
-                authUserInfo,
-                imageList
-            );
+            return this.baseChecker.checkUserHasPermissionForImageList(authUserInfo, imageIdList);
         }
         return false;
     }

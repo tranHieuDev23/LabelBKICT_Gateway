@@ -1,5 +1,3 @@
-import { Image } from "./image";
-
 export enum DetectionTaskStatus {
     REQUESTED = 0,
     PROCESSING = 1,

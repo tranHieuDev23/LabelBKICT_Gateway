@@ -100,8 +100,16 @@ paths:
     $ref: "./paths/api/images/{image_id}/region-snapshots/index.yml"
   "/api/images/{image_id}/manageable-images-position":
     $ref: "./paths/api/images/{image_id}/manageable-images-position/index.yml"
+  "/api/images/{image_id}/manageable-users":
+    $ref: "./paths/api/images/{image_id}/manageable-users/index.yml"
+  "/api/images/{image_id}/manageable-users/{user_id}":
+    $ref: "./paths/api/images/{image_id}/manageable-users/{user_id}/index.yml"
   "/api/images/{image_id}/verifiable-images-position":
     $ref: "./paths/api/images/{image_id}/verifiable-images-position/index.yml"
+  "/api/images/{image_id}/verifiable-users":
+    $ref: "./paths/api/images/{image_id}/verifiable-users/index.yml"
+  "/api/images/{image_id}/verifiable-users/{user_id}":
+    $ref: "./paths/api/images/{image_id}/verifiable-users/{user_id}/index.yml"
   "/api/images/{image_id}/image-type":
     $ref: "./paths/api/images/{image_id}/image-type/index.yml"
   "/api/images/{image_id}/status":

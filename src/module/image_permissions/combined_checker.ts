@@ -1,66 +1,78 @@
 import { injected, token } from "brandi";
-import {
-    UserCanManageUserImageInfoProvider,
-    UserCanVerifyUserImageInfoProvider,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN,
-} from "../info_providers";
 import { ImagesManageAllChecker } from "./images_manage_all";
 import { ImagesManageSelfChecker } from "./images_manage_self";
 import { ImagesVerifyChecker } from "./images_verify";
 import { ImagePermissionChecker } from "./image_permission_checker";
+import { ImageServiceClient } from "../../proto/gen/ImageService";
+import { Logger } from "winston";
+import { IMAGE_SERVICE_DM_TOKEN } from "../../dataaccess/grpc";
+import { LOGGER_TOKEN } from "../../utils";
 
 export function getManageSelfAndAllChecker(
-    userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider
+    imageServiceClient: ImageServiceClient,
+    logger: Logger
 ): ImagePermissionChecker {
-    return new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, false);
+    return new ImagesManageAllChecker(
+        new ImagesManageSelfChecker(null, imageServiceClient, logger),
+        imageServiceClient,
+        false,
+        logger
+    );
 }
 
 export function getManageSelfAndAllCanEditChecker(
-    userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider
+    imageServiceClient: ImageServiceClient,
+    logger: Logger
 ): ImagePermissionChecker {
-    return new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, true);
+    return new ImagesManageAllChecker(
+        new ImagesManageSelfChecker(null, imageServiceClient, logger),
+        imageServiceClient,
+        true,
+        logger
+    );
 }
 
-export function getVerifyChecker(
-    userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
-): ImagePermissionChecker {
-    return new ImagesVerifyChecker(null, userCanVerifyUserImageInfoProvider);
+export function getVerifyChecker(imageServiceClient: ImageServiceClient, logger: Logger): ImagePermissionChecker {
+    return new ImagesVerifyChecker(null, imageServiceClient, logger);
 }
 
 export function getManageSelfAndAllAndVerifyChecker(
-    userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
-    userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
+    imageServiceClient: ImageServiceClient,
+    logger: Logger
 ): ImagePermissionChecker {
     return new ImagesVerifyChecker(
-        new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, false),
-        userCanVerifyUserImageInfoProvider
+        new ImagesManageAllChecker(
+            new ImagesManageSelfChecker(null, imageServiceClient, logger),
+            imageServiceClient,
+            false,
+            logger
+        ),
+        imageServiceClient,
+        logger
     );
 }
 
 export function getManageSelfAndAllCanEditAndVerifyChecker(
-    userCanManageUserImageInfoProvider: UserCanManageUserImageInfoProvider,
-    userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
+    imageServiceClient: ImageServiceClient,
+    logger: Logger
 ): ImagePermissionChecker {
     return new ImagesVerifyChecker(
-        new ImagesManageAllChecker(new ImagesManageSelfChecker(null), userCanManageUserImageInfoProvider, true),
-        userCanVerifyUserImageInfoProvider
+        new ImagesManageAllChecker(
+            new ImagesManageSelfChecker(null, imageServiceClient, logger),
+            imageServiceClient,
+            true,
+            logger
+        ),
+        imageServiceClient,
+        logger
     );
 }
 
-injected(getManageSelfAndAllChecker, USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN);
-injected(getManageSelfAndAllCanEditChecker, USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN);
-injected(getVerifyChecker, USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN);
-injected(
-    getManageSelfAndAllAndVerifyChecker,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN
-);
-injected(
-    getManageSelfAndAllCanEditAndVerifyChecker,
-    USER_CAN_MANAGE_USER_IMAGE_INFO_PROVIDER_TOKEN,
-    USER_CAN_VERIFY_USER_IMAGE_INFO_PROVIDER_TOKEN
-);
+injected(getManageSelfAndAllChecker, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(getManageSelfAndAllCanEditChecker, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(getVerifyChecker, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(getManageSelfAndAllAndVerifyChecker, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
+injected(getManageSelfAndAllCanEditAndVerifyChecker, IMAGE_SERVICE_DM_TOKEN, LOGGER_TOKEN);
 
 export const MANAGE_SELF_AND_ALL_CHECKER_TOKEN = token<ImagePermissionChecker>("ManageSelfAndAllChecker");
 export const MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN = token<ImagePermissionChecker>(

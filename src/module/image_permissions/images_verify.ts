@@ -1,89 +1,82 @@
-import { Image as ImageProto } from "../../proto/gen/Image";
-import { _ImageStatus_Values } from "../../proto/gen/ImageStatus";
+import { Logger } from "winston";
+import { ImageServiceClient } from "../../proto/gen/ImageService";
 import { AuthenticatedUserInformation, checkUserHasUserPermission } from "../../service/utils";
-import { UserCanVerifyUserImageInfoProvider } from "../info_providers";
 import { UserPermission } from "../schemas";
 import { ImagePermissionCheckerDecorator, ImagePermissionChecker } from "./image_permission_checker";
+import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, promisifyGRPCCall } from "../../utils";
 
 const IMAGES_VERIFY_PERMISSION = "images.verify";
 
 export class ImagesVerifyChecker extends ImagePermissionCheckerDecorator {
     constructor(
         baseChecker: ImagePermissionChecker | null,
-        private readonly userCanVerifyUserImageInfoProvider: UserCanVerifyUserImageInfoProvider
+        private readonly imageServiceClient: ImageServiceClient,
+        private readonly logger: Logger
     ) {
         super(baseChecker);
     }
 
     public async checkUserHasPermissionForImage(
         authUserInfo: AuthenticatedUserInformation,
-        image: ImageProto
+        imageId: number
     ): Promise<boolean> {
-        if (await super.checkUserHasPermissionForImage(authUserInfo, image)) {
+        if (await super.checkUserHasPermissionForImage(authUserInfo, imageId)) {
             return true;
         }
 
-        if (!this.isImagePublished(image.status)) {
+        if (!this.userHasImagesVerifyPermission(authUserInfo.userPermissionList)) {
             return false;
         }
 
-        const { userPermissionList } = authUserInfo;
-        if (!this.userHasImagesVerifyPermission(userPermissionList)) {
-            return false;
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceClient.checkUserCanVerifyImageList.bind(this.imageServiceClient),
+            { userId: authUserInfo.user.id, imageIdList: [imageId] }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.checkUserCanVerifyImageList()", {
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to check if user has permission for image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
         }
 
-        const userId = authUserInfo.user.id;
-        const verifiableUserImageUserIdList =
-            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
-        if (verifiableUserImageUserIdList.length === 0) {
-            return true;
-        }
-
-        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
-        return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
+        const canVerifyList = response?.canVerifyList || [];
+        return canVerifyList.every((item) => item);
     }
 
     public async checkUserHasPermissionForImageList(
         authUserInfo: AuthenticatedUserInformation,
-        imageList: ImageProto[]
+        imageIdList: number[]
     ): Promise<boolean> {
-        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageList)) {
+        if (await super.checkUserHasPermissionForImageList(authUserInfo, imageIdList)) {
             return true;
         }
 
-        const isAllImagePublished = imageList.every((image) => this.isImagePublished(image.status));
-        if (!isAllImagePublished) {
+        if (!this.userHasImagesVerifyPermission(authUserInfo.userPermissionList)) {
             return false;
         }
 
-        const { userPermissionList } = authUserInfo;
-        if (!this.userHasImagesVerifyPermission(userPermissionList)) {
-            return false;
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceClient.checkUserCanVerifyImageList.bind(this.imageServiceClient),
+            { userId: authUserInfo.user.id, imageIdList: imageIdList }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.checkUserCanVerifyImageList()", {
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to check if user has permission for image",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
         }
 
-        const userId = authUserInfo.user.id;
-        const verifiableUserImageUserIdList =
-            await this.userCanVerifyUserImageInfoProvider.getVerifiableUserImageUserIdListOfUserId(userId);
-        if (verifiableUserImageUserIdList.length === 0) {
-            return true;
-        }
-
-        const userCanVerifyUserImageUserIdSet = new Set(verifiableUserImageUserIdList);
-        return imageList.every((image) => {
-            return userCanVerifyUserImageUserIdSet.has(image.uploadedByUserId || 0);
-        });
+        const canVerifyList = response?.canVerifyList || [];
+        return canVerifyList.every((item) => item);
     }
 
     private userHasImagesVerifyPermission(userPermissionList: UserPermission[]): boolean {
         return checkUserHasUserPermission(userPermissionList, IMAGES_VERIFY_PERMISSION);
-    }
-
-    private isImagePublished(status: _ImageStatus_Values | keyof typeof _ImageStatus_Values | undefined): boolean {
-        return (
-            status === _ImageStatus_Values.PUBLISHED ||
-            status === "PUBLISHED" ||
-            status === _ImageStatus_Values.VERIFIED ||
-            status === "VERIFIED"
-        );
     }
 }

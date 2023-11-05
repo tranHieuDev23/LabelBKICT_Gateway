@@ -1,6 +1,5 @@
 import { injected, token } from "brandi";
 import { Logger } from "winston";
-import { _ImageStatus_Values } from "../../../proto/gen/ImageStatus";
 import { ErrorWithHTTPCode, LOGGER_TOKEN } from "../../../utils";
 import { DetectionTask, DetectionTaskImage, DetectionTaskStatus } from "../detection_task";
 import { DetectionTask as DetectionTaskProto } from "../../../proto/gen/DetectionTask";

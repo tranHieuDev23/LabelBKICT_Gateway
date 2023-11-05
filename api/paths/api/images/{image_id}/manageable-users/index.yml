@@ -1,0 +1,100 @@
+get:
+  description:
+    Get the list of users who are manually allowed to manage the image. User needs to either (1) have
+    `images.manage.self` permission and is getting the information of an image of their own, or (2) have
+    `images.manage.all` permission and is getting the information of an image that they are allowed to edit in order to
+    call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be retrieved.
+      schema:
+        $ref: "../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  responses:
+    "200":
+      description: Retrieved the list of users who are manually allowed to manage the image.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                user:
+                  $ref: "../../../../../components/schemas/User.yml"
+                can_edit:
+                  type: boolean
+                  description: If true, the user can edit the image. If false, the user can only view the image.
+    "401":
+      description: Failed to retrieve image because the user is not logged in.
+    "403":
+      description: Failed to retrieve image because the user does not have the necessary permission.
+    "404":
+      description: Failed to retrieve image because the image with image_id does not exist.
+post:
+  description:
+    Add a new user to the list of users who can manually allowed to manage the image. User needs to either (1) have
+    `images.manage.self` permission and is updating the information of an image of their own, or (2) have
+    `images.manage.all` permission and is updating the information of an image that they are allowed to edit in order to
+    call this API successfully.
+  tags:
+    - Image Management
+  security:
+    - AuthenticationToken: []
+  parameters:
+    - name: image_id
+      in: path
+      description: The image to be updated.
+      schema:
+        $ref: "../../../../../components/schemas/Image.yml#/properties/id"
+      required: true
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            user_id:
+              $ref: "../../../../../components/schemas/User.yml#/properties/id"
+            can_edit:
+              type: boolean
+              description: If true, the user can edit the image. If false, the user can only view the image.
+  responses:
+    "200":
+      description: Retrieved the list of users who are manually allowed to manage the image.
+      headers:
+        Set-Cookie:
+          description: Renewed authentication token, if the user old token is about to expire.
+          schema:
+            $ref: "../../../../../components/schemas/Token.yml"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: "../../../../../components/schemas/User.yml"
+              can_edit:
+                type: boolean
+                description: If true, the user can edit the image. If false, the user can only view the image.
+    "400":
+      description: Failed to update user because the user whose is being updated is the same as the uploader of the image.
+    "401":
+      description: Failed to update image because the user is not logged in.
+    "403":
+      description: Failed to update image because the user does not have the necessary permission.
+    "404":
+      description: Failed to update image because the image with image_id or user with user_id does not exist.
+    "409":
+      description: Failed to update user because the user has already been in the list.

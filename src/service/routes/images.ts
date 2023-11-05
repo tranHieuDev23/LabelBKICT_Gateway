@@ -219,6 +219,72 @@ export function getImagesRouter(
     );
 
     router.get(
+        "/api/images/:imageId/manageable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userAndCanEditList = await imageManagementOperator.getUserCanManageImageList(
+                authenticatedUserInfo,
+                imageId
+            );
+            res.json(
+                userAndCanEditList.map((item) => {
+                    return { user: item.user, can_edit: item.canEdit };
+                })
+            );
+        })
+    );
+
+    router.post(
+        "/api/images/:imageId/manageable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userId = +req.body.user_id;
+            const canEdit = req.body.can_edit;
+            const response = await imageManagementOperator.createUserCanManageImage(
+                authenticatedUserInfo,
+                imageId,
+                userId,
+                canEdit
+            );
+            res.json(response);
+        })
+    );
+
+    router.patch(
+        "/api/images/:imageId/manageable-users/:userId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userId = +req.params.userId;
+            const canEdit = req.body.can_edit;
+            const response = await imageManagementOperator.updateUserCanManageImage(
+                authenticatedUserInfo,
+                imageId,
+                userId,
+                canEdit
+            );
+            res.json(response);
+        })
+    );
+
+    router.delete(
+        "/api/images/:imageId/manageable-users/:userId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userId = +req.params.userId;
+            await imageManagementOperator.deleteUserCanManageImage(authenticatedUserInfo, imageId, userId);
+            res.json({});
+        })
+    );
+
+    router.get(
         "/api/images/:imageId/verifiable-images-position",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {
@@ -241,6 +307,49 @@ export function getImagesRouter(
                 next_image_id: nextImageId,
             };
             res.json(responseBody);
+        })
+    );
+
+    router.get(
+        "/api/images/:imageId/verifiable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userList = await imageManagementOperator.getUserCanVerifyImageList(authenticatedUserInfo, imageId);
+            res.json(
+                userList.map((user) => {
+                    return { user };
+                })
+            );
+        })
+    );
+
+    router.post(
+        "/api/images/:imageId/verifiable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userId = +req.body.user_id;
+            const response = await imageManagementOperator.createUserCanVerifyImage(
+                authenticatedUserInfo,
+                imageId,
+                userId
+            );
+            res.json(response);
+        })
+    );
+
+    router.delete(
+        "/api/images/:imageId/verifiable-users/:userId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const userId = +req.params.userId;
+            await imageManagementOperator.deleteUserCanVerifyImage(authenticatedUserInfo, imageId, userId);
+            res.json({});
         })
     );
 

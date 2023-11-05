@@ -69,12 +69,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         holes: Polygon[],
         regionLabelId: number
     ): Promise<Region> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
-            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            )
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)
         ) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
@@ -113,12 +109,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         border: Polygon,
         holes: Polygon[]
     ): Promise<Region> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
-            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            )
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)
         ) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
@@ -158,12 +150,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         regionId: number,
         regionLabelId: number
     ): Promise<Region> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
-            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            )
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)
         ) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
@@ -199,12 +187,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         imageId: number,
         regionId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
-            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            )
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)
         ) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
@@ -232,12 +216,8 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number
     ): Promise<void> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
         if (
-            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
-                authenticatedUserInfo,
-                imageProto
-            )
+            !this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)
         ) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
@@ -266,8 +246,7 @@ export class RegionManagementOperatorImpl implements RegionManagementOperator {
         imageId: number,
         regionId: number
     ): Promise<RegionOperationLog[]> {
-        const { image: imageProto } = await this.imageInfoProvider.getImage(imageId, true, true);
-        if (!this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageProto)) {
+        if (!this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId)) {
             this.logger.error("user is not allowed to access image", {
                 userId: authenticatedUserInfo.user.id,
                 imageId,
