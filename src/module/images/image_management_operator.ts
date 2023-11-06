@@ -25,6 +25,7 @@ import {
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     ImagePermissionChecker,
+    VERIFY_CHECKER_TOKEN,
 } from "../image_permissions";
 import {
     ImageInfoProvider,
@@ -52,6 +53,7 @@ export interface ImageManagementOperator {
         imageTagList: ImageTag[];
         regionList: Region[];
         canEdit: boolean;
+        canVerify: boolean;
     }>;
     getImageRegionSnapshotList(
         authenticatedUserInfo: AuthenticatedUserInformation,
@@ -98,8 +100,13 @@ export interface ImageManagementOperator {
     deleteImageBookmark(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
     getUserCanManageImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<{ user: User; canEdit: boolean }[]>;
+        imageId: number,
+        offset: number,
+        limit: number
+    ): Promise<{
+        totalUserCount: number;
+        userList: { user: User; canEdit: boolean }[];
+    }>;
     createUserCanManageImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number,
@@ -117,7 +124,12 @@ export interface ImageManagementOperator {
         imageId: number,
         userId: number
     ): Promise<void>;
-    getUserCanVerifyImageList(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<User[]>;
+    getUserCanVerifyImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: User[] }>;
     createUserCanVerifyImage(
         authenticatedUserInfo: AuthenticatedUserInformation,
         imageId: number,
@@ -138,6 +150,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         private readonly manageSelfAndAllCanEditChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllAndVerifyChecker: ImagePermissionChecker,
         private readonly manageSelfAndAllCanEditAndVerifyChecker: ImagePermissionChecker,
+        private readonly verifyChecker: ImagePermissionChecker,
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
@@ -184,6 +197,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         imageTagList: ImageTag[];
         regionList: Region[];
         canEdit: boolean;
+        canVerify: boolean;
     }> {
         const {
             image: imageProto,
@@ -208,12 +222,13 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const regionList = await Promise.all(
             (regionProtoList || []).map((regionProto) => this.regionProtoToRegionConverter.convert(regionProto))
         );
-        const canEdit = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+        const canEdit = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
             imageId
         );
+        const canVerify = await this.verifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId);
 
-        return { image, imageTagList, regionList, canEdit };
+        return { image, imageTagList, regionList, canEdit, canVerify };
     }
 
     public async getImageRegionSnapshotList(
@@ -627,8 +642,13 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async getUserCanManageImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<{ user: User; canEdit: boolean }[]> {
+        imageId: number,
+        offset: number,
+        limit: number
+    ): Promise<{
+        totalUserCount: number;
+        userList: { user: User; canEdit: boolean }[];
+    }> {
         const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
             imageId
@@ -643,7 +663,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
         const { error, response } = await promisifyGRPCCall(
             this.imageServiceDM.getUserCanManageImageListOfImageId.bind(this.imageServiceDM),
-            { imageId }
+            { imageId, offset, limit }
         );
         if (error !== null) {
             this.logger.error("failed to call image_service.getUserCanManageImageListOfImageId()", { error, imageId });
@@ -653,18 +673,22 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
         }
 
-        const resultList: { user: User; canEdit: boolean }[] = [];
-        response?.userCanManageImageList?.forEach(async (item) => {
-            const user = await this.userInfoProvider.getUser(item.userId || 0);
-            if (user === null) {
-                this.logger.info("user with user_id not found", { userId: item.userId });
-                return;
+        const totalUserCount = response?.totalUserCount || 0;
+
+        const userList: { user: User; canEdit: boolean }[] = [];
+        if (response?.userCanManageImageList !== undefined) {
+            for (const item of response.userCanManageImageList) {
+                const user = await this.userInfoProvider.getUser(item.userId || 0);
+                if (user === null) {
+                    this.logger.info("user with user_id not found", { userId: item.userId });
+                    continue;
+                }
+
+                userList.push({ user: User.fromProto(user), canEdit: item.canEdit || false });
             }
+        }
 
-            resultList.push({ user: User.fromProto(user), canEdit: item.canEdit || false });
-        });
-
-        return resultList;
+        return { totalUserCount, userList };
     }
 
     public async createUserCanManageImage(
@@ -830,8 +854,10 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
     public async getUserCanVerifyImageList(
         authenticatedUserInfo: AuthenticatedUserInformation,
-        imageId: number
-    ): Promise<User[]> {
+        imageId: number,
+        offset: number,
+        limit: number
+    ): Promise<{ totalUserCount: number; userList: User[] }> {
         const canUserAccessImage = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
             imageId
@@ -846,7 +872,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
 
         const { error, response } = await promisifyGRPCCall(
             this.imageServiceDM.getUserCanVerifyImageListOfImageId.bind(this.imageServiceDM),
-            { imageId }
+            { imageId, offset, limit }
         );
         if (error !== null) {
             this.logger.error("failed to call image_service.getUserVerifyImageListOfImageId()", { error, imageId });
@@ -856,18 +882,22 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             );
         }
 
+        const totalUserCount = response?.totalUserCount || 0;
+
         const userList: User[] = [];
-        response?.userCanVerifyImageList?.forEach(async (item) => {
-            const user = await this.userInfoProvider.getUser(item.userId || 0);
-            if (user === null) {
-                this.logger.info("user with user_id not found", { userId: item.userId });
-                return;
+        if (response?.userCanVerifyImageList !== undefined) {
+            for (const item of response.userCanVerifyImageList) {
+                const user = await this.userInfoProvider.getUser(item.userId || 0);
+                if (user === null) {
+                    this.logger.info("user with user_id not found", { userId: item.userId });
+                    continue;
+                }
+
+                userList.push(User.fromProto(user));
             }
+        }
 
-            userList.push(User.fromProto(user));
-        });
-
-        return userList;
+        return { totalUserCount, userList };
     }
 
     public async createUserCanVerifyImage(
@@ -1000,6 +1030,7 @@ injected(
     MANAGE_SELF_AND_ALL_CAN_EDIT_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
     MANAGE_SELF_AND_ALL_CAN_EDIT_AND_VERIFY_CHECKER_TOKEN,
+    VERIFY_CHECKER_TOKEN,
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,

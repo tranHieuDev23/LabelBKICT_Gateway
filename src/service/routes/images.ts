@@ -21,6 +21,8 @@ import { getImageListFilterOptionsFromQueryParams } from "./utils";
 const IMAGES_UPLOAD_PERMISSION = "images.upload";
 const IMAGES_MANAGE_ALL_PERMISSION = "images.manage.all";
 const DEFAULT_GET_DETECTION_TASK_LIST_LIMIT = 10;
+const DEFAULT_GET_MANAGEABLE_USER_LIMIT = 10;
+const DEFAULT_GET_VERIFIABLE_USER_LIMIT = 10;
 
 export function getImagesRouter(
     imageManagementOperator: ImageManagementOperator,
@@ -134,7 +136,7 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const { image, imageTagList, regionList, canEdit } = await imageManagementOperator.getImage(
+            const { image, imageTagList, regionList, canEdit, canVerify } = await imageManagementOperator.getImage(
                 authenticatedUserInfo,
                 imageId
             );
@@ -143,6 +145,7 @@ export function getImagesRouter(
                 image_tag_list: imageTagList,
                 region_list: regionList,
                 can_edit: canEdit,
+                can_verify: canVerify,
             });
         })
     );
@@ -224,15 +227,20 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const userAndCanEditList = await imageManagementOperator.getUserCanManageImageList(
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_MANAGEABLE_USER_LIMIT);
+            const { totalUserCount, userList } = await imageManagementOperator.getUserCanManageImageList(
                 authenticatedUserInfo,
-                imageId
+                imageId,
+                offset,
+                limit
             );
-            res.json(
-                userAndCanEditList.map((item) => {
+            res.json({
+                total_user_count: totalUserCount,
+                user_list: userList.map((item) => {
                     return { user: item.user, can_edit: item.canEdit };
-                })
-            );
+                }),
+            });
         })
     );
 
@@ -244,13 +252,13 @@ export function getImagesRouter(
             const imageId = +req.params.imageId;
             const userId = +req.body.user_id;
             const canEdit = req.body.can_edit;
-            const response = await imageManagementOperator.createUserCanManageImage(
+            const manageableUser = await imageManagementOperator.createUserCanManageImage(
                 authenticatedUserInfo,
                 imageId,
                 userId,
                 canEdit
             );
-            res.json(response);
+            res.json({ user: manageableUser.user, can_edit: manageableUser.canEdit });
         })
     );
 
@@ -262,13 +270,13 @@ export function getImagesRouter(
             const imageId = +req.params.imageId;
             const userId = +req.params.userId;
             const canEdit = req.body.can_edit;
-            const response = await imageManagementOperator.updateUserCanManageImage(
+            const manageableUser = await imageManagementOperator.updateUserCanManageImage(
                 authenticatedUserInfo,
                 imageId,
                 userId,
                 canEdit
             );
-            res.json(response);
+            res.json({ user: manageableUser.user, can_edit: manageableUser.canEdit });
         })
     );
 
@@ -316,12 +324,20 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const userList = await imageManagementOperator.getUserCanVerifyImageList(authenticatedUserInfo, imageId);
-            res.json(
-                userList.map((user) => {
-                    return { user };
-                })
+            const offset = +(req.query.offset || 0);
+            const limit = +(req.query.limit || DEFAULT_GET_VERIFIABLE_USER_LIMIT);
+            const { totalUserCount, userList } = await imageManagementOperator.getUserCanVerifyImageList(
+                authenticatedUserInfo,
+                imageId,
+                offset,
+                limit
             );
+            res.json({
+                total_user_count: totalUserCount,
+                user_list: userList.map((user) => {
+                    return { user };
+                }),
+            });
         })
     );
 
@@ -332,12 +348,8 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             const userId = +req.body.user_id;
-            const response = await imageManagementOperator.createUserCanVerifyImage(
-                authenticatedUserInfo,
-                imageId,
-                userId
-            );
-            res.json(response);
+            const user = await imageManagementOperator.createUserCanVerifyImage(authenticatedUserInfo, imageId, userId);
+            res.json({ user });
         })
     );
 

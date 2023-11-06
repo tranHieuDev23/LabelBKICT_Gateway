@@ -15,6 +15,21 @@ get:
       schema:
         $ref: "../../../../../components/schemas/Image.yml#/properties/id"
       required: true
+    - name: offset
+      description: The index of the first item to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    - name: limit
+      description: The maximum number of items to be returned.
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
   responses:
     "200":
       description: Retrieved the list of users who are manually allowed to manage the image.
@@ -26,15 +41,21 @@ get:
       content:
         application/json:
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                user:
-                  $ref: "../../../../../components/schemas/User.yml"
-                can_edit:
-                  type: boolean
-                  description: If true, the user can edit the image. If false, the user can only view the image.
+            type: object
+            properties:
+              total_user_count:
+                type: number
+                description: The total number of users who are manually allowed to manage the image.
+              user_list:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      $ref: "../../../../../components/schemas/User.yml"
+                    can_edit:
+                      type: boolean
+                      description: If true, the user can edit the image. If false, the user can only view the image.
     "401":
       description: Failed to retrieve image because the user is not logged in.
     "403":

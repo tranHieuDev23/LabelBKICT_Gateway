@@ -43,8 +43,16 @@ get:
                 description: The list of regions in this image.
               can_edit:
                 type: boolean
-                description: If true, the user can edit the image. If false, the
-                  user can only view the image.
+                description:
+                  If true, the user is allowed to manage the image. This is true with either (1) the user has
+                  `images.manage.self` permission and is retrieving an image they uploaded or (2) the user has
+                  `images.manage.all` permission and is retrieving an image they are allowed to edit.
+              can_verify:
+                type: boolean
+                description:
+                  If true, the user is allowed to manage the image. This is true with either (1) the user has
+                  `images.manage.self` permission and is retrieving an image they uploaded or (2) the user has
+                  `images.manage.all` permission and is retrieving an image they are allowed to edit.
     "401":
       description: Failed to retrieve image because the user is not logged in.
     "403":
