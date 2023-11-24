@@ -290,7 +290,7 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
         const totalDetectionTaskCount = getDetectionTaskListResponse?.totalDetectionTaskCount || 0;
         const detectionTaskList: DetectionTask[] = [];
         for (const detectionTask of getDetectionTaskListResponse?.detectionTaskList || []) {
-            const { image } = await this.imageInfoProvider.getImage(detectionTask.ofImageId || 0, false, false);
+            const { image } = await this.imageInfoProvider.getImage(detectionTask.ofImageId || 0, false, false, false);
             detectionTaskList.push(
                 this.detectionTaskProtoToDetectionTaskConverter.convert(
                     detectionTask,

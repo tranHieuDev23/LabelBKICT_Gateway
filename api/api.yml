@@ -122,6 +122,10 @@ paths:
     $ref: "./paths/api/images/{image_id}/tags/{image_tag_id}/index.yml"
   "/api/images/{image_id}/bookmark":
     $ref: "./paths/api/images/{image_id}/bookmark/index.yml"
+  "/api/images/{image_id}/pois":
+    $ref: "./paths/api/images/{image_id}/pois/index.yml"
+  "/api/images/{image_id}/pois/{poi_id}":
+    $ref: "./paths/api/images/{image_id}/pois/{poi_id}/index.yml"
   "/api/images/{image_id}/regions":
     $ref: "./paths/api/images/{image_id}/regions/index.yml"
   "/api/images/{image_id}/regions/{region_id}":

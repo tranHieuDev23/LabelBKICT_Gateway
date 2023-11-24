@@ -19,6 +19,10 @@ import {
     RegionProtoToRegionConverter,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     User,
+    Vertex,
+    PointOfInterest,
+    PointOfInterestProtoToPointOfInterestConverter,
+    POINT_OF_INTEREST_PROTO_TO_POINT_OF_INTEREST_CONVERTER_TOKEN,
 } from "../schemas";
 import {
     MANAGE_SELF_AND_ALL_AND_VERIFY_CHECKER_TOKEN,
@@ -52,6 +56,7 @@ export interface ImageManagementOperator {
         image: Image;
         imageTagList: ImageTag[];
         regionList: Region[];
+        pointOfInterestList: PointOfInterest[];
         canEdit: boolean;
         canVerify: boolean;
     }>;
@@ -141,6 +146,24 @@ export interface ImageManagementOperator {
         userId: number
     ): Promise<void>;
     deleteImage(authenticatedUserInfo: AuthenticatedUserInformation, imageId: number): Promise<void>;
+    addPointOfInterestToImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        coordinate: Vertex,
+        description: string
+    ): Promise<PointOfInterest>;
+    updatePointOfInterestOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        poiId: number,
+        coordinate: Vertex,
+        description: string
+    ): Promise<PointOfInterest>;
+    deletePointOfInterestOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        poiId: number
+    ): Promise<void>;
 }
 
 export class ImageManagementOperatorImpl implements ImageManagementOperator {
@@ -154,6 +177,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         private readonly imageProtoToImageConverter: ImageProtoToImageConverter,
         private readonly regionProtoToRegionConverter: RegionProtoToRegionConverter,
         private readonly imageStatusToImageStatusProtoConverter: ImageStatusToImageStatusProtoConverter,
+        private readonly poiProtoToPOIConverter: PointOfInterestProtoToPointOfInterestConverter,
         private readonly imageServiceDM: ImageServiceClient,
         private readonly modelServiceDM: ModelServiceClient,
         private readonly logger: Logger
@@ -196,6 +220,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         image: Image;
         imageTagList: ImageTag[];
         regionList: Region[];
+        pointOfInterestList: PointOfInterest[];
         canEdit: boolean;
         canVerify: boolean;
     }> {
@@ -203,7 +228,8 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             image: imageProto,
             imageTagList: imageTagProtoList,
             regionList: regionProtoList,
-        } = await this.imageInfoProvider.getImage(imageId, true, true);
+            pointOfInterestList: pointOfInterestProtoList,
+        } = await this.imageInfoProvider.getImage(imageId, true, true, true);
 
         const canUserAccessImage = await this.manageSelfAndAllAndVerifyChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
@@ -222,13 +248,16 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         const regionList = await Promise.all(
             (regionProtoList || []).map((regionProto) => this.regionProtoToRegionConverter.convert(regionProto))
         );
+        const pointOfInterestList = await Promise.all(
+            (pointOfInterestProtoList || []).map((poiProto) => this.poiProtoToPOIConverter.convert(poiProto))
+        );
         const canEdit = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImage(
             authenticatedUserInfo,
             imageId
         );
         const canVerify = await this.verifyChecker.checkUserHasPermissionForImage(authenticatedUserInfo, imageId);
 
-        return { image, imageTagList, regionList, canEdit, canVerify };
+        return { image, imageTagList, regionList, pointOfInterestList, canEdit, canVerify };
     }
 
     public async getImageRegionSnapshotList(
@@ -709,7 +738,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.FORBIDDEN);
         }
 
-        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false, false);
         if (image === null) {
             this.logger.error("no image found with the provided image_id", { imageId });
             throw new ErrorWithHTTPCode("Failed to create user can manage image", httpStatus.NOT_FOUND);
@@ -764,7 +793,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.FORBIDDEN);
         }
 
-        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false, false);
         if (image === null) {
             this.logger.error("no image found with the provided image_id", { imageId });
             throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.NOT_FOUND);
@@ -818,7 +847,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.FORBIDDEN);
         }
 
-        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false, false);
         if (image === null) {
             this.logger.error("no image found with the provided image_id", { imageId });
             throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.NOT_FOUND);
@@ -917,7 +946,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.FORBIDDEN);
         }
 
-        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false, false);
         if (image === null) {
             this.logger.error("no image found with the provided image_id", { imageId });
             throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.NOT_FOUND);
@@ -966,7 +995,7 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.FORBIDDEN);
         }
 
-        const { image } = await this.imageInfoProvider.getImage(imageId, false, false);
+        const { image } = await this.imageInfoProvider.getImage(imageId, false, false, false);
         if (image === null) {
             this.logger.error("no image found with the provided image_id", { imageId });
             throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.NOT_FOUND);
@@ -1021,6 +1050,126 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to delete image", getHttpCodeFromGRPCStatus(deleteImageError.code));
         }
     }
+
+    public async addPointOfInterestToImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        coordinate: Vertex,
+        description: string
+    ): Promise<PointOfInterest> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to delete image", httpStatus.FORBIDDEN);
+        }
+
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceDM.createPointOfInterest.bind(this.imageServiceDM),
+            {
+                ofImageId: imageId,
+                createdByUserId: authenticatedUserInfo.user.id,
+                coordinate: coordinate,
+                description: description,
+            }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.createPointOfInterest", {
+                ofImageId: imageId,
+                createdByUserId: authenticatedUserInfo.user.id,
+                coordinate: coordinate,
+                description: description,
+                error: error,
+            });
+            throw ErrorWithHTTPCode.wrapWithStatus(error, getHttpCodeFromGRPCStatus(error.code));
+        }
+
+        const poi = await this.poiProtoToPOIConverter.convert(response?.poi);
+        return poi;
+    }
+
+    public async updatePointOfInterestOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        poiId: number,
+        coordinate: Vertex,
+        description: string
+    ): Promise<PointOfInterest> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to delete image", httpStatus.FORBIDDEN);
+        }
+
+        const { error, response } = await promisifyGRPCCall(
+            this.imageServiceDM.updatePointOfInterest.bind(this.imageServiceDM),
+            {
+                ofImageId: imageId,
+                id: poiId,
+                createdByUserId: authenticatedUserInfo.user.id,
+                coordinate: coordinate,
+                description: description,
+            }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.updatePointOfInterest", {
+                ofImageId: imageId,
+                id: poiId,
+                createdByUserId: authenticatedUserInfo.user.id,
+                coordinate: coordinate,
+                description: description,
+                error: error,
+            });
+            throw ErrorWithHTTPCode.wrapWithStatus(error, getHttpCodeFromGRPCStatus(error.code));
+        }
+
+        const poi = await this.poiProtoToPOIConverter.convert(response?.poi);
+        return poi;
+    }
+
+    public async deletePointOfInterestOfImage(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageId: number,
+        poiId: number
+    ): Promise<void> {
+        const canUserAccessImage = await this.manageSelfAndAllCanEditAndVerifyChecker.checkUserHasPermissionForImage(
+            authenticatedUserInfo,
+            imageId
+        );
+        if (!canUserAccessImage) {
+            this.logger.error("user is not allowed to access image", {
+                userId: authenticatedUserInfo.user.id,
+                imageId,
+            });
+            throw new ErrorWithHTTPCode("Failed to delete image", httpStatus.FORBIDDEN);
+        }
+
+        const { error } = await promisifyGRPCCall(this.imageServiceDM.deletePointOfInterest.bind(this.imageServiceDM), {
+            ofImageId: imageId,
+            id: poiId,
+            createdByUserId: authenticatedUserInfo.user.id,
+        });
+        if (error !== null) {
+            this.logger.error("failed to call image_service.deletePointOfInterest", {
+                ofImageId: imageId,
+                id: poiId,
+                createdByUserId: authenticatedUserInfo.user.id,
+                error: error,
+            });
+            throw ErrorWithHTTPCode.wrapWithStatus(error, getHttpCodeFromGRPCStatus(error.code));
+        }
+    }
 }
 
 injected(
@@ -1034,6 +1183,7 @@ injected(
     IMAGE_PROTO_TO_IMAGE_CONVERTER_TOKEN,
     REGION_PROTO_TO_REGION_CONVERTER_TOKEN,
     IMAGE_STATUS_TO_IMAGE_STATUS_PROTO_CONVERTER_TOKEN,
+    POINT_OF_INTEREST_PROTO_TO_POINT_OF_INTEREST_CONVERTER_TOKEN,
     IMAGE_SERVICE_DM_TOKEN,
     MODEL_SERVICE_DM_TOKEN,
     LOGGER_TOKEN

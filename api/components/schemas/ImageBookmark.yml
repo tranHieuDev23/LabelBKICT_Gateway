@@ -5,3 +5,4 @@ properties:
   description:
     type: string
     description: The description an user added to an image bookmark.
+    maxLength: 8192

@@ -31,6 +31,10 @@ import {
     DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN,
     DetectionTaskProtoToDetectionTaskConverterImpl,
 } from "./detection_task_proto_to_detection_task";
+import {
+    POINT_OF_INTEREST_PROTO_TO_POINT_OF_INTEREST_CONVERTER_TOKEN,
+    PointOfInterestProtoToPointOfInterestConverterImpl,
+} from "./point_of_interest_proto_to_point_of_interest";
 
 export * from "./user_id_to_user";
 export * from "./image_proto_to_image";
@@ -43,6 +47,7 @@ export * from "./pinned_page_proto_to_pinned_page";
 export * from "./user_can_manage_user_image_proto_to_user_can_manage_user_image";
 export * from "./user_can_verify_user_image_proto_to_user_can_verify_user_image";
 export * from "./detection_task_proto_to_detection_task";
+export * from "./point_of_interest_proto_to_point_of_interest";
 
 export function bindToContainer(container: Container): void {
     container.bind(USER_ID_TO_USER_CONVERTER_TOKEN).toInstance(UserIdToUserConverterImpl).inSingletonScope();
@@ -82,5 +87,9 @@ export function bindToContainer(container: Container): void {
     container
         .bind(DETECTION_TASK_PROTO_TO_DETECTION_TASK_CONVERTER_TOKEN)
         .toInstance(DetectionTaskProtoToDetectionTaskConverterImpl)
+        .inSingletonScope();
+    container
+        .bind(POINT_OF_INTEREST_PROTO_TO_POINT_OF_INTEREST_CONVERTER_TOKEN)
+        .toInstance(PointOfInterestProtoToPointOfInterestConverterImpl)
         .inSingletonScope();
 }

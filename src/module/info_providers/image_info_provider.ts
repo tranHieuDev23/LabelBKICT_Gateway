@@ -9,22 +9,31 @@ import { Region } from "../../proto/gen/Region";
 import { ErrorWithHTTPCode, getHttpCodeFromGRPCStatus, LOGGER_TOKEN, promisifyGRPCCall } from "../../utils";
 import { ImageBookmark } from "../schemas";
 import { status } from "@grpc/grpc-js";
+import { PointOfInterest } from "../../proto/gen/PointOfInterest";
 
 export interface ImageInfoProvider {
     getImage(
         imageId: number,
         withImageTag: boolean,
-        withRegion: boolean
+        withRegion: boolean,
+        withPointOfInterest: boolean
     ): Promise<{
         image: Image;
         imageTagList: ImageTag[] | undefined;
         regionList: Region[] | undefined;
+        pointOfInterestList: PointOfInterest[] | undefined;
     }>;
     getImageList(
         imageIdList: number[],
         withImageTag: boolean,
-        withRegion: boolean
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] | undefined; regionList: Region[][] | undefined }>;
+        withRegion: boolean,
+        withPointOfInterest: boolean
+    ): Promise<{
+        imageList: Image[];
+        imageTagList: ImageTag[][] | undefined;
+        regionList: Region[][] | undefined;
+        pointOfInterestList: PointOfInterest[][] | undefined;
+    }>;
     getUserBookmark(userId: number, imageId: number): Promise<ImageBookmark | null>;
 }
 
@@ -34,15 +43,17 @@ export class ImageInfoProviderImpl implements ImageInfoProvider {
     public async getImage(
         imageId: number,
         withImageTag: boolean,
-        withRegion: boolean
+        withRegion: boolean,
+        withPointOfInterest: boolean
     ): Promise<{
         image: Image;
         imageTagList: ImageTag[] | undefined;
         regionList: Region[] | undefined;
+        pointOfInterestList: PointOfInterest[] | undefined;
     }> {
         const { error: getImageError, response: getImageResponse } = await promisifyGRPCCall(
             this.imageServiceDM.getImage.bind(this.imageServiceDM),
-            { id: imageId, withImageTag, withRegion }
+            { id: imageId, withImageTag, withRegion, withPointOfInterest }
         );
         if (getImageError !== null) {
             this.logger.error("failed to call image_service.getImage()", {
@@ -65,21 +76,31 @@ export class ImageInfoProviderImpl implements ImageInfoProvider {
             image: getImageResponse.image,
             imageTagList: getImageResponse.imageTagList,
             regionList: getImageResponse.regionList,
+            pointOfInterestList: getImageResponse.pointOfInterestList,
         };
     }
 
     public async getImageList(
         imageIdList: number[],
         withImageTag: boolean,
-        withRegion: boolean
-    ): Promise<{ imageList: Image[]; imageTagList: ImageTag[][] | undefined; regionList: Region[][] | undefined }> {
+        withRegion: boolean,
+        withPointOfInterest: boolean
+    ): Promise<{
+        imageList: Image[];
+        imageTagList: ImageTag[][] | undefined;
+        regionList: Region[][] | undefined;
+        pointOfInterestList: PointOfInterest[][] | undefined;
+    }> {
         const getImageResultList = await Promise.all(
-            imageIdList.map((imageId) => this.getImage(imageId, withImageTag, withRegion))
+            imageIdList.map((imageId) => this.getImage(imageId, withImageTag, withRegion, withPointOfInterest))
         );
         const imageList = getImageResultList.map((result) => result.image);
         const imageTagList = withImageTag ? getImageResultList.map((result) => result.imageTagList || []) : undefined;
         const regionList = withRegion ? getImageResultList.map((result) => result.regionList || []) : undefined;
-        return { imageList, imageTagList, regionList };
+        const pointOfInterestList = withPointOfInterest
+            ? getImageResultList.map((result) => result.pointOfInterestList || [])
+            : undefined;
+        return { imageList, imageTagList, regionList, pointOfInterestList };
     }
 
     public async getUserBookmark(userId: number, imageId: number): Promise<ImageBookmark | null> {

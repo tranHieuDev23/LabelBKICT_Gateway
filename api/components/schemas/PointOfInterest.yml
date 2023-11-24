@@ -1,0 +1,20 @@
+type: object
+description: A point of interest on an image on the system.
+properties:
+  id:
+    type: integer
+    description: Point of Interest ID, should be unique across all point of interest.
+  created_by_user:
+    $ref: "./User.yml"
+  created_time:
+    type: integer
+    description: The time when the point of interest was created.
+  updated_time:
+    type: integer
+    description: The time when the point of interest was last updated.
+  coordinate:
+    $ref: "./Point.yml"
+  description:
+    type: string
+    description: The description for the point of interest.
+    maxLength: 8192

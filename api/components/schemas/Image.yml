@@ -32,6 +32,7 @@ properties:
   description:
     type: string
     description: The description for the image.
+    maxLength: 8192
   image_type:
     $ref: "./ImageType.yml"
   status:

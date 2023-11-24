@@ -8,7 +8,7 @@ import {
     IMAGE_MANAGEMENT_OPERATOR_TOKEN,
 } from "../../module/images";
 import { RegionManagementOperator, REGION_MANAGEMENT_OPERATOR_TOKEN } from "../../module/regions";
-import { Polygon } from "../../module/schemas";
+import { Polygon, Vertex } from "../../module/schemas";
 import {
     AuthenticatedUserInformation,
     AuthMiddlewareFactory,
@@ -136,14 +136,13 @@ export function getImagesRouter(
         asyncHandler(async (req, res) => {
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
-            const { image, imageTagList, regionList, canEdit, canVerify } = await imageManagementOperator.getImage(
-                authenticatedUserInfo,
-                imageId
-            );
+            const { image, imageTagList, regionList, pointOfInterestList, canEdit, canVerify } =
+                await imageManagementOperator.getImage(authenticatedUserInfo, imageId);
             res.json({
                 image: image,
                 image_tag_list: imageTagList,
                 region_list: regionList,
+                point_of_interest_list: pointOfInterestList,
                 can_edit: canEdit,
                 can_verify: canVerify,
             });
@@ -473,6 +472,56 @@ export function getImagesRouter(
             const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
             const imageId = +req.params.imageId;
             await imageManagementOperator.deleteImageBookmark(authenticatedUserInfo, imageId);
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/images/:imageId/pois",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const coordinate = new Vertex(req.body.coordinate.x || 0, req.body.coordinate.y || 0);
+            const description = req.body.description || "";
+            const poi = await imageManagementOperator.addPointOfInterestToImage(
+                authenticatedUserInfo,
+                imageId,
+                coordinate,
+                description
+            );
+            res.json({ point_of_interest: poi });
+        })
+    );
+
+    router.patch(
+        "/api/images/:imageId/pois/:poiId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const podId = +req.params.poiId;
+            const coordinate = new Vertex(req.body.coordinate.x || 0, req.body.coordinate.y || 0);
+            const description = req.body.description || "";
+            const poi = await imageManagementOperator.updatePointOfInterestOfImage(
+                authenticatedUserInfo,
+                imageId,
+                podId,
+                coordinate,
+                description
+            );
+            res.json({ point_of_interest: poi });
+        })
+    );
+
+    router.delete(
+        "/api/images/:imageId/pois/:poiId",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageId = +req.params.imageId;
+            const podId = +req.params.poiId;
+            await imageManagementOperator.deletePointOfInterestOfImage(authenticatedUserInfo, imageId, podId);
             res.json({});
         })
     );

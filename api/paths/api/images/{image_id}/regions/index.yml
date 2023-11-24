@@ -48,7 +48,9 @@ post:
       content:
         application/json:
           schema:
-            $ref: "../../../../../components/schemas/Region.yml"
+            properties:
+              region:
+                $ref: "../../../../../components/schemas/Region.yml"
     "400":
       description: Failed to update image because the provided information does
         not satisfy the constraints.

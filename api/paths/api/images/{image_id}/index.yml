@@ -41,6 +41,11 @@ get:
                 items:
                   $ref: "../../../../components/schemas/Region.yml"
                 description: The list of regions in this image.
+              point_of_interest_list:
+                type: array
+                items:
+                  $ref: "../../../../components/schemas/PointOfInterest.yml"
+                description: The list of points of interest in this image.
               can_edit:
                 type: boolean
                 description:

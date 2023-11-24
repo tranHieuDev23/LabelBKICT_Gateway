@@ -14,6 +14,7 @@ properties:
   description:
     type: string
     description: User-inputted description for the pinned page.
+    maxLength: 8192
   screenshot_url:
     type: string
     description: An URL to the screenshot of the pinned page at the time of
