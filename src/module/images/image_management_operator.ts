@@ -805,11 +805,6 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.NOT_FOUND);
         }
 
-        if (image.uploadedByUserId === user.id) {
-            this.logger.error("user is already the uploader of the image", { imageId, userId });
-            throw new ErrorWithHTTPCode("Failed to update user can manage image", httpStatus.BAD_REQUEST);
-        }
-
         const { error } = await promisifyGRPCCall(
             this.imageServiceDM.updateUserCanManageImage.bind(this.imageServiceDM),
             { userId, imageId, canEdit }
@@ -857,11 +852,6 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         if (user === null) {
             this.logger.error("no user found with the provided user_id", { userId });
             throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.NOT_FOUND);
-        }
-
-        if (image.uploadedByUserId === user.id) {
-            this.logger.error("user is already the uploader of the image", { imageId, userId });
-            throw new ErrorWithHTTPCode("Failed to delete user can manage image", httpStatus.BAD_REQUEST);
         }
 
         const { error } = await promisifyGRPCCall(
@@ -958,11 +948,6 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
             throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.NOT_FOUND);
         }
 
-        if (image.uploadedByUserId === user.id) {
-            this.logger.error("user is already the uploader of the image", { imageId, userId });
-            throw new ErrorWithHTTPCode("Failed to create user can verify image", httpStatus.BAD_REQUEST);
-        }
-
         const { error } = await promisifyGRPCCall(
             this.imageServiceDM.createUserCanVerifyImage.bind(this.imageServiceDM),
             { userId, imageId }
@@ -1005,11 +990,6 @@ export class ImageManagementOperatorImpl implements ImageManagementOperator {
         if (user === null) {
             this.logger.error("no user found with the provided user_id", { userId });
             throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.NOT_FOUND);
-        }
-
-        if (image.uploadedByUserId === user.id) {
-            this.logger.error("user is already the uploader of the image", { imageId, userId });
-            throw new ErrorWithHTTPCode("Failed to delete user can verify image", httpStatus.BAD_REQUEST);
         }
 
         const { error } = await promisifyGRPCCall(
