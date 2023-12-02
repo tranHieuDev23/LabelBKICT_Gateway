@@ -405,6 +405,40 @@ export function getImagesRouter(
     );
 
     router.post(
+        "/api/images/manageable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list;
+            const userIdList = req.body.user_id_list;
+            const canEdit = req.body.can_edit || false;
+            await imageListManagementOperator.addManageableUserListToImageList(
+                authenticatedUserInfo,
+                imageIdList,
+                userIdList,
+                canEdit
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
+        "/api/images/verifiable-users",
+        userLoggedInAuthMiddleware,
+        asyncHandler(async (req, res) => {
+            const authenticatedUserInfo = res.locals.authenticatedUserInformation as AuthenticatedUserInformation;
+            const imageIdList = req.body.image_id_list;
+            const userIdList = req.body.user_id_list;
+            await imageListManagementOperator.addVerifiableUserListToImageList(
+                authenticatedUserInfo,
+                imageIdList,
+                userIdList
+            );
+            res.json({});
+        })
+    );
+
+    router.post(
         "/api/images/:imageId/tags",
         userLoggedInAuthMiddleware,
         asyncHandler(async (req, res) => {

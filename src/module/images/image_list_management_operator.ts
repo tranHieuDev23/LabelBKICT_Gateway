@@ -155,6 +155,17 @@ export interface ImageListManagementOperator {
         imageIdList: number[],
         imageTagIdList: number[]
     ): Promise<void>;
+    addManageableUserListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        userIdList: number[],
+        canEdit: boolean
+    ): Promise<void>;
+    addVerifiableUserListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        userIdList: number[]
+    ): Promise<void>;
 }
 
 export class ImageListManagementOperatorImpl implements ImageListManagementOperator {
@@ -776,18 +787,90 @@ export class ImageListManagementOperatorImpl implements ImageListManagementOpera
             throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
         }
 
-        const { error: addImageTagListToImageListError } = await promisifyGRPCCall(
+        const { error } = await promisifyGRPCCall(
             this.imageServiceDM.addImageTagListToImageList.bind(this.imageServiceDM),
             { imageIdList, imageTagIdList }
         );
-        if (addImageTagListToImageListError !== null) {
+        if (error !== null) {
             this.logger.error("failed to call image_service.addImageTagListToImageList()", {
                 userId: authenticatedUserInfo.user.id,
                 imageIdList,
+                imageTagIdList,
+                error,
             });
             throw new ErrorWithHTTPCode(
                 "Failed to add image tag list to image list",
-                getHttpCodeFromGRPCStatus(addImageTagListToImageListError.code)
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+    }
+
+    public async addManageableUserListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        userIdList: number[],
+        canEdit: boolean
+    ): Promise<void> {
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageIdList
+        );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.createUserListCanManageImageList.bind(this.imageServiceDM),
+            { imageIdList, userIdList, canEdit }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.createUserListCanManageImageList()", {
+                userId: authenticatedUserInfo.user.id,
+                imageIdList,
+                userIdList,
+                canEdit,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to add manageable user list to image list",
+                getHttpCodeFromGRPCStatus(error.code)
+            );
+        }
+    }
+
+    public async addVerifiableUserListToImageList(
+        authenticatedUserInfo: AuthenticatedUserInformation,
+        imageIdList: number[],
+        userIdList: number[]
+    ): Promise<void> {
+        const canUserAccessImageList = await this.manageSelfAndAllCanEditChecker.checkUserHasPermissionForImageList(
+            authenticatedUserInfo,
+            imageIdList
+        );
+        if (!canUserAccessImageList) {
+            this.logger.error("user is not allowed to access image list", {
+                userId: authenticatedUserInfo.user.id,
+            });
+            throw new ErrorWithHTTPCode("Failed to update image list", httpStatus.FORBIDDEN);
+        }
+
+        const { error } = await promisifyGRPCCall(
+            this.imageServiceDM.createUserListCanVerifyImageList.bind(this.imageServiceDM),
+            { imageIdList, userIdList }
+        );
+        if (error !== null) {
+            this.logger.error("failed to call image_service.createUserListCanVerifyImageList()", {
+                userId: authenticatedUserInfo.user.id,
+                imageIdList,
+                userIdList,
+                error,
+            });
+            throw new ErrorWithHTTPCode(
+                "Failed to add verifiable user list to image list",
+                getHttpCodeFromGRPCStatus(error.code)
             );
         }
     }
