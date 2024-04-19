@@ -18,7 +18,6 @@
   "author": "tranhieu23.code@outlook.com",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^8.4.0",
     "@grpc/grpc-js": "^1.5.5",
     "@grpc/proto-loader": "^0.6.9",
     "@zapier/secret-scrubber": "^1.0.5",
@@ -31,8 +30,7 @@
     "express-openapi-validator": "^4.13.6",
     "http-status": "^1.5.0",
     "winston": "^3.6.0",
-    "winston-daily-rotate-file": "^4.6.1",
-    "winston-elasticsearch": "^0.17.1"
+    "winston-daily-rotate-file": "^4.6.1"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
